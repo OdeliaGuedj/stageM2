@@ -9,13 +9,18 @@ Pour les evt == 1 time_to_event = nbr de jours entre inclusion et evenement
 Pour les evt == 0 time_to_event = nbr de jours total d'observation du sujet = nbr de jour entre inclusion et date de dernières nouvelles
 
 ```{r}
-data$time_to_death = difftime(data$date_deces, data$datinclu, unit = "days")
-data$time_to_stroke = difftime(data$date_stroke, data$datinclu, unit = "days")
-data$time_to_aomi = difftime(data$date_aomi, data$datinclu, unit = "days")
-data$time_to_chd = difftime(data$date_chd, data$datinclu, unit = "days")
-data$time_to_tdr = difftime(data$date_tdr, data$datinclu, unit = "days")
+data$time_to_deces = as.numeric(difftime(data$date_deces, data$datinclu, unit = "days"))
+data$time_to_stroke = as.numeric(difftime(data$date_stroke, data$datinclu, unit = "days"))
+data$time_to_aomi = as.numeric(difftime(data$date_aomi, data$datinclu, unit = "days"))
+data$time_to_chd = as.numeric(difftime(data$date_chd, data$datinclu, unit = "days"))
+data$time_to_tdr = as.numeric(difftime(data$date_tdr, data$datinclu, unit = "days"))
 ```
 
+```{r}
+for(evt in var_evt){
+  data[,evt] = as.numeric(as.character(data[,evt]))
+}
+```
 
 
 # 3. Modeles de cox
@@ -33,48 +38,40 @@ Mais convenu avec JPE (mais bon vite fait au tel):
 3. Modèle 2: Modèle 1 + tabac + bmi + hdl
 4. Modèle 3: Modèle 2 + mean blood pressure
 
-
+```{r}
+param_carotid = c("logain", "coeffDist", "logyoung","imt___m_", "dextdias", "stiffness", "pr_sence_de_plaque_s____l__cho")
+```
 ```{r}
 extract_coxReg = function(cox_model){
   summary = summary(cox_model) 
   df = data.frame("Names" = rownames(summary$coefficients),
                   "HR" = round(summary$conf.int[,1],2),
-                  "IC" = paste0("[", round(summary$conf.int[,3],2), " ; ", round(summary$conf.int[,4],2), "]"),
+                  "IC" = paste0("[", round(summary$conf.int[,3],3), " ; ", round(summary$conf.int[,4],3), "]"),
                   "p.value" = signif(summary$coefficient[,5],3),
                   "Signif" = ifelse(summary$coefficient[,5] <= 0.05, "*"," "))
-  return(kable(df, row.names = F))
-}
-```
-
-
-```{r}
-models = function(list_param,list_evt,formula){
-  list_mod = list()
-  for(param in list_param){
-    for(evt in list_evt){
-      mod = coxph(Surv(paste0("time_to_",evt), evt) ~ param + formula, data = data)
-      list_mod[1] = extract_coxReg(mod)
-    }
-  }
+  return(df)
 }
 ```
 ```{r}
-models(c("logyoung"),c("chd"), "sexe + age0")
+cox_univar = function(time, var, evt, dt){
+  time = as.numeric(as.character(dt[,time]))
+  evt = as.numeric(as.character(dt[,evt]))
+  model = coxph(Surv(time,evt) ~ dt[,var], data = dt)
+  return(extract_coxReg(model))
+}
 ```
 ```{r}
-paste0("time_to_",evt)
-class(data$time_to_stroke)
-data$time_to_stroke = as.numeric(data$time_to_stroke)
-data$stroke = as.numeric(as.character(data$stroke))
-class(data$stroke)
-evt = "stroke"
-param = "logyoung"
-formula = "sexe + age0"
-mod = coxph(Surv(paste0("time_to_",evt), evt) ~ param + formula, data = data)
+res = data.frame()
+for(v in param_carotid){
+  print(v)
+  #tmp =  cox_univar("time_to_deces", v ,"deces", data)
+  #res = rind(res,tmp)
+  res = rbind(res,cox_univar("time_to_deces", v ,"deces", data))
+}
+res
 ```
-```{r}
-mod = coxph(Surv(paste0("time_to_",evt), evt) ~ logyoung, data = data)
-```
+
+
 
 
 ## 3.1 Les modèles des analyses déjà effectuées (uniquement à baseline)
