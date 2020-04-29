@@ -1,0 +1,153 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# 1. Creation des variables time_to_event 
+
+Pour les evt == 1 time_to_event = nbr de jours entre inclusion et evenement
+Pour les evt == 0 time_to_event = nbr de jours total d'observation du sujet = nbr de jour entre inclusion et date de dernières nouvelles
+
+```{r}
+data$time_to_death = difftime(data$date_deces, data$datinclu, unit = "days")
+data$time_to_stroke = difftime(data$date_stroke, data$datinclu, unit = "days")
+data$time_to_aomi = difftime(data$date_aomi, data$datinclu, unit = "days")
+data$time_to_chd = difftime(data$date_chd, data$datinclu, unit = "days")
+data$time_to_tdr = difftime(data$date_tdr, data$datinclu, unit = "days")
+```
+
+
+
+# 3. Modeles de cox
+
+Les analyses déjà faites avaient la structure suivante (manque la créatinine: bio10 !!)
+1. Univarié
+2. Modèle 1: age + sexe + tabac + activité physique
+3. Modèle 2: Modèle 1 + diabète + créatinine
+4. Modèle 3: Modèle 2 + bmi
+5. Modèle 4: Modèle 3 + mean blood pressure
+
+Mais convenu avec JPE (mais bon vite fait au tel):
+1. Univarié
+2. Modèle 1: age + sexe + educ + statut marital
+3. Modèle 2: Modèle 1 + tabac + bmi + hdl
+4. Modèle 3: Modèle 2 + mean blood pressure
+
+
+```{r}
+extract_coxReg = function(cox_model){
+  summary = summary(cox_model) 
+  df = data.frame("Names" = rownames(summary$coefficients),
+                  "HR" = round(summary$conf.int[,1],2),
+                  "IC" = paste0("[", round(summary$conf.int[,3],2), " ; ", round(summary$conf.int[,4],2), "]"),
+                  "p.value" = signif(summary$coefficient[,5],3),
+                  "Signif" = ifelse(summary$coefficient[,5] <= 0.05, "*"," "))
+  return(kable(df, row.names = F))
+}
+```
+
+
+```{r}
+models = function(list_param,list_evt,formula){
+  list_mod = list()
+  for(param in list_param){
+    for(evt in list_evt){
+      mod = coxph(Surv(paste0("time_to_",evt), evt) ~ param + formula, data = data)
+      list_mod[1] = extract_coxReg(mod)
+    }
+  }
+}
+```
+```{r}
+models(c("logyoung"),c("chd"), "sexe + age0")
+```
+```{r}
+paste0("time_to_",evt)
+class(data$time_to_stroke)
+data$time_to_stroke = as.numeric(data$time_to_stroke)
+data$stroke = as.numeric(as.character(data$stroke))
+class(data$stroke)
+evt = "stroke"
+param = "logyoung"
+formula = "sexe + age0"
+mod = coxph(Surv(paste0("time_to_",evt), evt) ~ param + formula, data = data)
+```
+```{r}
+mod = coxph(Surv(paste0("time_to_",evt), evt) ~ logyoung, data = data)
+```
+
+
+## 3.1 Les modèles des analyses déjà effectuées (uniquement à baseline)
+
+### 3.1.1  Log_young
+
+#### 3.1.1.1 Deces
+
+```{r}
+data$deces = as.numeric(as.character(data$deces))
+logyoung_deces_univar = coxph(Surv(time_to_death,deces)~ logyoung, data = data)
+logyoung_deces_mod1 = coxph(Surv(time_to_death,deces)~ logyoung + age0 + sexe + qm16 + qm10, data = data)
+logyoung_deces_mod2 = coxph(Surv(time_to_death,deces)~ logyoung + age0 + sexe + qm16 +  qm10 + diab + bio10, data = data)
+logyoung_deces_mod3 = coxph(Surv(time_to_death,deces)~ logyoung + age0 + sexe + qm16 +  qm10 + diab + bio10 + bmi, data = data)
+logyoung_deces_mod4 = coxph(Surv(time_to_death,deces)~ logyoung + age0 + sexe + qm16 +  qm10 + diab + bio10 + bmi + mbp, data = data)
+```
+```{r}
+summary(logyoung_deces_univar)
+summary(logyoung_deces_mod4)
+```
+
+### 3.1.2. stroke
+
+```{r}
+data$stroke = as.numeric(as.character(data$stroke))
+logyoung_stroke_univar = coxph(Surv(time_to_stroke,stroke)~ log_young, data = data)
+logyoung_stroke_mod1 = coxph(Surv(time_to_stroke,stroke)~ log_young + age0 + sexe + qm16 + qm10, data = data)
+logyoung_stroke_mod2 = coxph(Surv(time_to_stroke,stroke)~ log_young + age0 + sexe + qm16 +  qm10 + diab + bio10, data = data)
+logyoung_stroke_mod3 = coxph(Surv(time_to_stroke,stroke)~ log_young + age0 + sexe + qm16 +  qm10 + diab + bio10 + bmi, data = data)
+logyoung_stroke_mod4 = coxph(Surv(time_to_stroke,stroke)~ log_young + age0 + sexe + qm16 +  qm10 + diab + bio10 + bmi + mbp, data = data)
+```
+```{r}
+summary(logyoung_stroke_univar)
+summary(logyoung_stroke_mod1)
+```
+
+### 3.1.3 chd
+
+```{r}
+data$chd = as.numeric(as.character(data$chd))
+logyoung_chd_univar = coxph(Surv(time_to_chd,chd)~ log_young, data = data)
+logyoung_chd_mod1 = coxph(Surv(time_to_chd,chd)~ log_young + age0 + sexe + qm16 + qm10, data = data)
+logyoung_chd_mod2 = coxph(Surv(time_to_chd,chd)~ log_young + age0 + sexe + qm16 +  qm10 + diab + bio10, data = data)
+logyoung_chd_mod3 = coxph(Surv(time_to_chd,chd)~ log_young + age0 + sexe + qm16 +  qm10 + diab + bio10 + bmi, data = data)
+logyoung_chd_mod4 = coxph(Surv(time_to_chd,chd)~ log_young + age0 + sexe + qm16 +  qm10 + diab + bio10 + bmi + mbp, data = data)
+```
+```{r}
+summary(logyoung_chd_univar)
+summary(logyoung_chd_mod1)
+```
+
+### 3.1.4 aomi
+```{r}
+data$aomi = as.numeric(as.character(data$aomi))
+logyoung_aomi_univar = coxph(Surv(time_to_aomi,aomi)~ log_young, data = data)
+logyoung_aomi_mod1 = coxph(Surv(time_to_aomi,aomi)~ log_young + age0 + sexe + qm16 + qm10, data = data)
+logyoung_aomi_mod2 = coxph(Surv(time_to_aomi,aomi)~ log_young + age0 + sexe + qm16 +  qm10 + diab + bio10, data = data)
+logyoung_aomi_mod3 = coxph(Surv(time_to_aomi,aomi)~ log_young + age0 + sexe + qm16 +  qm10 + diab + bio10 + bmi, data = data)
+logyoung_aomi_mod4 = coxph(Surv(time_to_aomi,aomi)~ log_young + age0 + sexe + qm16 +  qm10 + diab + bio10 + bmi + mbp, data = data)
+```
+
+
+### 3.1.5 tdr
+```{r}
+data$tdr = as.numeric(as.character(data$tdr))
+logyoung_tdr_univar = coxph(Surv(time_to_tdr,tdr)~ log_young, data = data)
+logyoung_tdr_mod1 = coxph(Surv(time_to_tdr,tdr)~ log_young + age0 + sexe + qm16 + qm10, data = data)
+logyoung_tdr_mod2 = coxph(Surv(time_to_tdr,tdr)~ log_young + age0 + sexe + qm16 +  qm10 + diab + bio10, data = data)
+logyoung_tdr_mod3 = coxph(Surv(time_to_tdr,tdr)~ log_young + age0 + sexe + qm16 +  qm10 + diab + bio10 + bmi, data = data)
+logyoung_tdr_mod4 = coxph(Surv(time_to_tdr,tdr)~ log_young + age0 + sexe + qm16 +  qm10 + diab + bio10 + bmi + mbp, data = data)
+```
+
+
+
+
+

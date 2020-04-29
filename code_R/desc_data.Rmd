@@ -1,0 +1,264 @@
+---
+title: "Lecture données EPP3"
+output: html_notebook
+---
+
+# 0. Packages
+
+```{r}
+library(tidyverse)
+library(lubridate)
+library(survival)
+library(Hmisc)
+library(ggplot2)
+library(ggcorrplot)
+library(kableExtra)
+```
+
+# 1. Reading the data
+
+```{r}
+data = read.csv2("C:/Users/odeli/Desktop/stageM2/data/EPP3.csv", sep = ";", header = T)
+data_supp = read.csv2("C:/Users/odeli/Desktop/stageM2/data/EPP3_supp.csv", sep = ";", header = T)
+```
+```{r}
+data = cbind(data, data_supp[,3:13])
+```
+
+```{r}
+dim(data)
+```
+
+
+# 2. Types
+```{r}
+factor = c("sexe", "adm14", "qm9", "qm10", "qm16", "tdr","aomi","stroke","chd","deces", "deptot", "diab", "hypolip2", "antihta2", "educ","sens_hf_t_phase", "sens_phase_hf_c", "sens_phase", "qm34","qm35","qm36","qm37","qm38","qm39","qm40","qm41", "atcdcv", "pr_sence_de_plaque_s____l__cho")
+
+int = c("nepp3", "n__ipc")
+
+date = c("datnaiss", "datinclu", "date_tdr", "date_aomi", "date_stroke", "date_chd", "date_deces")
+```
+
+```{r}
+for(var in colnames(data)){
+  if(var %in% factor) {data[,var] = as.factor(data[,var])}
+  else if(var%in% int) data[,var] = as.integer(as.character(data[,var]))
+  else if(var %in% date) data[,var] = lubridate::dmy(data[,var])
+  else data[,var] = as.numeric(as.character(data[,var]))
+}
+rm(var)
+```
+
+
+
+# 3. Prevalence de maladies cariovasculaire
+
+8 catégories:
+- qm34 Infartcus du myocarde
+- qm35 Angine de poitrine
+- qm36 Souffle au coeur
+- qm37 Autre problème cardiaque
+- qm38 Maladie des artères
+- qm39 Phlébite
+- qm40 Embolie pulmonaire
+- qm41 AVC
+- atcdcv Antécédent cardiovasculaire (qm34 ou qm35 ou qm41)
+
+
+```{r}
+data$prevalence_cvd = 'tmp'
+for(i in 1: nrow(data)){
+  if(is.na(data$qm34[i]) | is.na(data$qm35[i]) | is.na(data$qm36[i]) | is.na(data$qm37[i]) | is.na(data$qm38[i]) | is.na(data$qm39[i]) | is.na(data$qm40[i]) | is.na(data$qm41[i]))
+      data$prevalence_cvd[i] = 0
+  else if(data$qm34[i] == 0 & data$qm35[i] == 0 & data$qm36[i] == 0 & data$qm37[i] == 0 & data$qm38[i] == 0 & data$qm39[i] == 0 & data$qm40[i] == 0 & data$qm41[i] == 0)
+    data$prevalence_cvd[i] = 0
+
+    else
+      data$prevalence_cvd[i] = 1
+}
+rm(i)
+data$prevalence_cvd = as.factor(data$prevalence_cvd)
+```
+
+
+
+
+```{r}
+pv_prev_cvd_evt = c(chisq.test(data$prevalence_cvd, data$deces)$p.value,chisq.test(data$prevalence_cvd, data$chd)$p.value,chisq.test(data$prevalence_cvd,data$stroke)$p.value,chisq.test(data$prevalence_cvd,data$aomi)$p.value,chisq.test(data$prevalence_cvd, data$tdr)$p.value)
+
+pv_atcdcv = c(chisq.test(data$atcdcv, data$deces)$p.value,chisq.test(data$atcdcv, data$chd)$p.value,chisq.test(data$atcdcv,data$stroke)$p.value,chisq.test(data$atcdcv,data$aomi)$p.value,chisq.test(data$atcdcv, data$tdr)$p.value)
+```
+```{r}
+plot(pv_atcdcv, col = "steelblue", ylab = "p.values", xlab = "")
+points(pv_prev_cvd_evt, col = "orange")
+abline(h = 0.05, col = "red")
+legend("topleft", title="Kind of event",
+   c("1: Death", "2: chd", "3: Stroke", "4: aomi", "5: tdr"))
+legend("topright" ,fill = c("steelblue", "orange"), c("Old","New"))
+```
+# 4. Ajout de variables générées
+
+```{r}
+data$logain = as.numeric(log(data$lf_gain_max*100))
+data$logyoung = as.numeric(log(data$young))
+data$dextdias = as.numeric(data$diam_tre_en_bm__mm_*1000)
+data$stiffness = as.numeric(sqrt(1/(data$coeffDist*1000)))
+data$mbp = as.numeric((data$pas_basale__mm_hg_ + 2*data$pad_basale__mm_hg_)/3) # mean blood pressure
+```
+
+# 5. Description des variables 
+
+
+```{r}
+desc_var_factor = function(var,dt, graph = F){
+  name = paste0(var," : " ,c(levels(dt[,var]), "NA"))
+  df = as.data.frame(cbind("Name" = name, 
+                           "N" = table(dt[,var], useNA = "always"), 
+                           "Prop" = signif(prop.table(table(dt[,var], useNA = "always"))*100, 3)))
+  df$N = as.numeric(as.character(df$N))
+  df$Prop = as.numeric(as.character(df$Prop))
+  row.names(df) =NULL
+  if(graph == F){return(df)}
+  else
+    ggplot(data=df, aes(x=Name, y= Prop)) + 
+    geom_bar(stat="identity", fill = "grey", col = "black") + 
+    geom_text(aes(label=Prop), vjust = -0.7, color="black", size=3.5) +
+    theme_minimal()
+}
+```
+
+
+```{r}
+desc_var_num = function(var, dt, graph = F){
+  # var : chaine de charactere : nom de la variable
+  df =  signif( data.frame( "Mean" = summary(dt[,var])[[4]], 
+                     "SD" = sd(dt[,var], na.rm = T),
+                     "Q1" = summary(dt[,var])[[2]],
+                     "Median" = summary(dt[,var])[[3]],
+                     "Q3" = summary(dt[,var])[[5]],
+                     "NA" = sum(is.na(dt[,var]))) ,3)
+  if(graph == F){return(df)}
+  else
+    ggplot(dt, aes(x=dt[,var])) + geom_histogram(color="black", fill="white")
+          
+}
+```
+
+desc_var_num("ldl", data, T)
+
+## 5.1 Variables autre que l'echo-tracking ou les evt CVD ou les var de prévalence
+
+
+```{r}
+autre_var_fact = c("sexe", "adm14", "qm9", "qm10", "qm16","educ", "antihta2", "hypolip2", "diab","deptot")
+autre_var_num = c("age0", "bio6", "trb17", "ldl", "epice", "bio10","mbp","bmi")
+```
+
+
+```{r}
+desc_autre_var_num = data.frame()
+for(var in autre_var_num){
+  desc_autre_var_num = rbind(desc_autre_var_num, desc_var_num(var, data))
+}
+rm(var)
+rownames(desc_autre_var_num) = autre_var_num
+desc_autre_var_num
+kable(desc_autre_var_num, "latex")
+```
+
+
+```{r}
+desc_autre_var_fact = data.frame()
+for(var in autre_var_fact){
+  desc_autre_var_fact = rbind(desc_autre_var_fact,desc_var_factor(var, data))
+}
+rm(var)
+desc_autre_var_fact
+kable(desc_autre_var_fact, "latex")
+```
+
+Signification de certaines variables:
+
+- adm14 = Niveau d'étude
+- qm9 = Activité physique estimée à 1 h de marche
+- qm10: Pratique régulière d'un sport
+- qm16 = statut tabagique
+- bio6 = chlesterol en mg/dL
+- trb17 = on conlesteril (hdl) mg/dL 
+- ldl mauvais cholesterol en mg/dL
+- antihta2 traitement antitensseur global
+- hypolip2 traitement hypolipémiant global
+- bio10 créatininémie
+
+
+## 5.2 Variables d'echo tracking
+
+
+```{r}
+var_echo_num = c("pas_basale__mm_hg_","pad_basale__mm_hg_", "fc_basale","diam_tre_en_bm__mm_","imt___m_","diam_tre_en_fbm__mm_","distension___m_","pwvloc", "dploc","dist_rate_moy","dist_rate_var","rr_int_moy","rr_int_var","lf_dist_rate_t","hf_dist_rate_t","hf_dist_rate_c","lf_rrint_t","hf_rr_int_t","hf_rrint_c","freq_resp","lf_coh_max","lf_coh_moy","lf_gain_max","lf_gain_moy","lf_phase","hf_c_coh_max","hf_c_coh_moy","hf_c_gain_max","hf_c_gain_moy","hf_c_phase","hf_t_coh_max","hf_t_coh_moy","hf_t_gain_max","hf_t_gain_moy","hf_t_phase","dist_moy","dist_var","cws","coeffDist","compli","wcsa","young","logain","logyoung","dextdias","stiffness")
+
+var_echo_fact = c("sens_phase","sens_phase_hf_c","sens_hf_t_phase","pr_sence_de_plaque_s____l__cho")
+```
+
+
+```{r}
+desc_var_echo_num = data.frame()
+for(var in var_echo_num){
+  desc_var_echo_num = rbind(desc_var_echo_num, desc_var_num(var, data))
+}
+rm(var)
+rownames(desc_var_echo_num) = var_echo_num
+desc_var_echo_num
+kable(desc_var_echo_num, "latex")
+```
+
+```{r}
+desc_var_echo_fact = data.frame()
+for(var in var_echo_fact){
+  desc_var_echo_fact = rbind(desc_var_echo_fact,desc_var_factor(var, data))
+}
+rm(var)
+desc_var_echo_fact
+kable(desc_var_echo_fact,"latex")
+```
+## 5.3 Variables evenements 
+```{r}
+var_evt = c("stroke", "aomi","tdr","chd","deces")
+```
+```{r}
+desc_var_evt = data.frame()
+for(var in var_evt){
+  desc_var_evt = rbind(desc_var_evt,desc_var_factor(var, data))
+}
+rm(var)
+desc_var_evt
+kable(desc_var_evt,"latex")
+```
+
+## 5.4 Variables prévalence cardiovasculaire
+
+```{r}
+var_prev_cvd = c("qm34","qm35","qm36","qm37","qm38","qm39","qm40","qm41","atcdcv","prevalence_cvd")
+```
+```{r}
+desc_var_prev_cvd = data.frame()
+for(var in var_evt){
+  desc_var_prev_cvd = rbind(desc_var_prev_cvd,desc_var_factor(var, data))
+}
+rm(var)
+desc_var_prev_cvd
+kable(desc_var_prev_cvd,"latex")
+```
+# 6. Matrice de corrélation des variables d'ecotracking numériques
+```{r}
+data_echo = data[,var_echo_num]
+```
+
+```{r}
+mat_cor = round(cor(data_echo, use = "complete.obs"),1)
+p.mat = cor_pmat(data_echo, method = "pearson")
+ggcorrplot(mat_cor, type = "lower", lab = F, p.mat = p.mat)
+```
+
+
+
