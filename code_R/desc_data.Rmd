@@ -13,6 +13,7 @@ library(Hmisc)
 library(ggplot2)
 library(ggcorrplot)
 library(kableExtra)
+library(ggrepel)
 ```
 
 # 1. Reading the data

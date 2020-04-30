@@ -47,30 +47,71 @@ Mais convenu avec JPE (mais bon vite fait au tel):
 Permet de récuperer proporement les resultats d'un modèle de cox (à améliorer si jamais on abesoin de plus d'informations par la suite comme nevets, test de vrais, et pvalue associée...)
 Ajouter un argument booléen qui permet de sortir le code lates (Kable) plutot qu'un dataframe
 ```{r}
-extract_coxReg = function(cox_model){
-  summary = summary(cox_model) 
-  df = data.frame("Names" = rownames(summary$coefficients),
-                  "HR" = round(summary$coefficient[,2],2),
-                  "IC" = paste0("[", round(summary$conf.int[,3],3), " ; ", round(summary$conf.int[,4],3), "]"),
-                  "p.value" = signif(summary$coefficient[,5],3),
-                  "Signif" = ifelse(summary$coefficient[,5] <= 0.05, "*"," "))
+extract_coxReg = function(cox_model, round = T, alpha = 0.05){
+  summary = summary(cox_model)
+  if (round == T){
+    df = data.frame("Names" = rownames(summary$coefficients),
+                    "HR" = round(summary$coefficient[,2],2),
+                    "IC" = paste0("[", round(summary$conf.int[,3],3), " ; ", round(summary$conf.int[,4],3), "]"),
+                    "p.value" = signif(summary$coefficient[,5],3),
+                    "Signif" = ifelse(summary$coefficient[,5] <= 0.05, "*"," "))
   return(df)
+  }
+  
+  else{
+    df = data.frame("Names" = rownames(summary$coefficients),
+                    "HR" = summary$coefficient[,2],
+                    "ICinf" = summary$conf.int[,3],
+                    "ICsup" = summary$conf.int[,4],
+                    "p.value" = summary$coefficient[,5])
+  df$pv_signif = ifelse(df$p.value <= alpha , 1, 0)
+  
+  return(df)
+  
+  }
+  
 }
 ```
 
 ## 2.2 Fonction cox_univar
 Permet de faire de smodèles de cox univariés et d'avoir les resultats sous la forme extract_coxReg (donc dataframe).
-9a sera utile quand on devra faire toutes les analyses univariées des paramètres d'echotracking (presque 50 paramètres) pour chachun des evts (5) -> 250 models...
+ça sera utile quand on devra faire toutes les analyses univariées des paramètres d'echotracking (presque 50 paramètres) pour chachun des evts (5) -> 250 models...
 ```{r}
-cox_univar = function(time, var, evt, dt){
+cox_univar = function(time, var, evt, dt, round = T){
   time = as.numeric(as.character(dt[,time]))
   evt = as.numeric(as.character(dt[,evt]))
   model = coxph(Surv(time,evt) ~ dt[,var], data = dt)
-  res = extract_coxReg(model)
+  res = extract_coxReg(model, round)
   res$Names = var
   return(res)
 }
 ```
+
+## 2.3 Fonction plot_pv_HR
+Permet d'afficher les HR  de modèles univariés (Autant de paramètres qu'on veux pour 1 evenements particuliers) avec un code couleur pour leur significativité.
+```{r}
+plot_pv_HR = function(extract_coxReg_obj, hj = 0, vj = 0, main = " "){
+
+  ggplot(extract_coxReg_obj, aes(extract_coxReg_obj$p.value, extract_coxReg_obj$HR)) + 
+    geom_point(color = dplyr::case_when(extract_coxReg_obj$pv_signif == 1 ~ "green", 
+                                      extract_coxReg_obj$pv_signif == 0 ~ "red")) +
+    geom_hline(yintercept = 1) +
+    scale_y_continuous(name="HR",limits=c(0,3)) +
+    geom_text_repel(aes(label = Names),
+                  box.padding   = 0.35, 
+                  point.padding = 0.5,
+                  segment.color = "grey50",
+                  force = 15,
+                  segment.size  = 0.5 ,#epaisseur segments
+                  size = 3 #taille label
+    )+
+    xlab("p.values")+
+    ggtitle(main)
+  
+}
+```
+
+
 
 # 3. Modèles univariés
 
@@ -95,6 +136,7 @@ for(evt in var_evt){
   models_univar_pc$Evt = rep(evt,nrow(models_univar_pc))
   print(models_univar_pc)
 }
+models_univar_pc
 ```
 
 ## 3.2 Modèls de Cox univariés pour toutes las variables numériques d'échotracking
@@ -116,7 +158,22 @@ for(evt in var_evt){
 ```
 
 
+Exemple avec l'evt deces
 
+```{r}
+models_univar_et_deces = data.frame()
+evt = "deces"
+time = paste0("time_to_",evt)
+models_univar_et = data.frame()
+for(var in colnames(data_echo)){
+  models_univar_et_deces = rbind(models_univar_et_deces,cox_univar(time, var, evt, data, round = F))
+  }
+  models_univar_et_deces$Evt = rep(evt,nrow(models_univar_et_deces))
+  print(models_univar_et_deces)
+```
+```{r}
+plot_pv_HR(models_univar_et_deces, main = "Deces")
+```
 
 
 
