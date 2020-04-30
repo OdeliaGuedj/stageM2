@@ -2,7 +2,7 @@
 title: "R Notebook"
 output: html_notebook
 ---
-
+ 
 # 1. Creation des variables time_to_event 
 
 Pour les evt == 1 time_to_event = nbr de jours entre inclusion et evenement
@@ -22,8 +22,11 @@ for(evt in var_evt){
 }
 ```
 
+```{r}
+time_to_evt = c("time_to_stroke", "time_to_aomi", "time_to_tdr", "time_to_chd","time_to_deces")
+```
 
-# 3. Modeles de cox
+# 2. Fonctions pour modèles de Cox
 
 Les analyses déjà faites avaient la structure suivante (manque la créatinine: bio10 !!)
 1. Univarié
@@ -38,38 +41,96 @@ Mais convenu avec JPE (mais bon vite fait au tel):
 3. Modèle 2: Modèle 1 + tabac + bmi + hdl
 4. Modèle 3: Modèle 2 + mean blood pressure
 
-```{r}
-param_carotid = c("logain", "coeffDist", "logyoung","imt___m_", "dextdias", "stiffness", "pr_sence_de_plaque_s____l__cho")
-```
+
+
+## 2.1 Fonction extract_coxReg
+Permet de récuperer proporement les resultats d'un modèle de cox (à améliorer si jamais on abesoin de plus d'informations par la suite comme nevets, test de vrais, et pvalue associée...)
+Ajouter un argument booléen qui permet de sortir le code lates (Kable) plutot qu'un dataframe
 ```{r}
 extract_coxReg = function(cox_model){
   summary = summary(cox_model) 
   df = data.frame("Names" = rownames(summary$coefficients),
-                  "HR" = round(summary$conf.int[,1],2),
+                  "HR" = round(summary$coefficient[,2],2),
                   "IC" = paste0("[", round(summary$conf.int[,3],3), " ; ", round(summary$conf.int[,4],3), "]"),
                   "p.value" = signif(summary$coefficient[,5],3),
                   "Signif" = ifelse(summary$coefficient[,5] <= 0.05, "*"," "))
   return(df)
 }
 ```
+
+## 2.2 Fonction cox_univar
+Permet de faire de smodèles de cox univariés et d'avoir les resultats sous la forme extract_coxReg (donc dataframe).
+9a sera utile quand on devra faire toutes les analyses univariées des paramètres d'echotracking (presque 50 paramètres) pour chachun des evts (5) -> 250 models...
 ```{r}
 cox_univar = function(time, var, evt, dt){
   time = as.numeric(as.character(dt[,time]))
   evt = as.numeric(as.character(dt[,evt]))
   model = coxph(Surv(time,evt) ~ dt[,var], data = dt)
-  return(extract_coxReg(model))
+  res = extract_coxReg(model)
+  res$Names = var
+  return(res)
 }
 ```
+
+# 3. Modèles univariés
+
+## 3.1 Paramètres carotidiens prioritaires discutés avec JPE (7)
+
 ```{r}
-res = data.frame()
-for(v in param_carotid){
-  print(v)
-  #tmp =  cox_univar("time_to_deces", v ,"deces", data)
-  #res = rind(res,tmp)
-  res = rbind(res,cox_univar("time_to_deces", v ,"deces", data))
-}
-res
+param_carotid = c("logain", "coeffDist", "logyoung","imt___m_", "dextdias", "stiffness", "pr_sence_de_plaque_s____l__cho")
 ```
+
+
+```{r}
+for(evt in var_evt){
+  time = paste0("time_to_",evt)
+  models_univar_pc = data.frame()
+  #print(evt)
+  #print(time)
+  for(var in param_carotid){
+    #print(var)
+    models_univar_pc = rbind(models_univar_pc,cox_univar(time, var, evt, data))
+    #print(models_univar)
+  }
+  models_univar_pc$Evt = rep(evt,nrow(models_univar_pc))
+  print(models_univar_pc)
+}
+```
+
+## 3.2 Modèls de Cox univariés pour toutes las variables numériques d'échotracking
+
+```{r}
+for(evt in var_evt){
+  time = paste0("time_to_",evt)
+  models_univar_et = data.frame()
+  #print(evt)
+  #print(time)
+  for(var in colnames(data_echo)){
+    #print(var)
+    models_univar_et = rbind(models_univar_et,cox_univar(time, var, evt, data))
+    #print(models_univar)
+  }
+  models_univar_et$Evt = rep(evt,nrow(models_univar_et))
+  print(models_univar_et)
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -82,11 +143,11 @@ res
 
 ```{r}
 data$deces = as.numeric(as.character(data$deces))
-logyoung_deces_univar = coxph(Surv(time_to_death,deces)~ logyoung, data = data)
-logyoung_deces_mod1 = coxph(Surv(time_to_death,deces)~ logyoung + age0 + sexe + qm16 + qm10, data = data)
-logyoung_deces_mod2 = coxph(Surv(time_to_death,deces)~ logyoung + age0 + sexe + qm16 +  qm10 + diab + bio10, data = data)
-logyoung_deces_mod3 = coxph(Surv(time_to_death,deces)~ logyoung + age0 + sexe + qm16 +  qm10 + diab + bio10 + bmi, data = data)
-logyoung_deces_mod4 = coxph(Surv(time_to_death,deces)~ logyoung + age0 + sexe + qm16 +  qm10 + diab + bio10 + bmi + mbp, data = data)
+logyoung_deces_univar = coxph(Surv(time_to_deces,deces)~ logyoung, data = data)
+logyoung_deces_mod1 = coxph(Surv(time_to_deces,deces)~ logyoung + age0 + sexe + qm16 + qm10, data = data)
+logyoung_deces_mod2 = coxph(Surv(time_to_deces,deces)~ logyoung + age0 + sexe + qm16 +  qm10 + diab + bio10, data = data)
+logyoung_deces_mod3 = coxph(Surv(time_to_deces,deces)~ logyoung + age0 + sexe + qm16 +  qm10 + diab + bio10 + bmi, data = data)
+logyoung_deces_mod4 = coxph(Surv(time_to_deces,deces)~ logyoung + age0 + sexe + qm16 +  qm10 + diab + bio10 + bmi + mbp, data = data)
 ```
 ```{r}
 summary(logyoung_deces_univar)

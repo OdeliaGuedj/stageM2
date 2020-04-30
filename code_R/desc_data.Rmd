@@ -102,8 +102,12 @@ legend("topright" ,fill = c("steelblue", "orange"), c("Old","New"))
 data$logain = as.numeric(log(data$lf_gain_max*100))
 data$logyoung = as.numeric(log(data$young))
 data$dextdias = as.numeric(data$diam_tre_en_bm__mm_*1000)
-data$stiffness = as.numeric(sqrt(1/(data$coeffDist*1000)))
+data$stiffness = as.numeric(sqrt(1/(data$coeffDist)*1000))
 data$mbp = as.numeric((data$pas_basale__mm_hg_ + 2*data$pad_basale__mm_hg_)/3) # mean blood pressure
+```
+```{r}
+"stiffness" %in% colnames(data)
+summary(data$stiffness)
 ```
 
 # 5. Description des variables 
