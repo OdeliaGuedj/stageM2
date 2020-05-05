@@ -18,10 +18,27 @@ data$time_to_chd = as.numeric(difftime(data$date_chd, data$datinclu, unit = "day
 data$time_to_tdr = as.numeric(difftime(data$date_tdr, data$datinclu, unit = "days"))
 ```
 
+# 1.1 Création base de données centrées réduite
 ```{r}
-for(evt in var_evt){
-  data[,evt] = as.numeric(as.character(data[,evt]))
+all_var_num = c()
+for(var in colnames(data)){
+  if(is.numeric(data[,var]) & !(is.integer(data[,var]))){
+    #print(var)
+    all_var_num = c(all_var_num,var)
+  }
 }
+#all_var_num
+```
+
+```{r}
+data_std = data
+data_std[,all_var_num] = scale(data_std[,all_var_num])
+```
+
+```{r}
+# for(evt in var_evt){
+#   data[,evt] = as.numeric(as.character(data[,evt]))
+# }
 ```
 
 ```{r}
@@ -46,8 +63,7 @@ Mais convenu avec JPE (mais bon vite fait au tel):
 
 
 ## 2.1 Fonction extract_coxReg
-Permet de récuperer proporement les resultats d'un modèle de cox (à améliorer si jamais on abesoin de plus d'informations par la suite comme nevents, test de vrais, et pvalue associée...)
-Ajouter un argument booléen qui permet de sortir le code latex (Kable) plutot qu'un dataframe
+Permet de récuperer proporement les resultats d'un modèle de cox
 ```{r}
 extract_coxReg = function(cox_model, round = T,d.round= 2, alpha = 0.05){
   summary = summary(cox_model)
@@ -80,15 +96,21 @@ Permet de faire des modèles de cox univariés et d'avoir les resultats sous la 
 ça sera utile quand on devra faire toutes les analyses univariées des paramètres d'echotracking (presque 50 paramètres) pour chachun des evts (5) -> 250 models...
 ```{r}
 cox_univar = function(time, var, evt, dt, round = T){
-  # Round est util car on utilise la fonction extract_coxReg pour avoir les res sous un joli format et cet arguments existe dans cette fonction (il vaut T par defaut). Donc l'arg round de cox_univar n'est utile que si pour une raison obscure on veut les res dasn un tableau sans arrondis
+  
+  # Round est util car on utilise la fonction extract_coxReg pour avoir les res sous un joli format et cet arguments existe dans cette fonction (il vaut T par defaut). Donc l'arg round de cox_univar n'est utile que si pour une raison obscure on veut les res dasn un tableau sans arrondi
+  
   time = as.numeric(as.character(dt[,time]))
   evt = as.numeric(as.character(dt[,evt]))
+  
   model = coxph(Surv(time,evt) ~ dt[,var], data = dt)
+  
   res = extract_coxReg(model, round)
+  
   res$p.shonfeld = signif(cox.zph(model)$table[3],3)
   res$Names = var
   res$n = model$n
   res$n.events = model$nevent
+  
   return(list("res_df" = res, "model" = model))
 }
 ```
@@ -98,7 +120,9 @@ cox_univar = function(time, var, evt, dt, round = T){
 Permet d'afficher les HR  de modèles univariés (Autant de paramètres qu'on veut pour 1 evenement particulier) avec un code couleur pour leur significativité.
 ```{r}
 plot_pv_HR = function(extract_coxReg_obj, hj = 0, vj = 0, main = " "){
+  
   # Pour pouvoir utiliser cette fonction sur un obj extract_coxReg il faut que la fonction extract_coxReg aie été utilisée avec l'arument round = F
+  
   ggplot(extract_coxReg_obj, aes(extract_coxReg_obj$p.value, extract_coxReg_obj$HR)) + 
     geom_point(color = dplyr::case_when(extract_coxReg_obj$pv_signif == 1 ~ "green", 
                                       extract_coxReg_obj$pv_signif == 0 ~ "red")) +
@@ -112,6 +136,7 @@ plot_pv_HR = function(extract_coxReg_obj, hj = 0, vj = 0, main = " "){
                   segment.size  = 0.5 ,#epaisseur segments
                   size = 3 #taille label
     )+
+    
     xlab("p.values")+
     ggtitle(main)
   
@@ -123,9 +148,6 @@ plot_pv_HR = function(extract_coxReg_obj, hj = 0, vj = 0, main = " "){
 # 3. Modèles univariés
 
 ## 3.1 Paramètres carotidiens prioritaires discutés avec JPE (7)
-
-
-
 
 
 ```{r}
@@ -146,26 +168,50 @@ Exemple pour remplir une list itérativement
 # list_mod_ex$test
 ```
 
+```{r}
+for(var in param_carotid){
+  print(var %in% colnames(data_std))
+  print(var %in% colnames(data))
+}
+```
 
 
 ```{r}
 i = 1
 list_univar_pc = list()
+list_univarSTD_pc = list()
+
 for(evt in var_evt){
+  
   time = paste0("time_to_",evt)
   res_univar_pc = data.frame()
+  res_univarSTD_pc = data.frame()
+  
   for(var in param_carotid){
+    
     cox = cox_univar(time, var, evt, data)
+    coxSTD = cox_univar(time, var, evt, data_std)
+    
     res_univar_pc = rbind(res_univar_pc, cox$res_df)
+    res_univarSTD_pc = rbind(res_univarSTD_pc, coxSTD$res_df)
   }
+  
   res_univar_pc$Evt = rep(evt,nrow(res_univar_pc))
+  res_univarSTD_pc$Evt = rep(evt,nrow(res_univarSTD_pc))
+  
   list_univar_pc[[i]] = res_univar_pc
-  i = i+1
+  list_univarSTD_pc[[i]] = res_univarSTD_pc
+  
+  i = i + 1
 }
+rm(i)
+
 names(list_univar_pc) = var_evt
-
-
+names(list_univarSTD_pc) = var_evt
+```
+```{r}
 list_univar_pc[["deces"]]
+list_univarSTD_pc[["deces"]]
 ```
 
 
@@ -173,45 +219,101 @@ list_univar_pc[["deces"]]
 ```{r}
 i = 1
 list_univar_et = list()
+list_univarSTD_et = list()
+
 for(evt in var_evt){
+  
   time = paste0("time_to_",evt)
+  
   res_univar_et = data.frame()
+  res_univarSTD_et = data.frame()
+  
   for(var in colnames(data_echo)){
+    
     cox = cox_univar(time, var, evt, data, round = F)
+    coxSTD = cox_univar(time, var, evt, data_std, round = F)
+    
     res_univar_et = rbind(res_univar_et, cox$res_df)
+    res_univarSTD_et = rbind(res_univarSTD_et, coxSTD$res_df)
+    
   }
+  
   res_univar_et$Evt = rep(evt,nrow(res_univar_et))
+  res_univarSTD_et$Evt = rep(evt,nrow(res_univarSTD_et))
+  
   list_univar_et[[i]] = res_univar_et
+  list_univarSTD_et[[i]] = res_univarSTD_et
+  
   i = i+1
 }
-names(list_univar_et) = var_evt
 
-list_univar_et[["deces"]]
+rm(i)
+
+names(list_univar_et) = var_evt
+names(list_univarSTD_et) = var_evt
+```
+
+```{r}
+test = c(which(list_univar_et[["deces"]]$pv_signif == 1),
+which(list_univar_et[["aomi"]]$pv_signif == 1),
+which(list_univar_et[["tdr"]]$pv_signif == 1),
+which(list_univar_et[["chd"]]$pv_signif == 1),
+which(list_univar_et[["stroke"]]$pv_signif == 1))
 ```
 ```{r}
-plot_pv_HR(list_univar_et[["stroke"]], main = "Accident Vasculaire Cerebral")
+length(test)
+length(unique(test))
+length(test2)
+test2 = test[-unique(test)]
+test2
 ```
 
+```{r}
 
+plot_grid(
+  plot_pv_HR(list_univar_et[["deces"]]),
+plot_pv_HR(list_univarSTD_et[["deces"]])
+)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+```
 
 
 
 ## 3.1 Les modèles des analyses déjà effectuées (uniquement à baseline)
+formula1 = list()
+i = 1
+POur chaque evt
+  Pour chaque var d'et
+    formula1 = formula(Surv(time_to_deces,deces) ~ var + age0 + sexe + qm16 + qm10, env = data)
+    list[[i]] = formula1
+    i = i+1
+```{r}
+#formula1 = list()
+#i = 1
+for(var in data[,param_carotid]){
+  formula1 = update(formula1, . ~ . + var)
+  print(formula1)
+}
+
+```
+
+```{r}
+
+formula1 = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10, env = data)
+formula1 = update(formula1, . ~ . + logain)
+formula2 = "age0 + sexe + qm16 + qm10 + diab + bio10"
+formula3 = "age0 + sexe + qm16 + qm10 + diab + bio10 + bmi"
+formula4 = "age0 + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp"
+```
+```{r}
+formula1
+```
+
+```{r}
+formula1
+data$deces = as.numeric(as.character(data$deces))
+coxph(formula1, data)
+```
 
 ### 3.1.1  Log_young
 

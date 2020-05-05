@@ -15,6 +15,7 @@ library(ggcorrplot)
 library(kableExtra)
 library(ggrepel)
 library(knitr)
+library(cowplot)
 ```
 
 # 1. Reading the data
@@ -107,10 +108,6 @@ data$dextdias = as.numeric(data$diam_tre_en_bm__mm_*1000)
 data$stiffness = as.numeric(sqrt(1/(data$coeffDist)*1000))
 data$mbp = as.numeric((data$pas_basale__mm_hg_ + 2*data$pad_basale__mm_hg_)/3) # mean blood pressure
 ```
-```{r}
-"stiffness" %in% colnames(data)
-summary(data$stiffness)
-```
 
 # 5. Description des variables 
 
@@ -150,7 +147,7 @@ desc_var_num = function(var, dt, graph = F){
 }
 ```
 
-desc_var_num("ldl", data, T)
+
 
 ## 5.1 Variables autre que l'echo-tracking ou les evt CVD ou les var de prévalence
 
@@ -265,6 +262,8 @@ mat_cor = round(cor(data_echo, use = "complete.obs"),1)
 p.mat = cor_pmat(data_echo, method = "pearson")
 ggcorrplot(mat_cor, type = "lower", lab = F, p.mat = p.mat)
 ```
+
+
 
 
 
