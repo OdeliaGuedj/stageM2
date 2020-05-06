@@ -26,6 +26,7 @@ data_supp = read.csv2("C:/Users/odeli/Desktop/stageM2/data/EPP3_supp.csv", sep =
 ```
 ```{r}
 data = cbind(data, data_supp[,3:13])
+rm(data_supp)
 ```
 
 ```{r}
