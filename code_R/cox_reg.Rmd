@@ -5,47 +5,22 @@ editor_options:
   chunk_output_type: inline
 ---
  
-# 1. Creation des variables time_to_event 
 
-Pour les evt == 1 time_to_event = nbr de jours entre inclusion et evenement
-Pour les evt == 0 time_to_event = nbr de jours total d'observation du sujet = nbr de jour entre inclusion et date de dernières nouvelles
 
-```{r}
-data$time_to_deces = as.numeric(difftime(data$date_deces, data$datinclu, unit = "days"))
-data$time_to_stroke = as.numeric(difftime(data$date_stroke, data$datinclu, unit = "days"))
-data$time_to_aomi = as.numeric(difftime(data$date_aomi, data$datinclu, unit = "days"))
-data$time_to_chd = as.numeric(difftime(data$date_chd, data$datinclu, unit = "days"))
-data$time_to_tdr = as.numeric(difftime(data$date_tdr, data$datinclu, unit = "days"))
-```
+
+# 0. Préliminaires
+
+Necessaire que les evt soient numériques sinon pas pris en charge par la fonction coxph.
 
 ```{r}
-time_to_evt = c("time_to_stroke", "time_to_aomi", "time_to_tdr", "time_to_chd","time_to_deces")
-```
-# 2. Création base de données centrées réduite
-```{r}
-all_var_num = c()
-for(var in colnames(data)){
-  if(is.numeric(data[,var]) & !(is.integer(data[,var]))){
-    #print(var)
-    all_var_num = c(all_var_num,var)
-  }
-}
-#all_var_num
-```
-
-```{r}
-data_std = data
-data_std[,all_var_num] = scale(data_std[,all_var_num])
+ for(evt in var_evt){
+   data[,evt] = as.numeric(as.character(data[,evt]))
+   }
 ```
 
 
-# ```{r}
-# for(evt in var_evt){
-#   data[,evt] = as.numeric(as.character(data[,evt]))
-#  }
-# ```
 
-# 3. Fonctions pour modèles de Cox
+# 1. Fonctions pour modèles de Cox
 
 Les analyses déjà faites avaient la structure suivante
 1. Univarié
@@ -62,7 +37,7 @@ Mais convenu avec JPE (mais bon vite fait au tel):
 
 
 
-## 3.1 Fonction extract_coxReg
+## 1.1 Fonction extract_coxReg
 Permet de récuperer proporement les resultats d'un modèle de cox
 ```{r}
 extract_coxReg = function(cox_model, round = T,d.round= 2, alpha = 0.05){
@@ -91,7 +66,7 @@ extract_coxReg = function(cox_model, round = T,d.round= 2, alpha = 0.05){
 }
 ```
 
-## 3.2 Fonction cox_univar
+## 1.2 Fonction cox_univar
 Permet de faire des modèles de cox univariés et d'avoir les resultats sous la forme extract_coxReg (donc dataframe).
 ça sera utile quand on devra faire toutes les analyses univariées des paramètres d'echotracking (presque 50 paramètres) pour chachun des evts (5) -> 250 models...
 ```{r}
@@ -116,7 +91,7 @@ cox_univar = function(time, var, evt, dt, round = T){
 ```
 
 
-## 3.3 Fonction plot_pv_HR
+## 1.3 Fonction plot_pv_HR
 Permet d'afficher les HR  de modèles univariés (Autant de paramètres qu'on veut pour 1 evenement particulier) avec un code couleur pour leur significativité.
 ```{r}
 plot_pv_HR = function(extract_coxReg_obj, hj = 0, vj = 0, main = " "){
@@ -144,7 +119,7 @@ plot_pv_HR = function(extract_coxReg_obj, hj = 0, vj = 0, main = " "){
 
 
 
-# 4. Modèles univariés
+# 2. Modèles univariés
 
 ## 4.1 Paramètres carotidiens prioritaires issus analyses déjà faites (9)
 
@@ -152,21 +127,6 @@ plot_pv_HR = function(extract_coxReg_obj, hj = 0, vj = 0, main = " "){
 ```{r}
 param_carotid = c("logain", "coeffDist","pwvloc", "dploc", "logyoung","imt___m_", "dextdias", "stiffness", "pr_sence_de_plaque_s____l__cho")
 ```
-
-Exemple pour remplir une list itérativement
-```{r}
-#ex = cox_univar("time_to_deces", "logain", "deces", data)$res_df
-# list_mod_ex = list()
-# for(i in 1:5){
-#   list_mod_ex[[i]] = ex
-#   
-# }
-# length(list_mod_ex) 
-# list_mod_ex[[1]]
-# names(list_mod_ex) = rep("test",5)
-# list_mod_ex$test
-```
-
 
 
 ```{r}
@@ -182,8 +142,8 @@ for(evt in var_evt){
   
   for(var in param_carotid){
     
-    cox = cox_univar(time, var, evt, data)
-    coxSTD = cox_univar(time, var, evt, data_std)
+    cox = cox_univar(time, var, evt, data2)
+    coxSTD = cox_univar(time, var, evt, data2_std)
     
     res_univar_pc = rbind(res_univar_pc, cox$res_df)
     res_univarSTD_pc = rbind(res_univarSTD_pc, coxSTD$res_df)
@@ -202,13 +162,17 @@ rm(i)
 names(list_univar_pc) = var_evt
 names(list_univarSTD_pc) = var_evt
 ```
+
+Exemple de ce que ça donne:
 ```{r}
 list_univar_pc[["deces"]]
 list_univarSTD_pc[["deces"]]
 ```
 
 
-## 3.2 Modèls de Cox univariés pour toutes las variables numériques d'échotracking
+## 3.2 Modèls de Cox univariés pour toutes les variables numériques d'échotracking
+
+202 modèles à faire et à synthétiser donc ça prends un peu de temps à tourner.
 ```{r}
 i = 1
 list_univar_et = list()
@@ -221,10 +185,10 @@ for(evt in var_evt){
   res_univar_et = data.frame()
   res_univarSTD_et = data.frame()
   
-  for(var in colnames(data_echo)){
+  for(var in echotracking){
     
-    cox = cox_univar(time, var, evt, data, round = F)
-    coxSTD = cox_univar(time, var, evt, data_std, round = F)
+    cox = cox_univar(time, var, evt, data2, round = F)
+    coxSTD = cox_univar(time, var, evt, data2_std, round = F)
     
     res_univar_et = rbind(res_univar_et, cox$res_df)
     res_univarSTD_et = rbind(res_univarSTD_et, coxSTD$res_df)
@@ -246,67 +210,41 @@ names(list_univar_et) = var_evt
 names(list_univarSTD_et) = var_evt
 ```
 
-```{r}
-test = c(which(list_univar_et[["deces"]]$pv_signif == 1),
-which(list_univar_et[["aomi"]]$pv_signif == 1),
-which(list_univar_et[["tdr"]]$pv_signif == 1),
-which(list_univar_et[["chd"]]$pv_signif == 1),
-which(list_univar_et[["stroke"]]$pv_signif == 1))
-```
-```{r}
-length(test)
-length(unique(test))
-length(test2)
-test2 = test[-unique(test)]
-test2
-```
 
 ```{r}
-
 plot_grid(
-  plot_pv_HR(list_univar_et[["deces"]]),
-plot_pv_HR(list_univarSTD_et[["deces"]])
+  plot_pv_HR(list_univar_et[["chd"]]),
+  plot_pv_HR(list_univarSTD_et[["chd"]])
 )
-
 ```
 
 
 
 ## 3.1 Les modèles des analyses déjà effectuées (uniquement à baseline)
-formula1 = list()
-i = 1
-POur chaque evt
-  Pour chaque var d'et
-    formula1 = formula(Surv(time_to_deces,deces) ~ var + age0 + sexe + qm16 + qm10, env = data)
-    list[[i]] = formula1
-    i = i+1
-```{r}
-#formula1 = list()
-#i = 1
-for(var in data[,param_carotid]){
-  formula1 = update(formula1, . ~ . + var)
-  print(formula1)
-}
 
-```
+
 
 ```{r}
 
 formula1 = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10, env = data)
-formula1 = update(formula1, . ~ . + logain)
-formula2 = "age0 + sexe + qm16 + qm10 + diab + bio10"
-formula3 = "age0 + sexe + qm16 + qm10 + diab + bio10 + bmi"
-formula4 = "age0 + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp"
+formula2 = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10 + diab + bio10, env = data)
+formula3 = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi, env = data)
+formula4 = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, env = data)
 ```
 ```{r}
-formula1
+for(i in colnames(data_echo)){
+  formula1 = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10, env = data)
+  formula1 = update(formula1, as.formula( paste0(".~.+",i) ) )
+  print(formula1)
+}
 ```
 
 ```{r}
-formula1
-data$deces = as.numeric(as.character(data$deces))
+formula1 = update(formula1,logain)
 coxph(formula1, data)
 ```
+
+
 
 ### 3.1.1  Log_young
 

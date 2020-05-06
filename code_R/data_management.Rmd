@@ -1,0 +1,168 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# 0. Packages
+
+```{r}
+library(tidyverse)
+library(lubridate)
+library(survival)
+library(Hmisc)
+library(ggplot2)
+library(ggcorrplot)
+library(kableExtra)
+library(ggrepel)
+library(knitr)
+library(cowplot)
+```
+
+# 1. Reading the data
+
+```{r}
+data = read.csv2("C:/Users/odeli/Desktop/stageM2/data/EPP3.csv", sep = ";", header = T)
+data_supp = read.csv2("C:/Users/odeli/Desktop/stageM2/data/EPP3_supp.csv", sep = ";", header = T)
+```
+```{r}
+data = cbind(data, data_supp[,3:13])
+rm(data_supp)
+```
+
+# 2. Types
+```{r}
+factor = c("sexe", "adm14", "qm9", "qm10", "qm16", "tdr","aomi","stroke","chd","deces", "deptot", "diab", "hypolip2", "antihta2", "educ","sens_hf_t_phase", "sens_phase_hf_c", "sens_phase", "qm34","qm35","qm36","qm37","qm38","qm39","qm40","qm41", "atcdcv", "pr_sence_de_plaque_s____l__cho")
+int = c("nepp3", "n__ipc")
+date = c("datnaiss", "datinclu", "date_tdr", "date_aomi", "date_stroke", "date_chd", "date_deces")
+
+for(var in colnames(data)){
+  if(var %in% factor) {data[,var] = as.factor(data[,var])}
+  else if(var%in% int) data[,var] = as.integer(as.character(data[,var]))
+  else if(var %in% date) data[,var] = lubridate::dmy(data[,var])
+  else data[,var] = as.numeric(as.character(data[,var]))
+}
+rm(var)
+rm(factor)
+rm(int)
+rm(date)
+```
+
+# 3. Ajout de variables générées
+
+```{r}
+data$logain = as.numeric(log(data$lf_gain_max*100))
+data$logyoung = as.numeric(log(data$young))
+data$dextdias = as.numeric(data$diam_tre_en_bm__mm_*1000)
+data$stiffness = as.numeric(sqrt(1/(data$coeffDist)*1000))
+data$mbp = as.numeric((data$pas_basale__mm_hg_ + 2*data$pad_basale__mm_hg_)/3) # mean blood pressure
+```
+
+
+# 4. Prevalence de maladies caridovasculaire
+
+8 catégories:
+- qm34 Infartcus du myocarde
+- qm35 Angine de poitrine
+- qm36 Souffle au coeur
+- qm37 Autre problème cardiaque
+- qm38 Maladie des artères
+- qm39 Phlébite
+- qm40 Embolie pulmonaire
+- qm41 AVC
+- atcdcv Antécédent cardiovasculaire (qm34 ou qm35 ou qm41)
+
+
+```{r}
+data$prevalence_cvd = 'tmp'
+for(i in 1: nrow(data)){
+  if(is.na(data$qm34[i]) | is.na(data$qm35[i]) | is.na(data$qm36[i]) | is.na(data$qm37[i]) | is.na(data$qm38[i]) | is.na(data$qm39[i]) | is.na(data$qm40[i]) | is.na(data$qm41[i]))
+      data$prevalence_cvd[i] = 0
+  else if(data$qm34[i] == 0 & data$qm35[i] == 0 & data$qm36[i] == 0 & data$qm37[i] == 0 & data$qm38[i] == 0 & data$qm39[i] == 0 & data$qm40[i] == 0 & data$qm41[i] == 0)
+    data$prevalence_cvd[i] = 0
+
+    else
+      data$prevalence_cvd[i] = 1
+}
+rm(i)
+data$prevalence_cvd = as.factor(data$prevalence_cvd)
+```
+
+
+<!-- # ```{r} -->
+<!-- # pv_prev_cvd_evt = c(chisq.test(data$prevalence_cvd, data$deces)$p.value,chisq.test(data$prevalence_cvd, data$chd)$p.value,chisq.test(data$prevalence_cvd,data$stroke)$p.value,chisq.test(data$prevalence_cvd,data$aomi)$p.value,chisq.test(data$prevalence_cvd, data$tdr)$p.value) -->
+<!-- #  -->
+<!-- # pv_atcdcv = c(chisq.test(data$atcdcv, data$deces)$p.value,chisq.test(data$atcdcv, data$chd)$p.value,chisq.test(data$atcdcv,data$stroke)$p.value,chisq.test(data$atcdcv,data$aomi)$p.value,chisq.test(data$atcdcv, data$tdr)$p.value) -->
+<!-- # ``` -->
+<!-- # ```{r} -->
+<!-- # plot(pv_atcdcv, col = "steelblue", ylab = "p.values", xlab = "") -->
+<!-- # points(pv_prev_cvd_evt, col = "orange") -->
+<!-- # abline(h = 0.05, col = "red") -->
+<!-- # legend("topleft", title="Kind of event", -->
+<!-- #    c("1: Death", "2: chd", "3: Stroke", "4: aomi", "5: tdr")) -->
+<!-- # legend("topright" ,fill = c("steelblue", "orange"), c("Old","New")) -->
+<!-- # ``` -->
+```{r}
+table(data$atcdcv, useNA = "always")
+```
+```{r}
+data$atcdcv[is.na(data$atcdcv)] = 0
+data$atcdcv = as.factor(data$atcdcv)
+```
+
+
+# 5. Creation des variables time_to_event 
+
+Pour les evt == 1 time_to_event = nbr de jours entre inclusion et evenement
+Pour les evt == 0 time_to_event = nbr de jours total d'observation du sujet = nbr de jour entre inclusion et date de dernières nouvelles
+
+```{r}
+data$time_to_deces = as.numeric(difftime(data$date_deces, data$datinclu, unit = "days"))
+data$time_to_stroke = as.numeric(difftime(data$date_stroke, data$datinclu, unit = "days"))
+data$time_to_aomi = as.numeric(difftime(data$date_aomi, data$datinclu, unit = "days"))
+data$time_to_chd = as.numeric(difftime(data$date_chd, data$datinclu, unit = "days"))
+data$time_to_tdr = as.numeric(difftime(data$date_tdr, data$datinclu, unit = "days"))
+```
+
+# 6. Classif des catégories de variables
+
+```{r}
+id = c("nepp3","n__ipc")
+
+date = c("datnaiss", "datinclu", "date_tdr", "date_aomi", "date_stroke", "date_chd", "date_deces")
+
+evt = c("deces","stroke","aomi","tdr","chd")
+
+time_to_evt = c("time_to_stroke", "time_to_aomi", "time_to_tdr", "time_to_chd","time_to_deces")
+
+prev_cvd = c("qm34","qm35","qm36","qm37","qm38","qm39","qm40","qm41","atcdcv","prevalence_cvd")
+
+socio_demo = c("age0", "sexe","adm14","educ")
+
+qual_vie = c("qm9","qm10","qm16","bmi","diab","deptot","epice")
+
+traitement = c("antihta2", "hypolip2")
+
+bio = c("trb17", "ldl","bio10","mbp","bio6")
+
+echotracking =  c("pas_basale__mm_hg_","pad_basale__mm_hg_", "fc_basale","diam_tre_en_bm__mm_","imt___m_","diam_tre_en_fbm__mm_","distension___m_","pwvloc", "dploc","debut","dist_rate_moy","dist_rate_var","rr_int_moy","rr_int_var","lf_dist_rate_t","hf_dist_rate_t","hf_dist_rate_c","lf_rrint_t","hf_rr_int_t","hf_rrint_c","freq_resp","lf_coh_max","lf_coh_moy","lf_gain_max","lf_gain_moy","lf_phase","sens_phase","hf_c_coh_max","hf_c_coh_moy","hf_c_gain_max","hf_c_gain_moy","hf_c_phase","sens_phase_hf_c","hf_t_coh_max","hf_t_coh_moy","hf_t_gain_max","hf_t_gain_moy","hf_t_phase","sens_hf_t_phase","dist_moy","dist_var","cws","coeffDist","compli","wcsa","young","pr_sence_de_plaque_s____l__cho","logain","logyoung","dextdias","stiffness")
+```
+
+# 7. Création d'une base de données centrée réduite
+
+```{r}
+data_std = data
+for(var in colnames(data)){
+  if(is.numeric(data[,var]) & !(is.integer(data[,var]))){
+    data_std[,var] = (data[,var]-mean(data[,var], na.rm = T))/sd(data[,var], na.rm = T)
+  }
+}
+rm(var)
+```
+
+# 8. Création base de données sans les prévlents cvd
+
+On retire les patients ayant des antécédants de maladie cardiovasculaire.
+```{r}
+data2 = subset(data,data$atcdcv == "0")
+data2_std = subset(data_std,data_std$atcdcv == "0")
+```
