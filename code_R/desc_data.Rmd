@@ -29,7 +29,7 @@ desc_var_factor = function(var,dt, graph = F){
 ```{r}
 desc_var_num = function(var, dt, graph = F){
   # var : chaine de charactere : nom de la variable
-  df =  signif( data.frame( "Mean" = summary(dt[,var])[[4]], 
+  df =  round( data.frame( "Mean" = summary(dt[,var])[[4]], 
                      "SD" = sd(dt[,var], na.rm = T),
                      "Q1" = summary(dt[,var])[[2]],
                      "Median" = summary(dt[,var])[[3]],
@@ -53,20 +53,18 @@ desc_autre_var_num = data.frame()
 desc_autre_var_fact = data.frame()
 for(var in c(bio,qual_vie,socio_demo,traitement)){
   if(is.numeric(data[,var])){
-    #print(var)
     tmp_num = c(tmp_num,var)
     desc_autre_var_num = rbind(desc_autre_var_num, desc_var_num(var, data))
   }
-  #else if(is.factor(data[,var])){
-    #cat("*",var,"\n")
-    #desc_autre_var_fact = rbind(desc_autre_var_fact,desc_var_factor(var, data))
-  #}
+  else if(is.factor(data[,var])){
+    desc_autre_var_fact = rbind(desc_autre_var_fact,desc_var_factor(var, data))
+  }
   
 }
 rownames(desc_autre_var_num) = tmp_num
 rm(var);rm(tmp_num)
 desc_autre_var_num
-#desc_autre_var_fact
+desc_autre_var_fact
 ```
 ```{r}
 c(bio,qual_vie,socio_demo,traitement)
@@ -95,6 +93,7 @@ Signification de certaines variables:
 <!-- # var_echo_fact = c("sens_phase","sens_phase_hf_c","sens_hf_t_phase","pr_sence_de_plaque_s____l__cho") -->
 <!-- # ``` -->
 
+# 3. Description des variables d'échotracking
 ```{r}
 tmp_num = c()
 desc_var_echo_num = data.frame()
