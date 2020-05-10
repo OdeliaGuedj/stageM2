@@ -150,7 +150,8 @@ cox_multivar = function(formula, list_param,dt, round = T, d.round = 2){
                     "ICinf" = summary$conf.int[r,3],
                     "ICsup" = summary$conf.int[r,4],
                     "p.value" = signif(summary$coefficient[r,5],d.round+3),
-                    "p.shonfeld.global" = signif(test.shonfeld$table[r+1,3],d.round+1))
+                    "p.shonfeld" = signif(test.shonfeld$table[r+1,3],d.round+1),
+                    "Hyp.Prop.verif" = ifelse(test.shonfeld$table[r+1,3] <= 0.05 ,0,1))
         df_tmp$pv_signif = ifelse(df_tmp$p.value <= 0.05 , 1, 0)
         
       }
@@ -284,6 +285,7 @@ list_univar_et[["deces"]]
 
 ## 3.1 Les modèles des analyses déjà effectuées (uniquement à baseline) et sur les 9 paramètres carotidiens
 
+### 3.1.1 Deces
 ```{r}
 f1_deces_brut_ss_prevcvd = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10, env = data2)
 
@@ -295,15 +297,144 @@ f4_deces_brut_ss_prevcvd = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm1
 
 liste_f_deces_brut_ss_prevcvd = c(f1_deces_brut_ss_prevcvd,f1_deces_brut_ss_prevcvd,f1_deces_brut_ss_prevcvd,f1_deces_brut_ss_prevcvd,f1_deces_brut_ss_prevcvd)
 ```
-
-
 ```{r}
 m1_deces_brut_ss_prevcvd = cox_multivar(f1_deces_brut_ss_prevcvd,param_carotid,data2, round = F)
-m1_deces_brut_ss_prevcvd
+m2_deces_brut_ss_prevcvd = cox_multivar(f2_deces_brut_ss_prevcvd,param_carotid,data2, round = F)
+m3_deces_brut_ss_prevcvd = cox_multivar(f3_deces_brut_ss_prevcvd,param_carotid,data2, round = F)
+m4_deces_brut_ss_prevcvd = cox_multivar(f4_deces_brut_ss_prevcvd,param_carotid,data2, round = F)
+```
+
+```{r}
+plot_grid(
+plot_pv_HR(m1_deces_brut_ss_prevcvd),
+plot_pv_HR(m2_deces_brut_ss_prevcvd),
+plot_pv_HR(m3_deces_brut_ss_prevcvd),
+plot_pv_HR(m4_deces_brut_ss_prevcvd))
 ```
 ```{r}
-plot_pv_HR(m1_deces_brut_ss_prevcvd)
+m1_deces_brut_ss_prevcvd
+m4_deces_brut_ss_prevcvd
 ```
+
+### 3.1.2 Aomi
+
+```{r}
+f1_aomi_brut_ss_prevcvd = formula(Surv(time_to_aomi,aomi) ~ age0 + sexe + qm16 + qm10, env = data2)
+
+f2_aomi_brut_ss_prevcvd = formula(Surv(time_to_aomi,aomi) ~ age0 + sexe + qm16 + qm10 + diab + bio10, env = data2)
+
+f3_aomi_brut_ss_prevcvd = formula(Surv(time_to_aomi,aomi) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi, env = data2)
+
+f4_aomi_brut_ss_prevcvd = formula(Surv(time_to_aomi,aomi) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, env = data2)
+
+liste_f_aomi_brut_ss_prevcvd = c(f1_aomi_brut_ss_prevcvd,f1_aomi_brut_ss_prevcvd,f1_aomi_brut_ss_prevcvd,f1_aomi_brut_ss_prevcvd,f1_aomi_brut_ss_prevcvd)
+```
+```{r}
+m1_aomi_brut_ss_prevcvd = cox_multivar(f1_aomi_brut_ss_prevcvd,param_carotid,data2, round = F)
+m2_aomi_brut_ss_prevcvd = cox_multivar(f2_aomi_brut_ss_prevcvd,param_carotid,data2, round = F)
+m3_aomi_brut_ss_prevcvd = cox_multivar(f3_aomi_brut_ss_prevcvd,param_carotid,data2, round = F)
+m4_aomi_brut_ss_prevcvd = cox_multivar(f4_aomi_brut_ss_prevcvd,param_carotid,data2, round = F)
+```
+
+```{r}
+plot_grid(
+plot_pv_HR(m1_aomi_brut_ss_prevcvd),
+plot_pv_HR(m2_aomi_brut_ss_prevcvd),
+plot_pv_HR(m3_aomi_brut_ss_prevcvd),
+plot_pv_HR(m4_aomi_brut_ss_prevcvd))
+```
+### 3.1.3 TDR
+```{r}
+f1_tdr_brut_ss_prevcvd = formula(Surv(time_to_tdr,tdr) ~ age0 + sexe + qm16 + qm10, env = data2)
+
+f2_tdr_brut_ss_prevcvd = formula(Surv(time_to_tdr,tdr) ~ age0 + sexe + qm16 + qm10 + diab + bio10, env = data2)
+
+f3_tdr_brut_ss_prevcvd = formula(Surv(time_to_tdr,tdr) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi, env = data2)
+
+f4_tdr_brut_ss_prevcvd = formula(Surv(time_to_tdr,tdr) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, env = data2)
+
+liste_f_tdr_brut_ss_prevcvd = c(f1_tdr_brut_ss_prevcvd,f1_tdr_brut_ss_prevcvd,f1_tdr_brut_ss_prevcvd,f1_tdr_brut_ss_prevcvd,f1_tdr_brut_ss_prevcvd)
+```
+```{r}
+m1_tdr_brut_ss_prevcvd = cox_multivar(f1_tdr_brut_ss_prevcvd,param_carotid,data2, round = F)
+m2_tdr_brut_ss_prevcvd = cox_multivar(f2_tdr_brut_ss_prevcvd,param_carotid,data2, round = F)
+m3_tdr_brut_ss_prevcvd = cox_multivar(f3_tdr_brut_ss_prevcvd,param_carotid,data2, round = F)
+m4_tdr_brut_ss_prevcvd = cox_multivar(f4_tdr_brut_ss_prevcvd,param_carotid,data2, round = F)
+```
+
+```{r}
+plot_grid(
+plot_pv_HR(m1_tdr_brut_ss_prevcvd),
+plot_pv_HR(m2_tdr_brut_ss_prevcvd),
+plot_pv_HR(m3_tdr_brut_ss_prevcvd),
+plot_pv_HR(m4_tdr_brut_ss_prevcvd))
+```
+### 3.1.4 CHD
+
+```{r}
+f1_chd_brut_ss_prevcvd = formula(Surv(time_to_chd,chd) ~ age0 + sexe + qm16 + qm10, env = data2)
+
+f2_chd_brut_ss_prevcvd = formula(Surv(time_to_chd,chd) ~ age0 + sexe + qm16 + qm10 + diab + bio10, env = data2)
+
+f3_chd_brut_ss_prevcvd = formula(Surv(time_to_chd,chd) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi, env = data2)
+
+f4_chd_brut_ss_prevcvd = formula(Surv(time_to_chd,chd) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, env = data2)
+
+liste_f_chd_brut_ss_prevcvd = c(f1_chd_brut_ss_prevcvd,f1_chd_brut_ss_prevcvd,f1_chd_brut_ss_prevcvd,f1_chd_brut_ss_prevcvd,f1_chd_brut_ss_prevcvd)
+```
+```{r}
+m1_chd_brut_ss_prevcvd = cox_multivar(f1_chd_brut_ss_prevcvd,param_carotid,data2, round = F)
+m2_chd_brut_ss_prevcvd = cox_multivar(f2_chd_brut_ss_prevcvd,param_carotid,data2, round = F)
+m3_chd_brut_ss_prevcvd = cox_multivar(f3_chd_brut_ss_prevcvd,param_carotid,data2, round = F)
+m4_chd_brut_ss_prevcvd = cox_multivar(f4_chd_brut_ss_prevcvd,param_carotid,data2, round = F)
+```
+
+```{r}
+plot_grid(
+plot_pv_HR(m1_chd_brut_ss_prevcvd),
+plot_pv_HR(m2_chd_brut_ss_prevcvd),
+plot_pv_HR(m3_chd_brut_ss_prevcvd),
+plot_pv_HR(m4_chd_brut_ss_prevcvd))
+```
+### 3.1.5 Stroke
+
+```{r}
+f1_stroke_brut_ss_prevcvd = formula(Surv(time_to_stroke,stroke) ~ age0 + sexe + qm16 + qm10, env = data2)
+
+f2_stroke_brut_ss_prevcvd = formula(Surv(time_to_stroke,stroke) ~ age0 + sexe + qm16 + qm10 + diab + bio10, env = data2)
+
+f3_stroke_brut_ss_prevcvd = formula(Surv(time_to_stroke,stroke) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi, env = data2)
+
+f4_stroke_brut_ss_prevcvd = formula(Surv(time_to_stroke,stroke) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, env = data2)
+
+liste_f_stroke_brut_ss_prevcvd = c(f1_stroke_brut_ss_prevcvd,f1_stroke_brut_ss_prevcvd,f1_stroke_brut_ss_prevcvd,f1_stroke_brut_ss_prevcvd,f1_stroke_brut_ss_prevcvd)
+```
+```{r}
+m1_stroke_brut_ss_prevcvd = cox_multivar(f1_stroke_brut_ss_prevcvd,param_carotid,data2, round = F)
+m2_stroke_brut_ss_prevcvd = cox_multivar(f2_stroke_brut_ss_prevcvd,param_carotid,data2, round = F)
+m3_stroke_brut_ss_prevcvd = cox_multivar(f3_stroke_brut_ss_prevcvd,param_carotid,data2, round = F)
+m4_stroke_brut_ss_prevcvd = cox_multivar(f4_stroke_brut_ss_prevcvd,param_carotid,data2, round = F)
+```
+
+
+```{r}
+plot_grid(
+plot_pv_HR(m1_stroke_brut_ss_prevcvd),
+plot_pv_HR(m2_stroke_brut_ss_prevcvd),
+plot_pv_HR(m3_stroke_brut_ss_prevcvd),
+plot_pv_HR(m4_stroke_brut_ss_prevcvd))
+```
+
+
+
+
+
+
+
+
+
+
+
 
 
 
