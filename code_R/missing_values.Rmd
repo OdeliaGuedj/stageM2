@@ -1,0 +1,261 @@
+---
+title: "Gestion des valeurs manquantes"
+output: html_notebook
+---
+# 1. Fonction 
+
+Permet de virer les sujets (identifiés par id, var devant être présente dans la base dt) ayant au moins uneNA dans au moins une des variables de list_var.
+
+```{r}
+subset_SubjectsNA = function(dt, list_var, id){
+  na_id = c()
+  for(var in list_var){
+    tmp = dt[is.na(dt[,var]),id]
+    na_id = c(na_id, tmp)
+  }
+  length(na_id)
+  dbl = which(duplicated(na_id))
+  length(dbl)
+  na_id = na_id[-dbl]
+  length(na_id)
+  return(list("data_no_na" = dt[!(dt[,id] %in% na_id),], "na_id" = na_id))
+    }
+```
+
+Permet de crer une châine de charactère contennant les var contennues dans list_var séparées par un "+"
+```{r}
+generate_str_var = function(list_var){
+  str = NULL
+  for(var in list_var){
+    tmp = paste("+",var)
+    str = paste0(str,tmp)
+  }
+  str = substr(str,2,nchar(str))
+  return(str)
+}
+```
+
+# 2. Application à toutes la variables d'échotraking
+
+
+```{r}
+data$na_et = ifelse(data$nepp3 %in% subset_SubjectsNA(data, echotracking, "nepp3")$na_id,1,0)
+data$na_et = as.factor(data$na_et)
+table(data$na_et)
+```
+
+
+## 2.1 Variables d'echotraking
+
+```{r}
+generate_str_var(echotracking)
+```
+
+```{r}
+table_21 = compareGroups(na_et ~ pas_basale__mm_hg_+ pad_basale__mm_hg_+ fc_basale+ diam_tre_en_bm__mm_+ imt___m_+ diam_tre_en_fbm__mm_+ distension___m_+ pwvloc+ dploc+ debut+ dist_rate_moy+ dist_rate_var+ rr_int_moy+ rr_int_var+ lf_dist_rate_t+ hf_dist_rate_t+ hf_dist_rate_c+ lf_rrint_t+ hf_rr_int_t+ hf_rrint_c+ freq_resp+ lf_coh_max+ lf_coh_moy+ lf_gain_max+ lf_gain_moy+ lf_phase+ sens_phase+ hf_c_coh_max+ hf_c_coh_moy+ hf_c_gain_max+ hf_c_gain_moy+ hf_c_phase+ sens_phase_hf_c+ hf_t_coh_max+ hf_t_coh_moy+ hf_t_gain_max+ hf_t_gain_moy+ hf_t_phase+ sens_hf_t_phase+ dist_moy+ dist_var+ cws+ coeffDist+ compli+ wcsa+ young+ pr_sence_de_plaque_s____l__cho+ logain+ logyoung+ dextdias+ stiffness, data = data)
+  
+pvals21 = getResults(table_21, "p.overall")
+
+export_table21 = createTable(table_21)
+
+#export2latex(export_table21, file = "table21.tex")
+```
+
+
+
+```{r}
+export_table21
+```
+
+## 2.2 Variables d'évenement
+
+```{r}
+generate_str_var(evt)
+```
+
+```{r}
+table_22 = compareGroups(na_et ~deces+ stroke+ aomi+ tdr+ chd, data = data)
+  
+pvals22 = getResults(table_22, "p.overall")
+
+export_table22 = createTable(table_22)
+
+#export2latex(export_table22, file = "table22.tex")
+```
+
+
+```{r}
+export_table22
+```
+## 2.3 Autre variables 
+
+```{r}
+generate_str_var(c(socio_demo,qual_vie,traitement,bio))
+```
+
+```{r}
+table_23 = compareGroups(na_et ~age0+ sexe+ adm14+ educ+ qm9+ qm10+ qm16+ bmi+ diab+ deptot+ epice+ antihta2+ hypolip2+ trb17+ ldl+ bio10+ mbp+ bio6, data = data)
+  
+pvals23 = getResults(table_23, "p.overall")
+
+export_table23 = createTable(table_23)
+
+#export2latex(export_table23, file = "table223.tex")
+```
+
+
+```{r}
+export_table23
+```
+
+
+# 3. Application aux var d'et choisies avec JPE tot
+
+```{r}
+data$na_et_jpe_tot = ifelse(data$nepp3 %in% subset_SubjectsNA(data, var_et_jpe_tot, "nepp3")$na_id,1,0)
+data$na_et_jpe_tot = as.factor(data$na_et_jpe_tot)
+table(data$na_et_jpe_tot)
+```
+## 3.1 Variables d'échotracking
+
+```{r}
+generate_str_var(echotracking)
+```
+
+```{r}
+table_31 = compareGroups(na_et_jpe_tot ~ pas_basale__mm_hg_+ pad_basale__mm_hg_+ fc_basale+ diam_tre_en_bm__mm_+ imt___m_+ diam_tre_en_fbm__mm_+ distension___m_+ pwvloc+ dploc+ debut+ dist_rate_moy+ dist_rate_var+ rr_int_moy+ rr_int_var+ lf_dist_rate_t+ hf_dist_rate_t+ hf_dist_rate_c+ lf_rrint_t+ hf_rr_int_t+ hf_rrint_c+ freq_resp+ lf_coh_max+ lf_coh_moy+ lf_gain_max+ lf_gain_moy+ lf_phase+ sens_phase+ hf_c_coh_max+ hf_c_coh_moy+ hf_c_gain_max+ hf_c_gain_moy+ hf_c_phase+ sens_phase_hf_c+ hf_t_coh_max+ hf_t_coh_moy+ hf_t_gain_max+ hf_t_gain_moy+ hf_t_phase+ sens_hf_t_phase+ dist_moy+ dist_var+ cws+ coeffDist+ compli+ wcsa+ young+ pr_sence_de_plaque_s____l__cho+ logain+ logyoung+ dextdias+ stiffness, data = data)
+  
+pvals31 = getResults(table_31, "p.overall")
+
+export_table31 = createTable(table_31)
+
+#export2latex(export_table31, file = "table31.tex")
+```
+
+
+```{r}
+export_table31
+```
+
+## 3.2 Variables evenement
+```{r}
+generate_str_var(evt)
+```
+
+```{r}
+table_32 = compareGroups(na_et_jpe_tot ~deces+ stroke+ aomi+ tdr+ chd, data = data)
+  
+pvals32 = getResults(table_32, "p.overall")
+
+export_table32 = createTable(table_32)
+
+#export2latex(export_table32, file = "table32.tex")
+```
+
+
+```{r}
+export_table32
+```
+## 3.3 Autres variables 
+
+```{r}
+generate_str_var(c(socio_demo,qual_vie,traitement,bio))
+```
+
+```{r}
+table_33 = compareGroups(na_et_jpe_tot ~age0+ sexe+ adm14+ educ+ qm9+ qm10+ qm16+ bmi+ diab+ deptot+ epice+ antihta2+ hypolip2+ trb17+ ldl+ bio10+ mbp+ bio6, data = data)
+  
+pvals33 = getResults(table_33, "p.overall")
+
+export_table33 = createTable(table_33)
+
+#export2latex(export_table33, file = "table33.tex")
+```
+
+
+```{r}
+export_table33
+```
+
+# 4. Seulement qq var d'et choisises par JPE 
+
+```{r}
+data$na_et_jpe_inf = ifelse(data$nepp3 %in% subset_SubjectsNA(data, var_et_jpe_inf, "nepp3")$na_id,1,0)
+data$na_et_jpe_inf = as.factor(data$na_et_jpe_inf)
+table(data$na_et_jpe_inf)
+```
+```{r}
+generate_str_var(c(socio_demo,qual_vie,traitement,bio))
+```
+
+```{r}
+table_23 = compareGroups(na_et ~age0+ sexe+ adm14+ educ+ qm9+ qm10+ qm16+ bmi+ diab+ deptot+ epice+ antihta2+ hypolip2+ trb17+ ldl+ bio10+ mbp+ bio6, data = data)
+  
+pvals23 = getResults(table_23, "p.overall")
+
+export_table23 = createTable(table_23)
+
+#export2latex(export_table23, file = "table23.tex")
+```
+
+
+```{r}
+export_table23
+```
+
+## 4.1 Variables d'échotracking
+
+
+```{r}
+generate_str_var(echotracking)
+```
+
+```{r}
+table_41 = compareGroups(na_et_jpe_inf ~ pas_basale__mm_hg_+ pad_basale__mm_hg_+ fc_basale+ diam_tre_en_bm__mm_+ imt___m_+ diam_tre_en_fbm__mm_+ distension___m_+ pwvloc+ dploc+ debut+ dist_rate_moy+ dist_rate_var+ rr_int_moy+ rr_int_var+ lf_dist_rate_t+ hf_dist_rate_t+ hf_dist_rate_c+ lf_rrint_t+ hf_rr_int_t+ hf_rrint_c+ freq_resp+ lf_coh_max+ lf_coh_moy+ lf_gain_max+ lf_gain_moy+ lf_phase+ sens_phase+ hf_c_coh_max+ hf_c_coh_moy+ hf_c_gain_max+ hf_c_gain_moy+ hf_c_phase+ sens_phase_hf_c+ hf_t_coh_max+ hf_t_coh_moy+ hf_t_gain_max+ hf_t_gain_moy+ hf_t_phase+ sens_hf_t_phase+ dist_moy+ dist_var+ cws+ coeffDist+ compli+ wcsa+ young+ pr_sence_de_plaque_s____l__cho+ logain+ logyoung+ dextdias+ stiffness, data = data)
+  
+pvals41 = getResults(table_41, "p.overall")
+
+export_table41 = createTable(table_41)
+
+#export2latex(export_table41, file = "table41.tex")
+```
+
+
+```{r}
+export_table41
+```
+
+## 4.2 Variables evenement
+
+```{r}
+generate_str_var(evt)
+```
+
+```{r}
+table_42 = compareGroups(na_et_jpe_inf ~deces+ stroke+ aomi+ tdr+ chd, data = data)
+  
+pvals42 = getResults(table_42, "p.overall")
+
+export_table42 = createTable(table_42)
+
+#export2latex(export_table42, file = "table42.tex")
+```
+## 4.3 Autre variables
+```{r}
+generate_str_var(c(socio_demo,qual_vie,traitement,bio))
+```
+
+```{r}
+table_43 = compareGroups(na_et_jpe_inf ~age0+ sexe+ adm14+ educ+ qm9+ qm10+ qm16+ bmi+ diab+ deptot+ epice+ antihta2+ hypolip2+ trb17+ ldl+ bio10+ mbp+ bio6, data = data)
+  
+pvals43 = getResults(table_43, "p.overall")
+
+export_table43 = createTable(table_43)
+
+#export2latex(export_table43, file = "table223.tex")
+```
+
+
+```{r}
+export_table43
+```
