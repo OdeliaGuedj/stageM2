@@ -16,6 +16,9 @@ library(kableExtra)
 library(ggrepel)
 library(knitr)
 library(cowplot)
+library(compareGroups)
+library(table1)
+
 ```
 
 # 1. Reading the data
@@ -145,7 +148,12 @@ traitement = c("antihta2", "hypolip2")
 bio = c("trb17", "ldl","bio10","mbp","bio6")
 
 echotracking =  c("pas_basale__mm_hg_","pad_basale__mm_hg_", "fc_basale","diam_tre_en_bm__mm_","imt___m_","diam_tre_en_fbm__mm_","distension___m_","pwvloc", "dploc","debut","dist_rate_moy","dist_rate_var","rr_int_moy","rr_int_var","lf_dist_rate_t","hf_dist_rate_t","hf_dist_rate_c","lf_rrint_t","hf_rr_int_t","hf_rrint_c","freq_resp","lf_coh_max","lf_coh_moy","lf_gain_max","lf_gain_moy","lf_phase","sens_phase","hf_c_coh_max","hf_c_coh_moy","hf_c_gain_max","hf_c_gain_moy","hf_c_phase","sens_phase_hf_c","hf_t_coh_max","hf_t_coh_moy","hf_t_gain_max","hf_t_gain_moy","hf_t_phase","sens_hf_t_phase","dist_moy","dist_var","cws","coeffDist","compli","wcsa","young","pr_sence_de_plaque_s____l__cho","logain","logyoung","dextdias","stiffness")
+
+var_et_jpe_tot = c("diam_tre_en_bm__mm_", "imt___m_", "distension___m_", "dploc", "dist_rate_moy",  "rr_int_moy","lf_dist_rate_t","hf_dist_rate_t","lf_rrint_t","hf_rr_int_t","lf_coh_moy", "hf_c_coh_moy", "hf_c_gain_moy", "cws","coeffDist", "compli", "wcsa", "young","logain","stiffness")
+
+var_et_jpe_inf = c("diam_tre_en_bm__mm_" , "imt___m_", "distension___m_", "dploc", "dist_rate_moy","coeffDist", "young","logain","stiffness")
 ```
+
 
 # 7. Création d'une base de données centrée réduite
 
