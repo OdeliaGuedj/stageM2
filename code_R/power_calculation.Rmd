@@ -1,0 +1,63 @@
+---
+title: "Power Calculation"
+output: html_notebook
+---
+```{r}
+sample_size_calc = function(alpha = 0.05, power = 0.8, var, HR, p.event.overall){
+  num = (qnorm(1-alpha) + qnorm(power))^2
+  den = var * (log(HR))^2
+  D = num/den
+  N = D/p.event.overall
+  return(list("D" = D, "N" = N))
+}
+```
+```{r}
+sample_size_calc(var = (0.63)^2, HR = 1.2, p.event.overall = 0.02)
+```
+```{r}
+N = c()
+for(hr in seq(from = 0.5, to = 2, by = 0.1)){
+  if(hr != 1){
+    tmp = sample_size_calc(var = (0.63)^2, HR = hr, p.event.overall = 0.02)$N
+  N = c(N,tmp)
+  }
+}
+N
+```
+```{r}
+plot(x = seq(from = 0.5, to = 2, by = 0.1), y = c(N[1:5],0,N[6:15]))
+```
+
+```{r}
+alpha = 0.05
+power = 0.8
+var = (0.63)^2
+lHR = log(0.7)
+num = (qnorm(1-alpha) + qnorm(power))^2
+den = var * lHR^2
+(num/den)/0.97
+```
+
+```{r}
+table(data$deces)
+1 -256/10157
+17/65
+```
+```{r}
+qnorm(0.95)
+qnorm(0.8)
+```
+
+
+```{r}
+library(powerSurvEpi)
+```
+
+```{r}
+res = ssizeEpiCont.default(power = 0.8, theta = 0.7, sigma2 = sd(data$logain_mean_na)^2, psi = 0.2, rho2 = 1, alpha = 0.05)
+res
+```
+
+
+
+
