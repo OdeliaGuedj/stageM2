@@ -115,6 +115,24 @@ desc_autre_var_num
 desc_var_echo_fact
 ```
 
+```{r}
+tmp_num = c()
+desc_var_echo_jpe = data.frame()
+for(var in var_et_jpe_tot){
+  if(is.numeric(data[,var])){
+    tmp_num = c(tmp_num,var)
+    desc_var_echo_jpe = rbind(desc_var_echo_jpe, desc_var_num(var, data))
+  }
+  
+}
+
+rownames(desc_var_echo_jpe) = tmp_num
+rm(var);rm(tmp_num)
+desc_var_echo_jpe
+
+```
+
+
 
 # 3. Description des variables evenements 
 ```{r}
