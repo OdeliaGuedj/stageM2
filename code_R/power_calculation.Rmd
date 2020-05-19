@@ -2,61 +2,130 @@
 title: "Power Calculation"
 output: html_notebook
 ---
+# 1. Fonctions
 ```{r}
-sample_size_calc = function(alpha = 0.05, power = 0.8, var, HR, p.event.overall){
-  num = (qnorm(1-alpha) + qnorm(power))^2
-  den = var * (log(HR))^2
+sample_size_calc = function(alpha = 0.05, power = 0.8, sd, HR, p.event.overall){
+  
+  num = (qnorm(1-alpha/2) + qnorm(power))^2
+  den = sd^2 * (log(HR))^2
   D = num/den
-  N = D/p.event.overall
-  return(list("D" = D, "N" = N))
+  N = ceil(D/p.event.overall)
+  
+  return(list("D" = D, "N"=N))
 }
 ```
 ```{r}
-sample_size_calc(var = (0.63)^2, HR = 1.2, p.event.overall = 0.02)
+sample_size_calc(sd = 0.63, HR = 0.7, p.event.overall = 0.025)
 ```
+
 ```{r}
-N = c()
-for(hr in seq(from = 0.5, to = 2, by = 0.1)){
-  if(hr != 1){
-    tmp = sample_size_calc(var = (0.63)^2, HR = hr, p.event.overall = 0.02)$N
-  N = c(N,tmp)
+sample_size_calc1 = function(alpha = 0.05, power = 0.8, sd, HR, p.event.overall, graph = F, kable_latex = F){
+  
+  num = (qnorm(1-alpha/2) + qnorm(power))^2
+  den = sd^2 * (log(HR))^2
+  D = num/den
+  N =ceil(D/p.event.overall)
+  
+  if(graph == T){plot(x = HR, y = N)}
+  
+  df = data.frame("HR" = HR, "D" = D, "N" = N)
+  
+  if(kable_latex == T){
+    return(kable(df, "latex"))
+  }
+  else{
+    return(df)
   }
 }
-N
 ```
 ```{r}
-plot(x = seq(from = 0.5, to = 2, by = 0.1), y = c(N[1:5],0,N[6:15]))
+sample_size_calc1(sd = 0.63, HR = 0.7, p.event.overall = 0.025)
 ```
 
 ```{r}
-alpha = 0.05
-power = 0.8
-var = (0.63)^2
-lHR = log(0.7)
-num = (qnorm(1-alpha) + qnorm(power))^2
-den = var * lHR^2
-(num/den)/0.97
+sample_size_calc2 = function(alpha = 0.05, power = 0.8, sd, HR, p.event.overall, kable_latex = F){
+  
+  i=1
+  df_list = list()
+  for(p in p.event.overall){
+    num = (qnorm(1-alpha/2) + qnorm(power))^2
+    den = sd^2 * (log(HR))^2
+    D = num/den
+    N = ceil(D/p)
+    df_list[[i]] = data.frame(HR, N)
+    colnames(df_list[[i]]) = c("HR", paste0("N_",p))
+    i = i+1
+  }
+  rm(i)
+  res = Reduce(inner_join,df_list)
+  if(kable_latex == T){
+    return(kable(res, "latex"))
+  }
+  else{
+        return(res)
+  }
+}
 ```
 
 ```{r}
-table(data$deces)
-1 -256/10157
-17/65
+sample_size_calc2(sd = 0.63, HR = c(0.7), p.event.overall = c(0.024,0.025))
 ```
+
 ```{r}
-qnorm(0.95)
-qnorm(0.8)
+p.event = function(evt, data, r = 3){
+  return(round(length(which(data[,evt] == 1))/dim(data)[1],r))
+}
+```
+
+
+# 2. Application: tableaux de valeurs
+
+```{r}
+p.deces = p.event("deces", data)
+p.tdr = p.event("tdr", data)
+p.aomi = p.event("aomi", data)
+p.stroke = p.event("stroke", data)
+p.chd = p.event("chd", data)
+p = c(p.deces, p.chd, p.tdr, p.stroke, p.aomi)
 ```
 
 
 ```{r}
-library(powerSurvEpi)
+sample_size_calc2(sd =  0.63, HR = c(0.5,0.6,0.7,0.8,0.9,1.1,1.2,1.3,1.4,1.5) , p.event.overall = 0.025)
 ```
 
 ```{r}
-res = ssizeEpiCont.default(power = 0.8, theta = 0.7, sigma2 = sd(data$logain_mean_na)^2, psi = 0.2, rho2 = 1, alpha = 0.05)
-res
+list_sample_size = list()
+i = 1
+for(param in var_et_jpe_inf){
+  sd = round(sd(data[,param], na.rm = T),2)
+  list_sample_size[[i]] = sample_size_calc2(sd = sd, HR = c(0.5,0.6,0.7,0.8,0.9,1.1,1.2,1.3,1.4,1.5) , p.event.overall = p)
+  i = i+1
+}
+names(list_sample_size) = var_et_jpe_inf
 ```
+```{r}
+list_sample_size[["dist_rate_moy"]]
+```
+
+# Graphes
+
+```{r}
+plot_sample_size = function(param, s = 1){
+    print(ggplot(list_sample_size[[param]]) + 
+  geom_line(aes(x = HR, y = N_0.025, col = "Death"),size = s) + geom_line(aes(x = HR, y = N_0.024,col = "CHD"),size = s)  + geom_line(aes(x = HR, y = N_0.017,col = "TDR"),size = s)+ geom_line(aes(x = HR, y = N_0.011,col = "Stroke"),size = s)+ geom_line(aes(x = HR, y = N_0.003, col = "AOMI"),size = s)+ 
+  scale_color_manual(values = c('Death' = 'red','CHD' = 'darkblue', 'TDR' = 'orange', 'Stroke' = 'purple','AOMI' = 'steelblue')) +labs(color = 'Events') +
+  ggtitle(paste("Sample size for the",param)) + ylab("N"))
+  
+}
+```
+```{r}
+for(p in var_et_jpe_inf){
+  plot_sample_size(p)
+}
+```
+
+
 
 
 

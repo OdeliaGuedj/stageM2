@@ -230,20 +230,142 @@ summary {
 <h1>0. Packages</h1>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeSh0aWR5dmVyc2UpXG5saWJyYXJ5KGx1YnJpZGF0ZSlcbmxpYnJhcnkoc3Vydml2YWwpXG5saWJyYXJ5KEhtaXNjKVxubGlicmFyeShnZ3Bsb3QyKVxubGlicmFyeShnZ2NvcnJwbG90KVxubGlicmFyeShrYWJsZUV4dHJhKVxubGlicmFyeShnZ3JlcGVsKVxubGlicmFyeShrbml0cilcbmxpYnJhcnkoY293cGxvdClcbmxpYnJhcnkoY29tcGFyZUdyb3VwcylcbmxpYnJhcnkodGFibGUxKVxuYGBgIn0= -->
-<pre class="r"><code>library(tidyverse)
-library(lubridate)
-library(survival)
-library(Hmisc)
-library(ggplot2)
-library(ggcorrplot)
-library(kableExtra)
-library(ggrepel)
-library(knitr)
-library(cowplot)
-library(compareGroups)
-library(table1)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeSh0aWR5dmVyc2UpXG5gYGAifQ== -->
+<pre class="r"><code>library(tidyverse)</code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoibGUgcGFja2FnZSCRdGlkeXZlcnNlkiBhIOl06SBjb21waWzpIGF2ZWMgbGEgdmVyc2lvbiBSIDMuNi4zUmVnaXN0ZXJlZCBTMyBtZXRob2Qgb3ZlcndyaXR0ZW4gYnkgJ2RwbHlyJzpcbiAgbWV0aG9kICAgICAgICAgICBmcm9tXG4gIHByaW50LnJvd3dpc2VfZGYgICAgIFxuUmVnaXN0ZXJlZCBTMyBtZXRob2RzIG92ZXJ3cml0dGVuIGJ5ICdkYnBseXInOlxuICBtZXRob2QgICAgICAgICBmcm9tXG4gIHByaW50LnRibF9sYXp5ICAgICBcbiAgcHJpbnQudGJsX3NxbCAgICAgIFxuXHUwMDFiWzM3bS0tIFx1MDAxYlsxbUF0dGFjaGluZyBwYWNrYWdlc1x1MDAxYlsyMm0gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tIHRpZHl2ZXJzZSAxLjMuMCAtLVx1MDAxYlszOW1cblx1MDAxYlszN21cdTAwMWJbMzJtdlx1MDAxYlszN20gXHUwMDFiWzM0bWdncGxvdDJcdTAwMWJbMzdtIDMuMy4wICAgICBcdTAwMWJbMzJtdlx1MDAxYlszN20gXHUwMDFiWzM0bXB1cnJyICBcdTAwMWJbMzdtIDAuMy4zXG5cdTAwMWJbMzJtdlx1MDAxYlszN20gXHUwMDFiWzM0bXRpYmJsZSBcdTAwMWJbMzdtIDMuMC4xICAgICBcdTAwMWJbMzJtdlx1MDAxYlszN20gXHUwMDFiWzM0bWRwbHlyICBcdTAwMWJbMzdtIDAuOC4zXG5cdTAwMWJbMzJtdlx1MDAxYlszN20gXHUwMDFiWzM0bXRpZHlyICBcdTAwMWJbMzdtIDEuMC4wICAgICBcdTAwMWJbMzJtdlx1MDAxYlszN20gXHUwMDFiWzM0bXN0cmluZ3JcdTAwMWJbMzdtIDEuNC4wXG5cdTAwMWJbMzJtdlx1MDAxYlszN20gXHUwMDFiWzM0bXJlYWRyICBcdTAwMWJbMzdtIDEuMy4xICAgICBcdTAwMWJbMzJtdlx1MDAxYlszN20gXHUwMDFiWzM0bWZvcmNhdHNcdTAwMWJbMzdtIDAuNS4wXHUwMDFiWzM5bVxubGUgcGFja2FnZSCRZ2dwbG90MpIgYSDpdOkgY29tcGls6SBhdmVjIGxhIHZlcnNpb24gUiAzLjYuM2xlIHBhY2thZ2UgkXRpYmJsZZIgYSDpdOkgY29tcGls6SBhdmVjIGxhIHZlcnNpb24gUiAzLjYuM2xlIHBhY2thZ2UgkWZvcmNhdHOSIGEg6XTpIGNvbXBpbOkgYXZlYyBsYSB2ZXJzaW9uIFIgMy42LjNcdTAwMWJbMzdtLS0gXHUwMDFiWzFtQ29uZmxpY3RzXHUwMDFiWzIybSAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0gdGlkeXZlcnNlX2NvbmZsaWN0cygpIC0tXG5cdTAwMWJbMzFteFx1MDAxYlszN20gXHUwMDFiWzM0bWRwbHlyXHUwMDFiWzM3bTo6XHUwMDFiWzMybWZpbHRlcigpXHUwMDFiWzM3bSBtYXNrcyBcdTAwMWJbMzRtc3RhdHNcdTAwMWJbMzdtOjpmaWx0ZXIoKVxuXHUwMDFiWzMxbXhcdTAwMWJbMzdtIFx1MDAxYlszNG1kcGx5clx1MDAxYlszN206Olx1MDAxYlszMm1sYWcoKVx1MDAxYlszN20gICAgbWFza3MgXHUwMDFiWzM0bXN0YXRzXHUwMDFiWzM3bTo6bGFnKClcdTAwMWJbMzltXG4ifQ== -->
+<pre><code>le package 㤼㸱tidyverse㤼㸲 a 攼㸹t攼㸹 compil攼㸹 avec la version R 3.6.3Registered S3 method overwritten by 'dplyr':
+  method           from
+  print.rowwise_df     
+Registered S3 methods overwritten by 'dbplyr':
+  method         from
+  print.tbl_lazy     
+  print.tbl_sql      
+[37m-- [1mAttaching packages[22m --------------------------------------- tidyverse 1.3.0 --[39m
+[37m[32mv[37m [34mggplot2[37m 3.3.0     [32mv[37m [34mpurrr  [37m 0.3.3
+[32mv[37m [34mtibble [37m 3.0.1     [32mv[37m [34mdplyr  [37m 0.8.3
+[32mv[37m [34mtidyr  [37m 1.0.0     [32mv[37m [34mstringr[37m 1.4.0
+[32mv[37m [34mreadr  [37m 1.3.1     [32mv[37m [34mforcats[37m 0.5.0[39m
+le package 㤼㸱ggplot2㤼㸲 a 攼㸹t攼㸹 compil攼㸹 avec la version R 3.6.3le package 㤼㸱tibble㤼㸲 a 攼㸹t攼㸹 compil攼㸹 avec la version R 3.6.3le package 㤼㸱forcats㤼㸲 a 攼㸹t攼㸹 compil攼㸹 avec la version R 3.6.3[37m-- [1mConflicts[22m ------------------------------------------ tidyverse_conflicts() --
+[31mx[37m [34mdplyr[37m::[32mfilter()[37m masks [34mstats[37m::filter()
+[31mx[37m [34mdplyr[37m::[32mlag()[37m    masks [34mstats[37m::lag()[39m</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShsdWJyaWRhdGUpXG5gYGAifQ== -->
+<pre class="r"><code>library(lubridate)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG5BdHRhY2hlbWVudCBkdSBwYWNrYWdlIDog46S847ixbHVicmlkYXRl46S847iyXG5cblRoZSBmb2xsb3dpbmcgb2JqZWN0IGlzIG1hc2tlZCBmcm9tIOOkvOO4sXBhY2thZ2U6YmFzZeOkvOO4sjpcblxuICAgIGRhdGVcbiJ9 -->
+<pre><code>
+Attachement du package : 㤼㸱lubridate㤼㸲
+
+The following object is masked from 㤼㸱package:base㤼㸲:
+
+    date</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShzdXJ2aXZhbClcbmBgYCJ9 -->
+<pre class="r"><code>library(survival)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoibGUgcGFja2FnZSDjpLzjuLFzdXJ2aXZhbOOkvOO4siBhIOaUvOO4uXTmlLzjuLkgY29tcGls5pS847i5IGF2ZWMgbGEgdmVyc2lvbiBSIDMuNi4zXG4ifQ== -->
+<pre><code>le package 㤼㸱survival㤼㸲 a 攼㸹t攼㸹 compil攼㸹 avec la version R 3.6.3</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShIbWlzYylcbmBgYCJ9 -->
+<pre class="r"><code>library(Hmisc)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiTGUgY2hhcmdlbWVudCBhIG7mlLzjuLljZXNzaXTmlLzjuLkgbGUgcGFja2FnZSA6IGxhdHRpY2VcbkxlIGNoYXJnZW1lbnQgYSBu5pS847i5Y2Vzc2l05pS847i5IGxlIHBhY2thZ2UgOiBGb3JtdWxhXG5SZWdpc3RlcmVkIFMzIG1ldGhvZHMgb3ZlcndyaXR0ZW4gYnkgJ2h0bWx0b29scyc6XG4gIG1ldGhvZCAgICAgICAgICAgICAgIGZyb20gICAgICAgICBcbiAgcHJpbnQuaHRtbCAgICAgICAgICAgdG9vbHM6cnN0dWRpb1xuICBwcmludC5zaGlueS50YWcgICAgICB0b29sczpyc3R1ZGlvXG4gIHByaW50LnNoaW55LnRhZy5saXN0IHRvb2xzOnJzdHVkaW9cblJlZ2lzdGVyZWQgUzMgbWV0aG9kIG92ZXJ3cml0dGVuIGJ5ICdodG1sd2lkZ2V0cyc6XG4gIG1ldGhvZCAgICAgICAgICAgZnJvbSAgICAgICAgIFxuICBwcmludC5odG1sd2lkZ2V0IHRvb2xzOnJzdHVkaW9cblJlZ2lzdGVyZWQgUzMgbWV0aG9kIG92ZXJ3cml0dGVuIGJ5ICdkYXRhLnRhYmxlJzpcbiAgbWV0aG9kICAgICAgICAgICBmcm9tXG4gIHByaW50LmRhdGEudGFibGUgICAgIFxuXG5BdHRhY2hlbWVudCBkdSBwYWNrYWdlIDog46S847ixSG1pc2PjpLzjuLJcblxuVGhlIGZvbGxvd2luZyBvYmplY3RzIGFyZSBtYXNrZWQgZnJvbSDjpLzjuLFwYWNrYWdlOmRwbHly46S847iyOlxuXG4gICAgc3JjLCBzdW1tYXJpemVcblxuVGhlIGZvbGxvd2luZyBvYmplY3RzIGFyZSBtYXNrZWQgZnJvbSDjpLzjuLFwYWNrYWdlOmJhc2XjpLzjuLI6XG5cbiAgICBmb3JtYXQucHZhbCwgdW5pdHNcbiJ9 -->
+<pre><code>Le chargement a n攼㸹cessit攼㸹 le package : lattice
+Le chargement a n攼㸹cessit攼㸹 le package : Formula
+Registered S3 methods overwritten by 'htmltools':
+  method               from         
+  print.html           tools:rstudio
+  print.shiny.tag      tools:rstudio
+  print.shiny.tag.list tools:rstudio
+Registered S3 method overwritten by 'htmlwidgets':
+  method           from         
+  print.htmlwidget tools:rstudio
+Registered S3 method overwritten by 'data.table':
+  method           from
+  print.data.table     
+
+Attachement du package : 㤼㸱Hmisc㤼㸲
+
+The following objects are masked from 㤼㸱package:dplyr㤼㸲:
+
+    src, summarize
+
+The following objects are masked from 㤼㸱package:base㤼㸲:
+
+    format.pval, units</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShnZ3Bsb3QyKVxubGlicmFyeShnZ2NvcnJwbG90KVxuYGBgIn0= -->
+<pre class="r"><code>library(ggplot2)
+library(ggcorrplot)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoibGUgcGFja2FnZSDjpLzjuLFnZ2NvcnJwbG9046S847iyIGEg5pS847i5dOaUvOO4uSBjb21waWzmlLzjuLkgYXZlYyBsYSB2ZXJzaW9uIFIgMy42LjNcbiJ9 -->
+<pre><code>le package 㤼㸱ggcorrplot㤼㸲 a 攼㸹t攼㸹 compil攼㸹 avec la version R 3.6.3</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShrYWJsZUV4dHJhKVxuYGBgIn0= -->
+<pre class="r"><code>library(kableExtra)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG5BdHRhY2hlbWVudCBkdSBwYWNrYWdlIDog46S847ixa2FibGVFeHRyYeOkvOO4slxuXG5UaGUgZm9sbG93aW5nIG9iamVjdCBpcyBtYXNrZWQgZnJvbSDjpLzjuLFwYWNrYWdlOmRwbHly46S847iyOlxuXG4gICAgZ3JvdXBfcm93c1xuIn0= -->
+<pre><code>
+Attachement du package : 㤼㸱kableExtra㤼㸲
+
+The following object is masked from 㤼㸱package:dplyr㤼㸲:
+
+    group_rows</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShnZ3JlcGVsKVxuYGBgIn0= -->
+<pre class="r"><code>library(ggrepel)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoibGUgcGFja2FnZSDjpLzjuLFnZ3JlcGVs46S847iyIGEg5pS847i5dOaUvOO4uSBjb21waWzmlLzjuLkgYXZlYyBsYSB2ZXJzaW9uIFIgMy42LjNcbiJ9 -->
+<pre><code>le package 㤼㸱ggrepel㤼㸲 a 攼㸹t攼㸹 compil攼㸹 avec la version R 3.6.3</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShrbml0cilcbmxpYnJhcnkoY293cGxvdClcbmBgYCJ9 -->
+<pre class="r"><code>library(knitr)
+library(cowplot)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG4qKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKlxuTm90ZTogQXMgb2YgdmVyc2lvbiAxLjAuMCwgY293cGxvdCBkb2VzIG5vdCBjaGFuZ2UgdGhlXG4gIGRlZmF1bHQgZ2dwbG90MiB0aGVtZSBhbnltb3JlLiBUbyByZWNvdmVyIHRoZSBwcmV2aW91c1xuICBiZWhhdmlvciwgZXhlY3V0ZTpcbiAgdGhlbWVfc2V0KHRoZW1lX2Nvd3Bsb3QoKSlcbioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqXG5cblxuQXR0YWNoZW1lbnQgZHUgcGFja2FnZSA6IOOkvOO4sWNvd3Bsb3TjpLzjuLJcblxuVGhlIGZvbGxvd2luZyBvYmplY3QgaXMgbWFza2VkIGZyb20g46S847ixcGFja2FnZTpsdWJyaWRhdGXjpLzjuLI6XG5cbiAgICBzdGFtcFxuIn0= -->
+<pre><code>
+********************************************************
+Note: As of version 1.0.0, cowplot does not change the
+  default ggplot2 theme anymore. To recover the previous
+  behavior, execute:
+  theme_set(theme_cowplot())
+********************************************************
+
+
+Attachement du package : 㤼㸱cowplot㤼㸲
+
+The following object is masked from 㤼㸱package:lubridate㤼㸲:
+
+    stamp</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShjb21wYXJlR3JvdXBzKVxuYGBgIn0= -->
+<pre class="r"><code>library(compareGroups)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoibGUgcGFja2FnZSCRY29tcGFyZUdyb3Vwc5IgYSDpdOkgY29tcGls6SBhdmVjIGxhIHZlcnNpb24gUiAzLjYuM0xlIGNoYXJnZW1lbnQgYSBu6WNlc3NpdOkgbGUgcGFja2FnZSA6IFNOUGFzc29jXG5sZSBwYWNrYWdlIJFTTlBhc3NvY5IgYSDpdOkgY29tcGls6SBhdmVjIGxhIHZlcnNpb24gUiAzLjYuM0xlIGNoYXJnZW1lbnQgYSBu6WNlc3NpdOkgbGUgcGFja2FnZSA6IGhhcGxvLnN0YXRzXG5sZSBwYWNrYWdlIJFoYXBsby5zdGF0c5IgYSDpdOkgY29tcGls6SBhdmVjIGxhIHZlcnNpb24gUiAzLjYuM0xlIGNoYXJnZW1lbnQgYSBu6WNlc3NpdOkgbGUgcGFja2FnZSA6IG12dG5vcm1cbkxlIGNoYXJnZW1lbnQgYSBu6WNlc3NpdOkgbGUgcGFja2FnZSA6IHBhcmFsbGVsXG5SZWdpc3RlcmVkIFMzIG1ldGhvZCBvdmVyd3JpdHRlbiBieSAnU05QYXNzb2MnOlxuICBtZXRob2QgICAgICAgICAgICBmcm9tICAgICAgIFxuICBzdW1tYXJ5LmhhcGxvLmdsbSBoYXBsby5zdGF0c1xuIn0= -->
+<pre><code>le package 㤼㸱compareGroups㤼㸲 a 攼㸹t攼㸹 compil攼㸹 avec la version R 3.6.3Le chargement a n攼㸹cessit攼㸹 le package : SNPassoc
+le package 㤼㸱SNPassoc㤼㸲 a 攼㸹t攼㸹 compil攼㸹 avec la version R 3.6.3Le chargement a n攼㸹cessit攼㸹 le package : haplo.stats
+le package 㤼㸱haplo.stats㤼㸲 a 攼㸹t攼㸹 compil攼㸹 avec la version R 3.6.3Le chargement a n攼㸹cessit攼㸹 le package : mvtnorm
+Le chargement a n攼㸹cessit攼㸹 le package : parallel
+Registered S3 method overwritten by 'SNPassoc':
+  method            from       
+  summary.haplo.glm haplo.stats</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeSh0YWJsZTEpXG5gYGAifQ== -->
+<pre class="r"><code>library(table1)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoibGUgcGFja2FnZSDjpLzjuLF0YWJsZTHjpLzjuLIgYSDmlLzjuLl05pS847i5IGNvbXBpbOaUvOO4uSBhdmVjIGxhIHZlcnNpb24gUiAzLjYuM1xuQXR0YWNoZW1lbnQgZHUgcGFja2FnZSA6IOOkvOO4sXRhYmxlMeOkvOO4slxuXG5UaGUgZm9sbG93aW5nIG9iamVjdHMgYXJlIG1hc2tlZCBmcm9tIOOkvOO4sXBhY2thZ2U6SG1pc2PjpLzjuLI6XG5cbiAgICBsYWJlbCwgbGFiZWw8LSwgdW5pdHNcblxuVGhlIGZvbGxvd2luZyBvYmplY3RzIGFyZSBtYXNrZWQgZnJvbSDjpLzjuLFwYWNrYWdlOmJhc2XjpLzjuLI6XG5cbiAgICB1bml0cywgdW5pdHM8LVxuIn0= -->
+<pre><code>le package 㤼㸱table1㤼㸲 a 攼㸹t攼㸹 compil攼㸹 avec la version R 3.6.3
+Attachement du package : 㤼㸱table1㤼㸲
+
+The following objects are masked from 㤼㸱package:Hmisc㤼㸲:
+
+    label, label&lt;-, units
+
+The following objects are masked from 㤼㸱package:base㤼㸲:
+
+    units, units&lt;-</code></pre>
+<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
