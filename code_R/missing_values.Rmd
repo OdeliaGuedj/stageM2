@@ -58,7 +58,7 @@ pvals21 = getResults(table_21, "p.overall")
 
 export_table21 = createTable(table_21)
 
-#export2latex(export_table21, file = "table21.tex")
+export2latex(export_table21, file = "table21.tex")
 ```
 
 
@@ -80,7 +80,7 @@ pvals22 = getResults(table_22, "p.overall")
 
 export_table22 = createTable(table_22)
 
-#export2latex(export_table22, file = "table22.tex")
+export2latex(export_table22, file = "table22.tex")
 ```
 
 
@@ -100,7 +100,7 @@ pvals23 = getResults(table_23, "p.overall")
 
 export_table23 = createTable(table_23)
 
-#export2latex(export_table23, file = "table223.tex")
+export2latex(export_table23, file = "table23.tex")
 ```
 
 
@@ -179,29 +179,14 @@ export_table33
 
 # 4. Seulement qq var d'et choisises par JPE 
 
+
 ```{r}
 data$na_et_jpe_inf = ifelse(data$nepp3 %in% subset_SubjectsNA(data, var_et_jpe_inf, "nepp3")$na_id,1,0)
 data$na_et_jpe_inf = as.factor(data$na_et_jpe_inf)
 table(data$na_et_jpe_inf)
 ```
-```{r}
-generate_str_var(c(socio_demo,qual_vie,traitement,bio))
-```
-
-```{r}
-table_23 = compareGroups(na_et ~age0+ sexe+ adm14+ educ+ qm9+ qm10+ qm16+ bmi+ diab+ deptot+ epice+ antihta2+ hypolip2+ trb17+ ldl+ bio10+ mbp+ bio6, data = data)
-  
-pvals23 = getResults(table_23, "p.overall")
-
-export_table23 = createTable(table_23)
-
-#export2latex(export_table23, file = "table23.tex")
-```
 
 
-```{r}
-export_table23
-```
 
 ## 4.1 Variables d'échotracking
 
@@ -217,7 +202,7 @@ pvals41 = getResults(table_41, "p.overall")
 
 export_table41 = createTable(table_41)
 
-#export2latex(export_table41, file = "table41.tex")
+export2latex(export_table41, file = "table41.tex")
 ```
 
 
@@ -238,7 +223,7 @@ pvals42 = getResults(table_42, "p.overall")
 
 export_table42 = createTable(table_42)
 
-#export2latex(export_table42, file = "table42.tex")
+export2latex(export_table42, file = "table42.tex")
 ```
 ## 4.3 Autre variables
 ```{r}
@@ -252,7 +237,7 @@ pvals43 = getResults(table_43, "p.overall")
 
 export_table43 = createTable(table_43)
 
-#export2latex(export_table43, file = "table223.tex")
+export2latex(export_table43, file = "table43.tex")
 ```
 
 
