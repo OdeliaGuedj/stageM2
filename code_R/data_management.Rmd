@@ -18,7 +18,7 @@ library(knitr)
 library(cowplot)
 library(compareGroups)
 library(table1)
-
+library(mice)
 ```
 
 # 1. Reading the data
@@ -61,7 +61,7 @@ data$mbp = as.numeric((data$pas_basale__mm_hg_ + 2*data$pad_basale__mm_hg_)/3) #
 ```
 
 
-# 4. Prevalence de maladies caridovasculaire
+# 4. Prevalence de maladies cardiovasculaires
 
 8 catégories:
 - qm34 Infartcus du myocarde
@@ -167,7 +167,7 @@ for(var in colnames(data)){
 rm(var)
 ```
 
-# 8. Création base de données sans les prévlents cvd
+# 8. Création base de données sans les prévalents cvd
 
 On retire les patients ayant des antécédants de maladie cardiovasculaire.
 ```{r}
