@@ -281,9 +281,7 @@ for(var in colnames(data_imp_triv)){
 
 
 
-```{r}
-compare_dist(data$stiffness, data_imp_triv$stiffness)
-```
+
 
 
 
@@ -340,19 +338,15 @@ for(i in var_et_jpe_tot){
 #compare_dist("diam_tre_en_bm__mm_")
 ```
 
+
 ```{r}
-plot(density(data2$stiffness, na.rm = T), col = "red")
-lines(density(complete(imp_mice_allPred, i)[,"stiffness"]), col = "green")
-lines(density(complete(imp_mice_sample, i)$stiffness), col = "blue")
-lines(density(data_imp_triv$stiffness), col = "purple")
+data_clean = complete(imp_mice_allPred)
+```
+```{r}
+dim(data_clean)
 ```
 
 
 
-```{r}
-plot(density(data2$stiffness, na.rm = T))
-densityplot(data_imp_triv$stiffness)
-densityplot(imp_mice_allPred$data$stiffness)
-densityplot(imp_mice_sample$data$stiffness)
-```
+
 

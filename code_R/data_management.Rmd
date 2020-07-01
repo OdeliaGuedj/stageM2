@@ -19,6 +19,10 @@ library(cowplot)
 library(compareGroups)
 library(table1)
 library(mice)
+library(factoextra)
+library(FactoMineR)
+library(mclust)
+library(questionr)
 ```
 
 # 1. Reading the data
@@ -60,6 +64,25 @@ data$stiffness = as.numeric(sqrt(1/(data$coeffDist)*1000))
 data$mbp = as.numeric((data$pas_basale__mm_hg_ + 2*data$pad_basale__mm_hg_)/3) # mean blood pressure
 ```
 
+```{r}
+data$pa_cat = NA
+data$pa_cat[data$pas_basale__mm_hg_ < 120 & data$pad_basale__mm_hg_ < 80] = "Normal"
+data$pa_cat[data$pas_basale__mm_hg_< 129 & data$pas_basale__mm_hg_ > 120 & data$pad_basale__mm_hg_ < 80] = "Elevée"
+data$pa_cat[(data$pas_basale__mm_hg_ < 139 & data$pas_basale__mm_hg_ > 130) | (data$pad_basale__mm_hg_ < 89 & data$pad_basale__mm_hg_ > 80)] = "HP Stage 1"
+data$pa_cat[data$pas_basale__mm_hg_ >= 140 | data$pad_basale__mm_hg_ >= 90] = "HP Stage 2"
+data$pa_cat[data$pas_basale__mm_hg_ >= 180 | data$pad_basale__mm_hg_ > 120] = "HP Crisis"
+```
+```{r}
+table(data$pa_cat, useNA = "ifany")
+```
+```{r}
+data$mbp_cat = quant.cut(data$mbp, 3)
+table(data$mbp_cat)
+```
+
+```{r}
+data$age_cat = quant.cut(data$age0, 4)
+```
 
 # 4. Prevalence de maladies cardiovasculaires
 
@@ -91,19 +114,6 @@ data$prevalence_cvd = as.factor(data$prevalence_cvd)
 ```
 
 
-<!-- # ```{r} -->
-<!-- # pv_prev_cvd_evt = c(chisq.test(data$prevalence_cvd, data$deces)$p.value,chisq.test(data$prevalence_cvd, data$chd)$p.value,chisq.test(data$prevalence_cvd,data$stroke)$p.value,chisq.test(data$prevalence_cvd,data$aomi)$p.value,chisq.test(data$prevalence_cvd, data$tdr)$p.value) -->
-<!-- #  -->
-<!-- # pv_atcdcv = c(chisq.test(data$atcdcv, data$deces)$p.value,chisq.test(data$atcdcv, data$chd)$p.value,chisq.test(data$atcdcv,data$stroke)$p.value,chisq.test(data$atcdcv,data$aomi)$p.value,chisq.test(data$atcdcv, data$tdr)$p.value) -->
-<!-- # ``` -->
-<!-- # ```{r} -->
-<!-- # plot(pv_atcdcv, col = "steelblue", ylab = "p.values", xlab = "") -->
-<!-- # points(pv_prev_cvd_evt, col = "orange") -->
-<!-- # abline(h = 0.05, col = "red") -->
-<!-- # legend("topleft", title="Kind of event", -->
-<!-- #    c("1: Death", "2: chd", "3: Stroke", "4: aomi", "5: tdr")) -->
-<!-- # legend("topright" ,fill = c("steelblue", "orange"), c("Old","New")) -->
-<!-- # ``` -->
 ```{r}
 table(data$atcdcv, useNA = "always")
 ```
@@ -133,19 +143,19 @@ id = c("nepp3","n__ipc")
 
 date = c("datnaiss", "datinclu", "date_tdr", "date_aomi", "date_stroke", "date_chd", "date_deces")
 
-evt = c("deces","stroke","aomi","tdr","chd")
+var_evt = c("deces","stroke","aomi","tdr","chd")
 
 time_to_evt = c("time_to_stroke", "time_to_aomi", "time_to_tdr", "time_to_chd","time_to_deces")
 
 prev_cvd = c("qm34","qm35","qm36","qm37","qm38","qm39","qm40","qm41","atcdcv","prevalence_cvd")
 
-socio_demo = c("age0", "sexe","adm14","educ")
+socio_demo = c("age0", "age_cat", "sexe","adm14","educ")
 
 qual_vie = c("qm9","qm10","qm16","bmi","diab","deptot","epice")
 
 traitement = c("antihta2", "hypolip2")
 
-bio = c("trb17", "ldl","bio10","mbp","bio6")
+bio = c("trb17", "ldl","bio10","mbp","bio6", "pa_cat", "mbp_cat")
 
 echotracking =  c("pas_basale__mm_hg_","pad_basale__mm_hg_", "fc_basale","diam_tre_en_bm__mm_","imt___m_","diam_tre_en_fbm__mm_","distension___m_","pwvloc", "dploc","debut","dist_rate_moy","dist_rate_var","rr_int_moy","rr_int_var","lf_dist_rate_t","hf_dist_rate_t","hf_dist_rate_c","lf_rrint_t","hf_rr_int_t","hf_rrint_c","freq_resp","lf_coh_max","lf_coh_moy","lf_gain_max","lf_gain_moy","lf_phase","sens_phase","hf_c_coh_max","hf_c_coh_moy","hf_c_gain_max","hf_c_gain_moy","hf_c_phase","sens_phase_hf_c","hf_t_coh_max","hf_t_coh_moy","hf_t_gain_max","hf_t_gain_moy","hf_t_phase","sens_hf_t_phase","dist_moy","dist_var","cws","coeffDist","compli","wcsa","young","pr_sence_de_plaque_s____l__cho","logain","logyoung","dextdias","stiffness")
 

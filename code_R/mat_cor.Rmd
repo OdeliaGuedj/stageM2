@@ -1,0 +1,18 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+On fait une matrice de dcorrélation des 20 var d'échotracking aprés imputation sans les sujets prevalents.
+
+Les corrélations positives sont affichées en bleu et les corrélations négatives en rouge. L’intensité de la couleur et la taille des cercles sont proportionnelles aux coefficients de corrélation. A droite du corrélogramme, la légende de couleurs montre les coefficients de corrélation et les couleurs correspondantes.
+
+```{r}
+mat_cor = round(cor(data_clean[,var_et_jpe_tot]),1)
+p.mat = cor_pmat(data_clean[,var_et_jpe_tot], method = "pearson")
+library(corrplot)
+corrplot(mat_cor, type = "upper", tl.col="black", method = "number" , tl.srt=45)#, lab = F, p.mat = p.mat)
+```
+
+

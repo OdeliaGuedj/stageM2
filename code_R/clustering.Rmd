@@ -1,0 +1,89 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# 1. Base de donnée
+
+Contient les 20 var d'echotraking centrées et réduites.
+
+```{r}
+data_cl = scale(data_clean[,var_et_jpe_tot], center = T, scale = T)
+```
+
+
+```{r}
+head(data_cl)
+```
+```{r}
+dim(data_cl)
+```
+
+# 2. Kmeans
+```{r}
+km3 = kmeans(t(data_cl[,var_et_jpe_tot]), centers = 3, nstart = 50)
+```
+
+
+
+```{r}
+km3$cluster
+```
+
+
+# Algo EM 
+
+
+```{r}
+mclust1 = Mclust(t(data_cl[,var_et_jpe_tot]), G = 3)
+```
+```{r}
+summary(mclust1)
+mclust1$classification
+```
+
+# 3. Classification Ascendante Hiérarchique avec distance de ward 2
+
+```{r}
+cah.wardD2 = hclust(dist(t(data_cl)),method="ward.D2")
+```
+```{r}
+#liste des groupes
+groupes.cah = cutree(cah.wardD2, 3)
+groupes.cah
+```
+# 4. Algo PAM 
+
+```{r}
+library(cluster)
+pam = pam(t(data_cl[,var_et_jpe_tot]), k = 3)
+```
+
+```{r}
+pam$clustering
+```
+
+
+# 5. Visualisation
+
+```{r}
+fviz_cluster(km3, data = t(data_cl), main = "Kmeans")
+fviz_cluster(mclust1, data = t(data_cl), main = "Algo EM - (Mclust)")
+fviz_cluster(pam, main = "PAM (K-methoids")
+plot(cah.wardD2, main = "CAH - critère de WARD2")
+#dendrogramme avec matérialisation des groupes
+rect.hclust(cah.wardD2,k=3)
+```
+
+# 6. Sur les sujets
+
+```{r}
+data_cl_suj = data_clean
+data_cl_suj = cbind(data_clean, data2[traitement])
+  cbind(data_clean,data2[,c(qual_vie,traitement,bio,socio_demo)])
+```
+```{r}
+colnames(data_cl_suj)
+```
+
+
