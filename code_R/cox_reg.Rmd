@@ -76,9 +76,10 @@ cox_univar = function(time, var, evt, dt, round = T, d.round = 2, alpha = 0.05){
                     "IC" = paste0("[", round(summary$conf.int[,3],d.round +1), " ; ", ... = round(summary$conf.int[,4],d.round+1), "]"),
                     "p.value" = signif(summary$coefficient[,5],3),
                     "pv_signif" = ifelse(summary$coefficient[,5] <= alpha, "*"," "),
-                    "p.shonfeld" = signif(test.shonfeld$table[,3],d.round+1),
+                    "p.shonfeld" = signif(test.shonfeld$table[dim(test.shonfeld$table)[1],dim(test.shonfeld$table)[2]],d.round+1),
                     "n" = model$n,
-                    "n.events" = model$nevent)
+                    "n.events" = model$nevent
+                    )
     
     
    return(list("res_df"=df, "model" = model))
@@ -92,10 +93,11 @@ cox_univar = function(time, var, evt, dt, round = T, d.round = 2, alpha = 0.05){
                     "ICsup" = summary$conf.int[,4],
                     "p.value" = summary$coefficient[,5],
                     "pv_signif" = ifelse(summary$coefficient[,5] <= alpha, 1,0),
-                    "p.shonfeld" = signif(test.shonfeld$table[,3],d.round+1),
-                    "Hyp.Prop.verif" = ifelse(test.shonfeld$table[,3] <= alpha ,0,1),
+                    "p.shonfeld" = signif(test.shonfeld$table[dim(test.shonfeld$table)[1],dim(test.shonfeld$table)[2]],d.round+1),
+                    "Hyp.Prop.verif" = ifelse(test.shonfeld$table[dim(test.shonfeld$table)[1],dim(test.shonfeld$table)[2]] <= alpha ,0,1),
                     "n" = model$n,
-                    "n.events" = model$nevent)
+                    "n.events" = model$nevent
+                    )
   
     return(df)
   
@@ -116,7 +118,7 @@ plot_pv_HR = function(cox_nice_info, hj = 0, vj = 0, main = " "){
     
     geom_point(color = dplyr::case_when((cox_nice_info$pv_signif == 1 & cox_nice_info$Hyp.Prop.verif == 1)~ "green", (cox_nice_info$pv_signif == 0 & cox_nice_info$Hyp.Prop.verif == 1) ~ "red",cox_nice_info$Hyp.Prop.verif == 0 ~ "black" )) +
     
-      geom_hline(yintercept = 1) +
+      geom_hline(yintercept = 1, col = "red") + geom_vline(xintercept =0.05, col = "red") +
     
         scale_y_continuous(name="HR",limits=c(min(cox_nice_info$HR)-0.1 , max(cox_nice_info$HR)+0.1)) +
             
@@ -230,16 +232,12 @@ list_univarSTD_pc[["deces"]]
 ```
 
 
-## 2.2 Modèls de Cox univariés pour toutes les variables numériques d'échotracking
-
-202 modèles à faire et à synthétiser donc ça prends un peu de temps à tourner.
-```{r}
-which(unlist(lapply(data2[,echotracking],is.factor)) == TRUE)
-```
+## 2.2 Modèls de Cox univariés pour toutes les variables d'échotracking (clean)
 
 Ici avec l'argument round = F pour pouvoir tracer le graph
+
+
 ```{r}
-echotracking_ss_sens = echotracking[-c(27,33,39)]
 i = 1
 list_univar_et = list()
 list_univarSTD_et = list()
@@ -250,7 +248,7 @@ for(evt in var_evt){
   res_univar_et = data.frame()
   res_univarSTD_et = data.frame()
   
-  for(var in echotracking_ss_sens){
+  for(var in echotracking_clean){
     
     cox = cox_univar(time, var, evt, data2, round = F)
     coxSTD = cox_univar(time, var, evt, data2_std, round = F)
@@ -289,15 +287,6 @@ plot_grid(
 list_univar_et[["deces"]]
 ```
 
-<!-- # ```{r} -->
-<!-- # et_signif_deces =  -->
-<!-- # et_signif_aomi =  -->
-<!-- # et_signif_tdr =  -->
-<!-- # et_signif_chd =  -->
-<!-- # et_signif_stroke =  -->
-<!-- # ``` -->
-
-
 # 3. Modèles multivariés
 
 ## 3.1 Les modèles des analyses déjà effectuées (uniquement à baseline) et sur les 9 param caro
@@ -311,8 +300,6 @@ f2_deces_brut_ss_prevcvd = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm1
 f3_deces_brut_ss_prevcvd = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi, env = data2)
 
 f4_deces_brut_ss_prevcvd = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, env = data2)
-
-liste_f_deces_brut_ss_prevcvd = c(f1_deces_brut_ss_prevcvd,f1_deces_brut_ss_prevcvd,f1_deces_brut_ss_prevcvd,f1_deces_brut_ss_prevcvd,f1_deces_brut_ss_prevcvd)
 ```
 ```{r}
 m1_deces_brut_ss_prevcvd = cox_multivar(f1_deces_brut_ss_prevcvd,param_carotid,data2, round = F)
@@ -444,31 +431,100 @@ plot_pv_HR(m4_stroke_brut_ss_prevcvd))
 
 
 
+# 4. Modèle 4 avec plusieurs var d'et pour le deces et le chd
 
-
-
-# 4. Modèle 4 multivarié avec chacune des 20 var d'et JPE_tot prises séparément
-
-### 3.1.1 Deces
+## 4.1. Deces
+f4_deces_brut_ss_prevcvd = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, env = data2)
 ```{r}
-modele_4_formule = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, env = data2)
+evt = "deces"
+time = paste0("time_to_",evt)
+time = as.numeric(as.character(data2[,time]))
+evt = as.numeric(as.character(data2[,evt]))
+f_test = formula(paste("Surv(time, evt)~", generate_str_var(parm_temp), "+",generate_str_var(var_ajust_tmp)))
+cox = coxph(f_test, data2)
+cox
 ```
 ```{r}
-m4 = cox_multivar(modele_4_formule,var_et_jpe_tot,data2, round = F)
+generate_str_var = function(list_var){
+  str = NULL
+  for(var in list_var){
+    tmp = paste("+",var)
+    str = paste0(str,tmp)
+  }
+  str = substr(str,2,nchar(str))
+  return(str)
+}
+```
+```{r}
+generate_str_var(parm_temp)
 ```
 
 ```{r}
-m1_deces_brut_ss_prevcvd = cox_multivar(f1_deces_brut_ss_prevcvd,param_carotid,data2, round = F)
-m2_deces_brut_ss_prevcvd = cox_multivar(f2_deces_brut_ss_prevcvd,param_carotid,data2, round = F)
-m3_deces_brut_ss_prevcvd = cox_multivar(f3_deces_brut_ss_prevcvd,param_carotid,data2, round = F)
-m4_deces_brut_ss_prevcvd = cox_multivar(f4_deces_brut_ss_prevcvd,param_carotid,data2, round = F)
+cox_multivar_multi_param = function(evt, list_param, list_var_ajust, dt, round = T, d.round = 2){
+  
+  time = paste0("time_to_",evt)
+  evt = as.numeric(as.character(data2[,evt]))
+  time = as.numeric(as.character(data2[,time]))
+  param = generate_str_var(list_param)
+  var_ajust = generate_str_var(list_var_ajust)
+  f = formula(paste("Surv(time, evt)~", generate_str_var(list_param),"+" ,generate_str_var(list_var_ajust)))
+  
+  cox = coxph(f,dt)
+  summary = summary(cox)
+  test.shonfeld = cox.zph(cox)
+  
+  df_res = data.frame()
+
+    
+  r = sum(sapply(dt[,list_param], is.numeric))
+  for(p in list_param){if(is.factor(dt[,p])){r = r + length(levels(dt[,p])) - 1 }}
+
+      if(round == T){
+          df_tmp = data.frame("Name" = rownames(summary$coefficients)[1:r],
+                    "HR" = round(summary$coefficient[1:r,2],d.round),
+                    "IC" = paste0("[", round(summary$conf.int[1:r,3],d.round), " ; ",round(summary$conf.int[r,4],d.round), "]"),
+                    "p.value" = signif(summary$coefficient[1:r,5],d.round+3),
+                    "Signif" = ifelse(summary$coefficient[1:r,5] <= 0.05, "*"," "),
+                    "p.shonfeld" = signif(test.shonfeld$table[1:r,3],d.round+1),
+                    
+                    "prop.hyp" = ifelse(test.shonfeld$table[1:r,3] < 0.05,"X"," ")
+                    )
+
+      }
+       else if(round == F){
+         df_tmp = data.frame("Name" = rownames(summary$coefficients)[1:r],
+                     "HR" = summary$coefficient[1:r,2],
+                     "ICinf" = summary$conf.int[1:r,3],
+                     "ICsup" = summary$conf.int[1:r,4],
+                     "p.value" = signif(summary$coefficient[1:r,5],d.round+3),
+                     "p.shonfeld" = signif(test.shonfeld$table[1:r,3],d.round+1),
+                     "Hyp.Prop.verif" = ifelse(test.shonfeld$table[1:r,3] <= 0.05 ,0,1))
+         df_tmp$pv_signif = ifelse(df_tmp$p.value <= 0.05 , 1, 0)
+       
+       
+       
+       df_res = rbind(df_res,df_tmp)
+       }
+
+
+  return(df_res)
+}
+```
+```{r}
+var_ajust_m4 = c("age0",  "sexe",  "qm16",  "qm10",  "diab",  "bio10", "bmi",   "mbp" )
+var_et_deces_m4 = c("pr_sence_de_plaque_s____l__cho", "young", "pwvloc", "diam_tre_en_bm__mm_")
+var_et_chd_m4 = c("pr_sence_de_plaque_s____l__cho", "imt___m_", "dploc")
+```
+
+
+```{r}
+m4_deces = cox_multivar_multi_param("deces",var_et_deces_m4,var_ajust_m4,data2, round = F)
+plot_pv_HR(m4_deces)
 ```
 
 ```{r}
-plot_grid(
-plot_pv_HR(m1_deces_brut_ss_prevcvd),
-plot_pv_HR(m2_deces_brut_ss_prevcvd),
-plot_pv_HR(m3_deces_brut_ss_prevcvd),
-plot_pv_HR(m4_deces_brut_ss_prevcvd))
+m4_chd = cox_multivar_multi_param("chd",var_et_chd_m4,var_ajust_m4,data2, round = F)
+plot_pv_HR(m4_chd)
 ```
+
 
