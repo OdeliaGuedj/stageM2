@@ -116,15 +116,15 @@ plot_pv_HR = function(cox_nice_info, hj = 0, vj = 0, main = " "){
   
   ggplot(cox_nice_info, aes(p.value, HR)) + 
     
-    geom_point(color = dplyr::case_when((cox_nice_info$pv_signif == 1 & cox_nice_info$Hyp.Prop.verif == 1)~ "green", (cox_nice_info$pv_signif == 0 & cox_nice_info$Hyp.Prop.verif == 1) ~ "red",cox_nice_info$Hyp.Prop.verif == 0 ~ "black" )) +
+    geom_point(color = dplyr::case_when((cox_nice_info$pv_signif == 1 & cox_nice_info$Hyp.Prop.verif == 1)~ "green", (cox_nice_info$pv_signif == 0 & cox_nice_info$Hyp.Prop.verif == 1) ~ "red",cox_nice_info$Hyp.Prop.verif == 0 ~ "black" ), size = 3) +
     
-      geom_hline(yintercept = 1, col = "red") + geom_vline(xintercept =0.05, col = "red") +
+      geom_hline(yintercept = 1, col = "red") + #geom_vline(xintercept =0.05, col = "red") +
     
         scale_y_continuous(name="HR",limits=c(min(cox_nice_info$HR)-0.1 , max(cox_nice_info$HR)+0.1)) +
             
     geom_text_repel(aes(label = Name), box.padding   = 0.35, point.padding = 0.5, segment.color = "grey50", force = 15,
-                    segment.size  = 0.5 ,#epaisseur segments
-                    size = 3 #taille label 
+                    segment.size  = 1 ,#epaisseur segments
+                    size = 5 #taille label 
                     )+
     
             xlab("p.values") +
@@ -242,7 +242,7 @@ i = 1
 list_univar_et = list()
 list_univarSTD_et = list()
 
-for(evt in var_evt){
+for(evt in c("deces","chd")){
   
   time = paste0("time_to_",evt)
   res_univar_et = data.frame()
@@ -267,8 +267,8 @@ for(evt in var_evt){
 }
 rm(i)
 
-names(list_univar_et) = var_evt
-names(list_univarSTD_et) = var_evt
+names(list_univar_et) = c("deces","chd")
+names(list_univarSTD_et) = c("deces","chd")
 ```
 ```{r}
 list_univar_et[["deces"]]
@@ -280,18 +280,115 @@ list_univar_et[["deces"]]
 ```{r}
 plot_grid(
   plot_pv_HR(list_univar_et[["deces"]]),
-  plot_pv_HR(list_univarSTD_et[["deces"]])
+  plot_pv_HR(list_univar_et[["chd"]])
 )
 ```
 ```{r}
 list_univar_et[["deces"]]
 ```
+## 2.3 Modèles de cox univariés pour param selectionnées par tests
+
+```{r}
+i = 1
+list_univar_et_deces = list()
+#list_univarSTD_et = list()
+
+for(evt in c("deces")){
+  
+  time = paste0("time_to_",evt)
+  res_univar_et_deces = data.frame()
+  #res_univarSTD_et = data.frame()
+  
+  for(var in var_et_deces_univar){
+    
+    cox = cox_univar(time, var, evt, data2, round = F)
+    #coxSTD = cox_univar(time, var, evt, data2_std, round = F)
+    
+    res_univar_et_deces = rbind(res_univar_et_deces, cox)
+    #res_univarSTD_et = rbind(res_univarSTD_et, coxSTD)
+  }
+  
+  res_univar_et_deces$Evt = rep(evt,nrow(res_univar_et_deces))
+  #res_univarSTD_et$Evt = rep(evt,nrow(res_univarSTD_et))
+  
+  list_univar_et_deces[[i]] = res_univar_et_deces
+  #list_univarSTD_et[[i]] = res_univarSTD_et
+  
+  i = i + 1
+}
+rm(i)
+
+names(list_univar_et_deces) = "deces"
+#names(list_univarSTD_et) = var_evt
+```
+
+
+```{r}
+i = 1
+list_univar_et_chd = list()
+#list_univarSTD_et = list()
+
+for(evt in c("chd")){
+  
+  time = paste0("time_to_",evt)
+  res_univar_et_chd = data.frame()
+  #res_univarSTD_et = data.frame()
+  
+  for(var in var_et_chd_univar){
+    
+    cox = cox_univar(time, var, evt, data2, round = F)
+    #coxSTD = cox_univar(time, var, evt, data2_std, round = F)
+    
+    res_univar_et_chd = rbind(res_univar_et_chd, cox)
+    #res_univarSTD_et = rbind(res_univarSTD_et, coxSTD)
+  }
+  
+  res_univar_et_chd$Evt = rep(evt,nrow(res_univar_et_chd))
+  #res_univarSTD_et$Evt = rep(evt,nrow(res_univarSTD_et))
+  
+  list_univar_et_chd[[i]] = res_univar_et_chd
+  #list_univarSTD_et[[i]] = res_univarSTD_et
+  
+  i = i + 1
+}
+rm(i)
+
+names(list_univar_et_chd) = "chd"
+#names(list_univarSTD_et) = var_evt
+```
+
+```{r}
+plot_pv_HR(list_univar_et_deces[["deces"]])
+plot_pv_HR(list_univar_et_chd[["chd"]])
+```
+
+
+On stock les param signif dans cox univarié et verifiant hypothèses
+```{r}
+param_et_select_univar_deces = as.character(list_univar_et_deces[["deces"]]$Name[list_univar_et_deces[["deces"]]$pv_signif == 1 & list_univar_et_deces[["deces"]]$Hyp.Prop.verif == 1])
+
+param_et_select_univar_chd = as.character(list_univar_et_chd[["chd"]]$Name[list_univar_et_chd[["chd"]]$pv_signif == 1 & list_univar_et_chd[["chd"]]$Hyp.Prop.verif == 1])
+```
+
+On joint les deux vecteurs (deces et chd) en virant les doublons
+
+```{r}
+param_et_select_univar = unique(c(param_et_select_univar_deces, param_et_select_univar_chd))
+```
+
+
+```{r}
+# param_for_cor = param_et_select_univar[sapply(data2[,param_et_select_univar],is.numeric)]
+# cor(data2[,param_for_cor], use = "complete.obs")
+```
+
 
 # 3. Modèles multivariés
 
-## 3.1 Les modèles des analyses déjà effectuées (uniquement à baseline) et sur les 9 param caro
+## 3.1 Les modèles des analyses déjà effectuées (uniquement à baseline) et sur les param_selectionnées
 
 ### 3.1.1 Deces
+
 ```{r}
 f1_deces_brut_ss_prevcvd = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10, env = data2)
 
@@ -300,20 +397,30 @@ f2_deces_brut_ss_prevcvd = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm1
 f3_deces_brut_ss_prevcvd = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi, env = data2)
 
 f4_deces_brut_ss_prevcvd = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, env = data2)
+
+f5_deces_brut_ss_prevcvd = formula(Surv(time_to_deces,deces) ~ sexe + qm16 + qm10 + diab + bio10 + bmi + mbp , env = data2)
 ```
 ```{r}
-m1_deces_brut_ss_prevcvd = cox_multivar(f1_deces_brut_ss_prevcvd,param_carotid,data2, round = F)
-m2_deces_brut_ss_prevcvd = cox_multivar(f2_deces_brut_ss_prevcvd,param_carotid,data2, round = F)
-m3_deces_brut_ss_prevcvd = cox_multivar(f3_deces_brut_ss_prevcvd,param_carotid,data2, round = F)
-m4_deces_brut_ss_prevcvd = cox_multivar(f4_deces_brut_ss_prevcvd,param_carotid,data2, round = F)
+m1_deces_brut_ss_prevcvd = cox_multivar(f1_deces_brut_ss_prevcvd,param_et_select_univar_deces,data2, round = F)
+m2_deces_brut_ss_prevcvd = cox_multivar(f2_deces_brut_ss_prevcvd,param_et_select_univar_deces,data2, round = F)
+m3_deces_brut_ss_prevcvd = cox_multivar(f3_deces_brut_ss_prevcvd,param_et_select_univar_deces,data2, round = F)
+m4_deces_brut_ss_prevcvd = cox_multivar(f4_deces_brut_ss_prevcvd,param_et_select_univar_deces,data2, round = F)
+m5_deces_brut_ss_prevcvd = cox_multivar(f5_deces_brut_ss_prevcvd,param_et_select_univar_deces,data2, round = F)
 ```
+
 
 ```{r}
 plot_grid(
-plot_pv_HR(m1_deces_brut_ss_prevcvd),
-plot_pv_HR(m2_deces_brut_ss_prevcvd),
-plot_pv_HR(m3_deces_brut_ss_prevcvd),
-plot_pv_HR(m4_deces_brut_ss_prevcvd))
+plot_pv_HR(m1_deces_brut_ss_prevcvd) + ggtitle("Modèle 1"),
+plot_pv_HR(m2_deces_brut_ss_prevcvd) + ggtitle("Modèle 2"),
+plot_pv_HR(m3_deces_brut_ss_prevcvd) + ggtitle("Modèle 3"),
+plot_pv_HR(m4_deces_brut_ss_prevcvd) + ggtitle("Modèle 4"))
+
+```
+```{r}
+plot_grid(
+  plot_pv_HR(m4_deces_brut_ss_prevcvd) + ggtitle("Modèle 4"),
+  plot_pv_HR(m5_deces_brut_ss_prevcvd) + ggtitle("Modèle 5"))
 ```
 ```{r}
 m1_deces_brut_ss_prevcvd
@@ -384,21 +491,30 @@ f3_chd_brut_ss_prevcvd = formula(Surv(time_to_chd,chd) ~ age0 + sexe + qm16 + qm
 
 f4_chd_brut_ss_prevcvd = formula(Surv(time_to_chd,chd) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, env = data2)
 
-liste_f_chd_brut_ss_prevcvd = c(f1_chd_brut_ss_prevcvd,f1_chd_brut_ss_prevcvd,f1_chd_brut_ss_prevcvd,f1_chd_brut_ss_prevcvd,f1_chd_brut_ss_prevcvd)
+f5_chd_brut_ss_prevcvd = formula(Surv(time_to_chd,chd) ~ sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, env = data2)
+
 ```
 ```{r}
-m1_chd_brut_ss_prevcvd = cox_multivar(f1_chd_brut_ss_prevcvd,param_carotid,data2, round = F)
-m2_chd_brut_ss_prevcvd = cox_multivar(f2_chd_brut_ss_prevcvd,param_carotid,data2, round = F)
-m3_chd_brut_ss_prevcvd = cox_multivar(f3_chd_brut_ss_prevcvd,param_carotid,data2, round = F)
-m4_chd_brut_ss_prevcvd = cox_multivar(f4_chd_brut_ss_prevcvd,param_carotid,data2, round = F)
+m1_chd_brut_ss_prevcvd = cox_multivar(f1_chd_brut_ss_prevcvd,param_et_select_univar_chd,data2, round = F)
+m2_chd_brut_ss_prevcvd = cox_multivar(f2_chd_brut_ss_prevcvd,param_et_select_univar_chd,data2, round = F)
+m3_chd_brut_ss_prevcvd = cox_multivar(f3_chd_brut_ss_prevcvd,param_et_select_univar_chd,data2, round = F)
+m4_chd_brut_ss_prevcvd = cox_multivar(f4_chd_brut_ss_prevcvd,param_et_select_univar_chd,data2, round = F)
+m4_chd_brut_ss_prevcvd = cox_multivar(f4_chd_brut_ss_prevcvd,param_et_select_univar_chd,data2, round = F)
+m5_chd_brut_ss_prevcvd = cox_multivar(f5_chd_brut_ss_prevcvd,param_et_select_univar_chd,data2, round = F)
 ```
 
 ```{r}
 plot_grid(
-plot_pv_HR(m1_chd_brut_ss_prevcvd),
-plot_pv_HR(m2_chd_brut_ss_prevcvd),
-plot_pv_HR(m3_chd_brut_ss_prevcvd),
-plot_pv_HR(m4_chd_brut_ss_prevcvd))
+plot_pv_HR(m1_chd_brut_ss_prevcvd) + ggtitle("Modèle 1"),
+plot_pv_HR(m2_chd_brut_ss_prevcvd) + ggtitle("Modèle 2"),
+plot_pv_HR(m3_chd_brut_ss_prevcvd) + ggtitle("Modèle 3"),
+plot_pv_HR(m4_chd_brut_ss_prevcvd) + ggtitle("Modèle 4"))
+```
+```{r}
+plot_grid(
+  plot_pv_HR(m4_chd_brut_ss_prevcvd) + ggtitle("Modèle 4"),
+  plot_pv_HR(m5_chd_brut_ss_prevcvd) + ggtitle("Modèle 5")
+)
 ```
 ### 3.1.5 Stroke
 
@@ -433,17 +549,8 @@ plot_pv_HR(m4_stroke_brut_ss_prevcvd))
 
 # 4. Modèle 4 avec plusieurs var d'et pour le deces et le chd
 
-## 4.1. Deces
-f4_deces_brut_ss_prevcvd = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, env = data2)
-```{r}
-evt = "deces"
-time = paste0("time_to_",evt)
-time = as.numeric(as.character(data2[,time]))
-evt = as.numeric(as.character(data2[,evt]))
-f_test = formula(paste("Surv(time, evt)~", generate_str_var(parm_temp), "+",generate_str_var(var_ajust_tmp)))
-cox = coxph(f_test, data2)
-cox
-```
+
+
 ```{r}
 generate_str_var = function(list_var){
   str = NULL
@@ -455,9 +562,7 @@ generate_str_var = function(list_var){
   return(str)
 }
 ```
-```{r}
-generate_str_var(parm_temp)
-```
+
 
 ```{r}
 cox_multivar_multi_param = function(evt, list_param, list_var_ajust, dt, round = T, d.round = 2){
@@ -510,10 +615,14 @@ cox_multivar_multi_param = function(evt, list_param, list_var_ajust, dt, round =
   return(df_res)
 }
 ```
+
+
 ```{r}
 var_ajust_m4 = c("age0",  "sexe",  "qm16",  "qm10",  "diab",  "bio10", "bmi",   "mbp" )
-var_et_deces_m4 = c("pr_sence_de_plaque_s____l__cho", "young", "pwvloc", "diam_tre_en_bm__mm_")
-var_et_chd_m4 = c("pr_sence_de_plaque_s____l__cho", "imt___m_", "dploc")
+var_et_deces_m4 = as.character(m4_deces_brut_ss_prevcvd$Name[m4_deces_brut_ss_prevcvd$pv_signif == 1])
+var_et_deces_m4[4] = "pr_sence_de_plaque_s____l__cho"
+var_et_chd_m4 = as.character(m4_chd_brut_ss_prevcvd$Name[m4_chd_brut_ss_prevcvd$pv_signif == 1])
+var_et_chd_m4[6] = "pr_sence_de_plaque_s____l__cho"
 ```
 
 

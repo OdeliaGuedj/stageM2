@@ -1,0 +1,91 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+alpha = 0.05
+var_et_deces_univar= c()
+for(var in echotracking_clean){
+  
+  if(is.numeric(data2[,var])){
+    #print(var)
+    test = t.test(data2[,var]~data2$deces)
+    #print(signif(test$p.value,2))
+    if(signif(test$p.value,2) <= alpha){
+      var_et_deces_univar = c(var_et_deces_univar,var)
+      #print("*")
+      }
+    #else
+      #print("x")
+    }
+  
+  else{
+    #print(var)
+    test = chisq.test(data2[,var],data2$deces)
+    #print(signif(test$p.value,2))
+    if(signif(test$p.value,2) <= alpha){
+      var_et_deces_univar = c(var_et_deces_univar,var)
+      #print("*")
+    }
+    #else
+      #print("x")
+  }
+  
+}
+var_et_deces_univar
+```
+
+
+```{r}
+alpha = 0.05
+var_et_chd_univar= c()
+for(var in echotracking_clean){
+  
+  if(is.numeric(data2[,var])){
+    #print(var)
+    test = t.test(data2[,var]~data2$chd)
+    #print(signif(test$p.value,2))
+    if(signif(test$p.value,2) <= alpha){
+      var_et_chd_univar = c(var_et_chd_univar,var)
+      #print("*")
+      }
+    #else
+      #print("x")
+    }
+  
+  else{
+    #print(var)
+    test = chisq.test(data2[,var],data2$chd)
+    #print(signif(test$p.value,2))
+    if(signif(test$p.value,2) <= alpha){
+      var_et_chd_univar = c(var_et_chd_univar,var)
+      #print("*")
+    }
+    #else
+      #print("x")
+  }
+  
+}
+var_et_chd_univar
+```
+
+
+```{r}
+var_et_chd_univar
+print("--------------------")
+var_et_deces_univar
+print("--------------------")
+var_et_jpe_tot
+print("--------------------")
+```
+```{r}
+length(var_et_deces_univar)
+length(var_et_chd_univar)
+```
+
+
+
+
+

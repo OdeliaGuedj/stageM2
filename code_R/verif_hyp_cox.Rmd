@@ -1,0 +1,24 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+cox_test = coxph(Surv(time_to_deces, deces) ~ data2$coeffDist, data = data2)
+```
+```{r}
+summary(cox_test)
+```
+
+```{r}
+schon_test = cox.zph(cox_test)
+```
+
+```{r}
+schon_test
+```
+```{r}
+plot(survfit(cox_test), col=c(2,3), main="Fonctions de
+survies estimées", ylim = c(0.95,1))
+```
+

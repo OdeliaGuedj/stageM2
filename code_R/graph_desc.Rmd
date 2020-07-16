@@ -3,7 +3,24 @@ title: "R Notebook"
 output: html_notebook
 ---
 
+# Age
 ```{r}
+p_age = ggplot(data, aes(age0)) + geom_histogram(fill = 'black', col = 'white') + geom_vline(xintercept = mean(data$age0), col = "blue") + 
+  ylab(" ") + xlab("Âge (en années)") + theme_minimal()
+```
 
+```{r}
+mean(data$age0)
+```
+```{r}
+prop.table(table(data$sexe))
+```
+
+
+```{r}
+prop.table(table(data$qm10))*100
+```
+```{r}
+prop.table(table(data$deptot))*100
 ```
 

@@ -59,19 +59,17 @@ pvals21 = getResults(table_21, "p.overall")
 
 export_table21 = createTable(table_21)
 
-export2latex(export_table21, file = "table21.tex")
+#export2latex(export_table21, file = "table21.tex")
 ```
 
-
-
 ```{r}
-export_table21
+#export_table21
 ```
 
 ### 1.2.2 Variables d'évenement
 
 ```{r}
-generate_str_var(evt)
+generate_str_var(var_evt)
 ```
 
 ```{r}
@@ -81,12 +79,12 @@ pvals22 = getResults(table_22, "p.overall")
 
 export_table22 = createTable(table_22)
 
-export2latex(export_table22, file = "table22.tex")
+#export2latex(export_table22, file = "table22.tex")
 ```
 
 
 ```{r}
-export_table22
+#export_table22
 ```
 ### 1.2.3 Autre variables 
 
@@ -101,12 +99,12 @@ pvals23 = getResults(table_23, "p.overall")
 
 export_table23 = createTable(table_23)
 
-export2latex(export_table23, file = "table23.tex")
+#export2latex(export_table23, file = "table23.tex")
 ```
 
 
 ```{r}
-export_table23
+#export_table23
 ```
 
 
@@ -135,12 +133,12 @@ export_table31 = createTable(table_31)
 
 
 ```{r}
-export_table31
+#export_table31
 ```
 
 ### 1.3.2 Variables evenement
 ```{r}
-generate_str_var(evt)
+generate_str_var(var_evt)
 ```
 
 ```{r}
@@ -155,7 +153,7 @@ export_table32 = createTable(table_32)
 
 
 ```{r}
-export_table32
+#export_table32
 ```
 ### 1.3.3 Autres variables 
 
@@ -175,7 +173,7 @@ export_table33 = createTable(table_33)
 
 
 ```{r}
-export_table33
+#export_table33
 ```
 
 ## 1.4 Seulement qq var d'et choisises par JPE 
@@ -186,7 +184,6 @@ data$na_et_jpe_inf = ifelse(data$nepp3 %in% subset_SubjectsNA(data, var_et_jpe_i
 data$na_et_jpe_inf = as.factor(data$na_et_jpe_inf)
 table(data$na_et_jpe_inf)
 ```
-
 
 
 ### 1.4.1 Variables d'échotracking
@@ -203,18 +200,18 @@ pvals41 = getResults(table_41, "p.overall")
 
 export_table41 = createTable(table_41)
 
-export2latex(export_table41, file = "table41.tex")
+#export2latex(export_table41, file = "table41.tex")
 ```
 
 
 ```{r}
-export_table41
+#export_table41
 ```
 
 ### 1.4.2 Variables evenement
 
 ```{r}
-generate_str_var(evt)
+generate_str_var(var_evt)
 ```
 
 ```{r}
@@ -224,7 +221,7 @@ pvals42 = getResults(table_42, "p.overall")
 
 export_table42 = createTable(table_42)
 
-export2latex(export_table42, file = "table42.tex")
+#export2latex(export_table42, file = "table42.tex")
 ```
 ### 1.4.3 Autre variables
 ```{r}
@@ -238,15 +235,34 @@ pvals43 = getResults(table_43, "p.overall")
 
 export_table43 = createTable(table_43)
 
-export2latex(export_table43, file = "table43.tex")
+#export2latex(export_table43, file = "table43.tex")
 ```
 
 
 ```{r}
-export_table43
+#export_table43
 ```
 
+# 1.5 Variables selectionnées par les test univariés (pour deces et chd)
+```{r}
+data2$na_et_univar_deces = ifelse(data2$nepp3 %in% subset_SubjectsNA(data2, var_et_deces_univar, "nepp3")$na_id,1,0)
+data2$na_et_univar_deces = as.factor(data2$na_et_univar_deces)
+table(data2$na_et_univar_deces)
+```
 
+```{r}
+generate_str_var(c(var_et_deces_univar,socio_demo,qual_vie,traitement,bio,"deces","chd"))
+```
+
+```{r}
+table_na_deces = compareGroups(na_et_univar_deces ~ pas_basale__mm_hg_+ fc_basale+ diam_tre_en_bm__mm_+ imt___m_+ diam_tre_en_fbm__mm_+ pwvloc+ dploc+ rr_int_moy+ lf_dist_rate_t+ hf_dist_rate_t+ hf_dist_rate_c+ hf_c_phase+ hf_t_gain_moy+ hf_t_phase+ coeffDist+ wcsa+ pr_sence_de_plaque_s____l__cho+ logain+ logyoung+ dextdias+ stiffness+ age0+ age_cat+ sexe+ adm14+ educ+ qm9+ qm10+ qm16+ bmi+ diab+ deptot+ epice+ antihta2+ hypolip2+ trb17+ ldl+ bio10+ mbp+ bio6+ pa_cat+ mbp_cat+ deces+ chd, data = data2)
+  
+
+
+export_table_na_deces = createTable(table_na_deces)
+
+export_table_na_deces
+```
 
 # 2. Imputation
 
@@ -288,11 +304,23 @@ for(var in colnames(data_imp_triv)){
 ## 2.2 Imputation avec mice, all var = predictors
 
 ```{r}
-data_mice = data2[,c(var_et_jpe_tot, "age0", "sexe", "qm16" ,"qm10", "diab", "bio10", "bmi", "mbp")]
+data_mice = data2[,c(param_et_select_univar, "age0", "sexe", "qm16" ,"qm10", "diab", "bio10", "bmi", "mbp")]
 ```
 ```{r}
-imp_mice_allPred = mice(data_mice)
+colnames(data_mice)
 ```
+
+```{r}
+gg_miss_var(data_mice)
+```
+
+```{r}
+imp_mice_allPred = mice(data_mice, m = 1)
+```
+```{r}
+imp_mice_allPred$loggedEvents
+```
+
 ```{r}
 imp_mice_allPred$method
 ```
@@ -341,10 +369,19 @@ for(i in var_et_jpe_tot){
 
 ```{r}
 data_clean = complete(imp_mice_allPred)
+data_f = cbind(data_clean, data2[,c("nepp3","adm14","educ","qm9","deptot","epice",traitement,"bio6","ldl","trb17")])
 ```
 ```{r}
-dim(data_clean)
+data_f$time_to_deces = data2$time_to_deces
+data_f$deces = data2$deces
+data_f$time_to_chd = data2$time_to_chd
+data_f$chd = data2$chd
 ```
+```{r}
+dim(data_f)
+```
+
+
 
 
 
