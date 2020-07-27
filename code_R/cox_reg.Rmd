@@ -23,7 +23,7 @@ Necessaire que les evt soient numériques sinon pas pris en charge par la foncti
 
 
 
-# 1. Fonctions pour modèles de Cox
+# 1. Modèles de Cox
 
 Les analyses déjà faites avaient la structure suivante
 1. Univarié
@@ -32,163 +32,14 @@ Les analyses déjà faites avaient la structure suivante
 4. Modèle 3: Modèle 2 + bmi
 5. Modèle 4: Modèle 3 + mean blood pressure
 
-Mais convenu avec JPE (mais bon vite fait au tel):
-1. Univarié
-2. Modèle 1: age + sexe + educ + statut marital
-3. Modèle 2: Modèle 1 + tabac + bmi + hdl
-4. Modèle 3: Modèle 2 + mean blood pressure
 
 
 
 
-## 1.1 Fonction cox_univar
-Permet de faire des modèles de cox univariés et d'avoir les resultats sous la forme extract_coxReg (donc dataframe).
-ça sera utile quand on devra faire toutes les analyses univariées des paramètres d'echotracking (presque 51 paramètres) pour chachun des evts (5) -> 255 models...
-```{r}
-cox_univar = function(time, var, evt, dt, round = T, d.round = 2, alpha = 0.05){
-  
-  # time : time-to-event
-  # evt : variable d'evenement (binaire)
-  # var : liste de variables explicatives
-  # dt : dateframe contennant toues les var citées plus haut
-  # round : variable booléenne d'arondis, F par défaut. Valeur T utile pour les graphes
-  # d.round : nb de décimale conservée aprés arrondis, 2 par défaut
-  # alpha : risque de première éspèce. 5% par défaut
-  
-  
-  
-  # On s'assure que le time-to-event et l'event sont bien numériques
-  time = as.numeric(as.character(dt[,time]))
-  evt = as.numeric(as.character(dt[,evt]))
-  
-  # On fit le modèle
-  model = coxph(Surv(time,evt) ~ dt[,var], data = dt)
-  summary = summary(model)
-  
-  #test de shonfeld pour vérifier l'hypothèse de proportionnalité des risques
-  test.shonfeld = cox.zph(model)
-  
-  # Construction du dataframe final arrondi ou non
-  if (round == T){
-    
-    df = data.frame("Name" = var,
-                    "HR" = round(summary$coefficient[,2],d.round),
-                    "IC" = paste0("[", round(summary$conf.int[,3],d.round +1), " ; ", ... = round(summary$conf.int[,4],d.round+1), "]"),
-                    "p.value" = signif(summary$coefficient[,5],3),
-                    "pv_signif" = ifelse(summary$coefficient[,5] <= alpha, "*"," "),
-                    "p.shonfeld" = signif(test.shonfeld$table[dim(test.shonfeld$table)[1],dim(test.shonfeld$table)[2]],d.round+1),
-                    "n" = model$n,
-                    "n.events" = model$nevent
-                    )
-    
-    
-   return(list("res_df"=df, "model" = model))
-  } 
-  
-  else if (round == F){
-    
-    df = data.frame("Name" = var,
-                    "HR" = summary$coefficient[,2],
-                    "ICinf" = summary$conf.int[,3],
-                    "ICsup" = summary$conf.int[,4],
-                    "p.value" = summary$coefficient[,5],
-                    "pv_signif" = ifelse(summary$coefficient[,5] <= alpha, 1,0),
-                    "p.shonfeld" = signif(test.shonfeld$table[dim(test.shonfeld$table)[1],dim(test.shonfeld$table)[2]],d.round+1),
-                    "Hyp.Prop.verif" = ifelse(test.shonfeld$table[dim(test.shonfeld$table)[1],dim(test.shonfeld$table)[2]] <= alpha ,0,1),
-                    "n" = model$n,
-                    "n.events" = model$nevent
-                    )
-  
-    return(df)
-  
-  }
-}
-```
-
-
-## 1.2 Fonction plot_pv_HR
-Permet d'afficher les HR  de modèles univariés (Autant de paramètres qu'on veut pour 1 evenement particulier) avec un code couleur pour leur significativité.
-
-```{r}
-plot_pv_HR = function(cox_nice_info, hj = 0, vj = 0, main = " "){
-  
-  # Pour pouvoir utiliser cette fonction il faut que cox_nice_info soit un objet cox_univar ou cox_multivar utilisé avec l'argument round = F
-  
-  ggplot(cox_nice_info, aes(p.value, HR)) + 
-    
-    geom_point(color = dplyr::case_when((cox_nice_info$pv_signif == 1 & cox_nice_info$Hyp.Prop.verif == 1)~ "green", (cox_nice_info$pv_signif == 0 & cox_nice_info$Hyp.Prop.verif == 1) ~ "red",cox_nice_info$Hyp.Prop.verif == 0 ~ "black" ), size = 3) +
-    
-      geom_hline(yintercept = 1, col = "red") + #geom_vline(xintercept =0.05, col = "red") +
-    
-        scale_y_continuous(name="HR",limits=c(min(cox_nice_info$HR)-0.1 , max(cox_nice_info$HR)+0.1)) +
-            
-    geom_text_repel(aes(label = Name), box.padding   = 0.35, point.padding = 0.5, segment.color = "grey50", force = 15,
-                    segment.size  = 1 ,#epaisseur segments
-                    size = 5 #taille label 
-                    )+
-    
-            xlab("p.values") +
-        
-              ggtitle(main)
-  
-}
-```
-
-## 1.3 Fonction cox_multivar pour les var d'et prises une à une.
-
-Permet de fiter des régressions de cox multivariées et de récupérer les info du dernier coefficients qui correspond au paramètre d'échotracking que l'on étudie.
-
-```{r}
-cox_multivar = function(formula, list_param, dt, round = T, d.round = 2){
-  
-  df_res = data.frame()
-  
-    for(param in list_param){
-      
-      f = update(formula, as.formula( paste0(".~.+",param) ) )
-      cox = coxph(f, data)
-      summary = summary(cox)
-      test.shonfeld = cox.zph(cox)
-      
-      # Pour pouvoir acceder a dernier élément du tableau qui correspond au paramètre d'échotracking qu'on rajoute à la fin de chaque formula
-      r = nrow(summary$coefficients) 
-      
-      if(round == T){
-          df_tmp = data.frame("Name" = rownames(summary$coefficients)[r],
-                    "HR" = round(summary$coefficient[r,2],d.round),
-                    "IC" = paste0("[", round(summary$conf.int[r,3],d.round), " ; ",round(summary$conf.int[r,4],d.round), "]"),
-                    "p.value" = signif(summary$coefficient[r,5],d.round+3),
-                    "Signif" = ifelse(summary$coefficient[r,5] <= 0.05, "*"," "),
-                    "p.shonfeld" = signif(test.shonfeld$table[dim(test.shonfeld$table)[1],3],d.round+1),
-                    "prop.hyp" = ifelse(test.shonfeld$table[dim(test.shonfeld$table)[1],3] < 0.05,"X"," "))
-      
-      }
-      else if(round == F){
-        df_tmp = data.frame("Name" = rownames(summary$coefficients)[r],
-                    "HR" = summary$coefficient[r,2],
-                    "ICinf" = summary$conf.int[r,3],
-                    "ICsup" = summary$conf.int[r,4],
-                    "p.value" = signif(summary$coefficient[r,5],d.round+3),
-                    "p.shonfeld" = signif(test.shonfeld$table[dim(test.shonfeld$table)[1],3],d.round+1),
-                    "Hyp.Prop.verif" = ifelse(test.shonfeld$table[dim(test.shonfeld$table)[1],3] <= 0.05 ,0,1))
-        df_tmp$pv_signif = ifelse(df_tmp$p.value <= 0.05 , 1, 0)
-        
-      }
-      
-      df_res = rbind(df_res,df_tmp)
-      }
-  return(df_res)
-}
-```
 
 # 2. Modèles univariés
 
 ## 2.1 Paramètres carotidiens prioritaires issus analyses déjà faites (9)
-
-
-```{r}
-param_carotid = c("logain", "coeffDist","pwvloc", "dploc", "logyoung","imt___m_", "dextdias", "stiffness", "pr_sence_de_plaque_s____l__cho")
-```
 
 
 ```{r}
@@ -225,10 +76,10 @@ names(list_univar_pc) = var_evt
 names(list_univarSTD_pc) = var_evt
 ```
 
-Exemple de ce que ça donne:
+
 ```{r}
 list_univar_pc[["deces"]]
-list_univarSTD_pc[["deces"]]
+list_univar_pc[["chd"]]
 ```
 
 
@@ -551,17 +402,7 @@ plot_pv_HR(m4_stroke_brut_ss_prevcvd))
 
 
 
-```{r}
-generate_str_var = function(list_var){
-  str = NULL
-  for(var in list_var){
-    tmp = paste("+",var)
-    str = paste0(str,tmp)
-  }
-  str = substr(str,2,nchar(str))
-  return(str)
-}
-```
+
 
 
 ```{r}
