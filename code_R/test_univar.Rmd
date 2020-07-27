@@ -1,75 +1,226 @@
 ---
 title: "R Notebook"
-output: html_notebook
+output:
+  word_document: default
+  html_document:
+    df_print: paged
 ---
 
+Selection des paramètres d'echotrackiing pré-cox : test de Student et du $\chi^2$
 
 ```{r}
 alpha = 0.05
-var_et_deces_univar= c()
-for(var in echotracking_clean){
-  
+```
+
+```{r}
+data2$deces = as.factor(data2$deces)
+data2$chd = as.factor(data2$chd)
+```
+
+# 1. Associé à la mortalité
+
+```{r}
+i = 0
+test_univar_deces = c()
+univar_deces_df = matrix(nrow = length(echotracking), ncol = 1)
+for(var in echotracking){
+  i = i+1
   if(is.numeric(data2[,var])){
-    #print(var)
+    
     test = t.test(data2[,var]~data2$deces)
-    #print(signif(test$p.value,2))
+
     if(signif(test$p.value,2) <= alpha){
-      var_et_deces_univar = c(var_et_deces_univar,var)
-      #print("*")
+      test_univar_deces = c(test_univar_deces,var)
       }
-    #else
-      #print("x")
     }
   
   else{
-    #print(var)
     test = chisq.test(data2[,var],data2$deces)
-    #print(signif(test$p.value,2))
     if(signif(test$p.value,2) <= alpha){
-      var_et_deces_univar = c(var_et_deces_univar,var)
-      #print("*")
+      test_univar_deces = c(test_univar_deces,var)
     }
-    #else
-      #print("x")
+    
   }
-  
+  univar_deces_df[i,1] = signif(test$p.value,2)
 }
-var_et_deces_univar
+colnames(univar_deces_df) = "pvalue_deces"
+rm(var);rm(test)
+```
+
+# 2. Associé à une maladie des coronaires
+```{r}
+i = 0
+test_univar_chd = c()
+univar_chd_df = matrix(nrow = length(echotracking), ncol = 1)
+for(var in echotracking){
+  i = i+1
+  if(is.numeric(data2[,var])){
+    
+    test = t.test(data2[,var]~data2$chd)
+
+    if(signif(test$p.value,2) <= alpha){
+      test_univar_chd = c(test_univar_chd,var)
+      }
+    }
+  
+  else{
+    test = chisq.test(data2[,var],data2$chd)
+    if(signif(test$p.value,2) <= alpha){
+      test_univar_chd = c(test_univar_chd,var)
+    }
+    
+  }
+  univar_chd_df[i,1] = signif(test$p.value,2)
+}
+colnames(univar_chd_df) = "pvalue_chd"
+rm(var);rm(test)
+```
+
+
+# 3. Tableau des résultats
+```{r}
+univar_df = as.data.frame(cbind(echotracking, univar_deces_df,univar_chd_df))
+univar_df
 ```
 
 
 ```{r}
-alpha = 0.05
-var_et_chd_univar= c()
-for(var in echotracking_clean){
+IncrementalTable_all = c() 
+for(i in c("logain")) {
   
-  if(is.numeric(data2[,var])){
-    #print(var)
-    test = t.test(data2[,var]~data2$chd)
-    #print(signif(test$p.value,2))
-    if(signif(test$p.value,2) <= alpha){
-      var_et_chd_univar = c(var_et_chd_univar,var)
-      #print("*")
-      }
-    #else
-      #print("x")
-    }
+  # Variables numériques
   
-  else{
-    #print(var)
-    test = chisq.test(data2[,var],data2$chd)
-    #print(signif(test$p.value,2))
-    if(signif(test$p.value,2) <= alpha){
-      var_et_chd_univar = c(var_et_chd_univar,var)
-      #print("*")
-    }
-    #else
-      #print("x")
+  if(is.numeric(data2[,i]))
+    
+  {
+    mean_ov = data2[,i] %>% (function(x) round(mean(x,na.rm = T),digits = 2)) 
+    sd_ov = data2[,i] %>% (function(x) round(sd(x,na.rm = T),digits = 2))
+    
+    mean_deces0 = data2[data2$deces == 0,i] %>% (function(x) round(mean(x,na.rm = T),digits = 2)) 
+    sd_deces0 = data2[data2$deces == 0,i] %>% (function(x) round(sd(x,na.rm = T),digits = 2))
+    
+    mean_deces1 = data2[data2$deces == 1,i] %>% (function(x) round(mean(x,na.rm = T),digits = 2)) 
+    sd_deces1 = data2[data2$deces == 1,i] %>% (function(x) round(sd(x,na.rm = T),digits = 2))
+    
+    mean_chd0 = data2[data2$chd == 0,i] %>% (function(x) round(mean(x,na.rm = T),digits = 2)) 
+    sd_chd0 = data2[data2$chd == 0,i] %>% (function(x) round(sd(x,na.rm = T),digits = 2))
+    
+    mean_chd1 = data2[data2$chd == 1,i] %>% (function(x) round(mean(x,na.rm = T),digits = 2)) 
+    sd_chd1 = data2[data2$chd == 1,i] %>% (function(x) round(sd(x,na.rm = T),digits = 2))
+    
+    name = paste0(i) 
+    mis = sum(is.na(data2[,i]))
+    
+    increment = matrix(c(name,
+                         unlist(mean_ov),
+                         paste0(prefix="(",unlist(sd_ov), postfix=")"),
+                         unlist(mean_deces0),
+                         paste0(prefix="(",unlist(sd_deces0), postfix=")"),
+                         unlist(mean_deces1), 
+                         paste0(prefix="(",unlist(sd_deces1), postfix=")"),
+                         unlist(mean_chd0),
+                         paste0(prefix="(",unlist(sd_chd0), postfix=")"),
+                         unlist(mean_chd1), 
+                         paste0(prefix="(",unlist(sd_chd1), postfix=")"),
+                         mis), 
+                       ncol = 12)
+  } 
+  
+  # Variables catégorielles
+  
+  else {
+    
+    # On stock dans mean le nb d'obs par classe
+    mean_ov = data2[,i] %>% (function(x) table(x, useNA = "n"))
+    
+    mean_deces0 = data2[data2$deces == 0,i] %>% (function(x) table(x, useNA = "n"))
+    mean_deces1 = data2[data2$deces == 1,i] %>% (function(x) table(x, useNA = "n"))
+    
+    mean_chd0 = data2[data2$chd == 0,i] %>% (function(x) table(x, useNA = "n"))
+    mean_chd1 = data2[data2$chd == 1,i] %>% (function(x) table(x, useNA = "n"))
+    
+    # Si pas de NA on ordonne les classes par nb decroissant d'obs
+    # if(sum(is.na(data2[,i])) == 0) { 
+    #   mean_ov = sort(mean_ov,decreasing = T)
+    #   mean_deces0 = sort(mean_deces0,decreasing = T)
+    #   mean_deces1 = sort(mean_deces1,decreasing = T)
+    #   mean_chd0 = sort(mean_chd0,decreasing = T)
+    #   mean_chd1 = sort(mean_chd1,decreasing = T)
+    #   }
+    
+    # On stock dans sd la prop d'obs de chaque classe     
+    sd_ov = data2[,i] %>% (function(x) round(prop.table(table(x,useNA = "n")),digits=3))
+    
+    sd_deces0 = data2[data2$deces == 0,i] %>% (function(x) round(prop.table(table(x,useNA = "n")),digits=3))
+    sd_deces1 = data2[data2$deces == 1,i] %>% (function(x) round(prop.table(table(x,useNA = "n")),digits=3))
+    
+    sd_chd0 = data2[data2$chd == 0,i] %>% (function(x) round(prop.table(table(x,useNA = "n")),digits=3))
+    sd_chd1 = data2[data2$chd == 1,i] %>% (function(x) round(prop.table(table(x,useNA = "n")),digits=3))
+    
+    # Si pas de NA on ordonne les classes par prop decroissante d'obs
+    # if(sum(is.na(data2[,i])) == 0) { 
+    #   sd_ov = sort(sd_ov,decreasing = T)
+    #   sd_deces0 = sort(sd_deces0,decreasing = T)
+    #   sd_deces1 = sort(sd_deces1,decreasing = T)
+    #   sd_chd0 = sort(sd_chd0,decreasing = T)
+    #   sd_chd1 = sort(sd_chd1,decreasing = T)
+    #   }
+    
+    # Nombre de NA
+    mis = sum(is.na(data2[,i]))
+    
+    # On change les nom des classes
+    #data2[,i] = factor(data2[,i], levels = names(mean)) 
+    
+    # On transforme les obs par classe, stockées dans mean, en matrice : permet d'avoir les classes en lignes pluôt qu'en colonnes 
+    mean_ov = as.matrix(mean_ov)
+    mean_deces0 = as.matrix(mean_deces0)
+    mean_deces1 = as.matrix(mean_deces1)
+    mean_chd0 = as.matrix(mean_chd0)
+    mean_chd1 = as.matrix(mean_chd1)
+    
+    
+    # on stock dans name le nom des classes (correspond aux noms des lignes de la matrice mean)
+    name = matrix(rownames(mean_ov),nrow = length(mean_ov))
+    
+    # On stock le tout dans une matrice increment
+    increment = matrix(c(name,
+                         unlist(mean_ov),
+                         paste0(prefix="(",unlist(sd_ov)*100, postfix=")"),
+                         unlist(mean_deces0),
+                         paste0(prefix="(",unlist(sd_deces0)*100, postfix=")"),
+                         unlist(mean_deces1),
+                         paste0(prefix="(",unlist(sd_deces1)*100, postfix=")"),
+                         unlist(mean_chd0),
+                         paste0(prefix="(",unlist(sd_chd0)*100, postfix=")"),
+                         unlist(mean_chd1),
+                         paste0(prefix="(",unlist(sd_chd1)*100, postfix=")"),
+                         rep("",nrow(mean_chd1))
+                         )
+                       , ncol = 12)
+    increment = rbind(c(i,matrix("",nrow = 1,ncol = 10),mis),increment)
   }
   
+IncrementalTable_all = rbind(IncrementalTable_all,increment)
 }
-var_et_chd_univar
+
+rm(list = c("i","mean_ov","mean_deces0","mean_deces1","mean_chd0","mean_chd1","sd_ov","sd_deces0","sd_deces1","sd_chd0","sd_chd1"))
 ```
+```{r}
+i = "logain"
+univar_df[univar_df$echotracking == i,"pvalue_deces"]
+```
+```{r}
+univar_df
+colnames(univar_df)
+```
+
+
+
+```{r}
+kable(univar_df, "latex")
+```
+
 
 
 ```{r}
