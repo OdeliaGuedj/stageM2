@@ -1,98 +1,60 @@
 ---
 title: "R Notebook"
-output:
-  word_document: default
-  html_document:
-    df_print: paged
+output: html_document
 ---
 
-Selection des paramètres d'echotrackiing pré-cox : test de Student et du $\chi^2$
-
-```{r}
-alpha = 0.05
-```
-
-```{r}
-data2$deces = as.factor(data2$deces)
-data2$chd = as.factor(data2$chd)
-```
-
-# 1. Associé à la mortalité
 
 ```{r}
 i = 0
 test_univar_deces = c()
-univar_deces_df = matrix(nrow = length(echotracking), ncol = 1)
-for(var in echotracking){
-  i = i+1
-  if(is.numeric(data2[,var])){
-    
-    test = t.test(data2[,var]~data2$deces)
-
-    if(signif(test$p.value,2) <= alpha){
-      test_univar_deces = c(test_univar_deces,var)
-      }
-    }
-  
-  else{
-    test = chisq.test(data2[,var],data2$deces)
-    if(signif(test$p.value,2) <= alpha){
-      test_univar_deces = c(test_univar_deces,var)
-    }
-    
-  }
-  univar_deces_df[i,1] = signif(test$p.value,2)
-}
-colnames(univar_deces_df) = "pvalue_deces"
-rm(var);rm(test)
-```
-
-# 2. Associé à une maladie des coronaires
-```{r}
-i = 0
 test_univar_chd = c()
-univar_chd_df = matrix(nrow = length(echotracking), ncol = 1)
-for(var in echotracking){
+for(var in echotracking_clean){
   i = i+1
   if(is.numeric(data2[,var])){
     
-    test = t.test(data2[,var]~data2$chd)
+    test_deces = t.test(data2[,var]~data2$deces)
+    test_chd = t.test(data2[,var]~data2$chd)
+     if(test_deces$p.value <= 0.05){
+       test_univar_deces = c(test_univar_deces,var)
+     }
+     if(test_chd$p.value <= 0.05){
+       test_univar_chd = c(test_univar_chd,var)
+     }
 
-    if(signif(test$p.value,2) <= alpha){
-      test_univar_chd = c(test_univar_chd,var)
-      }
     }
   
   else{
-    test = chisq.test(data2[,var],data2$chd)
-    if(signif(test$p.value,2) <= alpha){
-      test_univar_chd = c(test_univar_chd,var)
-    }
-    
+    test_deces = chisq.test(data2[,var],data2$deces)
+    test_chd = chisq.test(data2[,var], data2$chd)
+     if(test_deces$p.value <= 0.05){
+       test_univar_deces = c(test_univar_deces,var)
+     }
+     if(test_chd$p.value <= 0.05){
+       test_univar_chd = c(test_univar_chd,var)
+     }
   }
-  univar_chd_df[i,1] = signif(test$p.value,2)
+
 }
-colnames(univar_chd_df) = "pvalue_chd"
-rm(var);rm(test)
 ```
-
-
-# 3. Tableau des résultats
 ```{r}
-univar_df = as.data.frame(cbind(echotracking, univar_deces_df,univar_chd_df))
-univar_df
+length(test_univar_deces)
+length(test_univar_chd)
 ```
+
+
 
 
 ```{r}
 IncrementalTable_all = c() 
-for(i in c("logain")) {
+for(i in echotracking_clean) {
   
   # Variables numériques
   
   if(is.numeric(data2[,i]))
     
   {
+    
+    ## Calcul des moyennes et des écarts types
     mean_ov = data2[,i] %>% (function(x) round(mean(x,na.rm = T),digits = 2)) 
     sd_ov = data2[,i] %>% (function(x) round(sd(x,na.rm = T),digits = 2))
     
@@ -108,8 +70,16 @@ for(i in c("logain")) {
     mean_chd1 = data2[data2$chd == 1,i] %>% (function(x) round(mean(x,na.rm = T),digits = 2)) 
     sd_chd1 = data2[data2$chd == 1,i] %>% (function(x) round(sd(x,na.rm = T),digits = 2))
     
+    ## Construction des noms
     name = paste0(i) 
+    
+    ## Clacul nombre de NA
     mis = sum(is.na(data2[,i]))
+    
+    ## Tests de Student
+    test_deces = t.test(data2[,i]~data2$deces)
+    test_chd = t.test(data2[,i]~data2$chd)
+
     
     increment = matrix(c(name,
                          unlist(mean_ov),
@@ -122,22 +92,37 @@ for(i in c("logain")) {
                          paste0(prefix="(",unlist(sd_chd0), postfix=")"),
                          unlist(mean_chd1), 
                          paste0(prefix="(",unlist(sd_chd1), postfix=")"),
+                         signif(test_deces$p.value,2),
+                         signif(test_chd$p.value,2),
                          mis), 
-                       ncol = 12)
+                       ncol = 14)
   } 
   
   # Variables catégorielles
   
   else {
     
-    # On stock dans mean le nb d'obs par classe
+    ## Calcul des moyennes et des écarts types
+    ## On stock dans mean le nb d'obs par classe et dans sd la prop d'obs de chaque classe 
     mean_ov = data2[,i] %>% (function(x) table(x, useNA = "n"))
+    sd_ov = data2[,i] %>% (function(x) round(prop.table(table(x,useNA = "n")),digits=3))
     
     mean_deces0 = data2[data2$deces == 0,i] %>% (function(x) table(x, useNA = "n"))
+    sd_deces0 = data2[data2$deces == 0,i] %>% (function(x) round(prop.table(table(x,useNA = "n")),digits=3))
+    
     mean_deces1 = data2[data2$deces == 1,i] %>% (function(x) table(x, useNA = "n"))
+    sd_deces1 = data2[data2$deces == 1,i] %>% (function(x) round(prop.table(table(x,useNA = "n")),digits=3))
     
     mean_chd0 = data2[data2$chd == 0,i] %>% (function(x) table(x, useNA = "n"))
+    sd_chd0 = data2[data2$chd == 0,i] %>% (function(x) round(prop.table(table(x,useNA = "n")),digits=3))
+    
     mean_chd1 = data2[data2$chd == 1,i] %>% (function(x) table(x, useNA = "n"))
+    sd_chd1 = data2[data2$chd == 1,i] %>% (function(x) round(prop.table(table(x,useNA = "n")),digits=3))
+    
+    
+    ## Tests du chi^2
+    test_deces = chisq.test(data2[,i], data2$deces)
+    test_chd = chisq.test(data2[,i], data2$chd)
     
     # Si pas de NA on ordonne les classes par nb decroissant d'obs
     # if(sum(is.na(data2[,i])) == 0) { 
@@ -147,16 +132,7 @@ for(i in c("logain")) {
     #   mean_chd0 = sort(mean_chd0,decreasing = T)
     #   mean_chd1 = sort(mean_chd1,decreasing = T)
     #   }
-    
-    # On stock dans sd la prop d'obs de chaque classe     
-    sd_ov = data2[,i] %>% (function(x) round(prop.table(table(x,useNA = "n")),digits=3))
-    
-    sd_deces0 = data2[data2$deces == 0,i] %>% (function(x) round(prop.table(table(x,useNA = "n")),digits=3))
-    sd_deces1 = data2[data2$deces == 1,i] %>% (function(x) round(prop.table(table(x,useNA = "n")),digits=3))
-    
-    sd_chd0 = data2[data2$chd == 0,i] %>% (function(x) round(prop.table(table(x,useNA = "n")),digits=3))
-    sd_chd1 = data2[data2$chd == 1,i] %>% (function(x) round(prop.table(table(x,useNA = "n")),digits=3))
-    
+
     # Si pas de NA on ordonne les classes par prop decroissante d'obs
     # if(sum(is.na(data2[,i])) == 0) { 
     #   sd_ov = sort(sd_ov,decreasing = T)
@@ -195,10 +171,17 @@ for(i in c("logain")) {
                          paste0(prefix="(",unlist(sd_chd0)*100, postfix=")"),
                          unlist(mean_chd1),
                          paste0(prefix="(",unlist(sd_chd1)*100, postfix=")"),
+                         rep("",nrow(mean_chd1)),
+                         rep("",nrow(mean_chd1)),
                          rep("",nrow(mean_chd1))
                          )
-                       , ncol = 12)
-    increment = rbind(c(i,matrix("",nrow = 1,ncol = 10),mis),increment)
+                       , ncol = 14)
+    increment = rbind(c(i,
+                        matrix("",nrow = 1,ncol = 10),
+                        signif(test_deces$p.value,2),
+                        signif(test_chd$p.value,2),
+                        mis),
+                      increment)
   }
   
 IncrementalTable_all = rbind(IncrementalTable_all,increment)
@@ -207,33 +190,53 @@ IncrementalTable_all = rbind(IncrementalTable_all,increment)
 rm(list = c("i","mean_ov","mean_deces0","mean_deces1","mean_chd0","mean_chd1","sd_ov","sd_deces0","sd_deces1","sd_chd0","sd_chd1"))
 ```
 ```{r}
-i = "logain"
-univar_df[univar_df$echotracking == i,"pvalue_deces"]
+colnames(IncrementalTable_all) = rep(" ",ncol(IncrementalTable_all))
 ```
 ```{r}
-univar_df
-colnames(univar_df)
+IncrementalTable_all[,1] =  c("Basale cardiac rate", 
+                                    "Diastolic outer diameter (bm)", 
+                                    "Itima Media Thickness",
+                                    "Distension", 
+                                    "Pulse Wave Velocity", 
+                                    "Central Pulse Pressure",
+                                    "Distension Rate (Mean)",
+                                    "RR interval (Mean)", 
+                                    "Low frequency Distension Rate (t)", 
+                                    "High frequency Distension rate (t)", 
+                                    "High frequency Distensin Rate (c)", 
+                                    "Low frequency RR interval (t)", 
+                                    "High frequency RR interval (t)", 
+                                    "High frequency RR interval (c)",
+                                    "Respiratory rate",
+                                    "Low frequency COH (Mean)",
+                                    "Low frequency Gain (Mean)",
+                                    "High frequency COH (Mean) (c)",
+                                    "High frequency Gain (Mean) (c)",
+                                    "High frequency COH (Mean) (t)",
+                                    "High frequency Gain (Mean) (t)",
+                                    "Distension (Mean)",
+                                    "Circumferential Wall Stress",
+                                    "Coefficient of distensibility",
+                                    "Cross Sectional Compliance",
+                                    "Wall Cross Sectionnal Area",
+                                    "Young Module",
+                                    "Presence of plaques",
+                                    "No",
+                                    "Yes",
+                                    "Gain (log)",
+                                    "Young Module (log)",
+                                    "Diastolic outer diameter (bm*1000)",
+                                    "Stiffness")
 ```
 
 
-
 ```{r}
-kable(univar_df, "latex")
-```
-
-
-
-```{r}
-var_et_chd_univar
-print("--------------------")
-var_et_deces_univar
-print("--------------------")
-var_et_jpe_tot
-print("--------------------")
-```
-```{r}
-length(var_et_deces_univar)
-length(var_et_chd_univar)
+kable(IncrementalTable_all, longtable = T) %>% 
+  kable_styling(bootstrap_options = "striped", full_width = F) %>%
+  add_header_above(c(" " = 1, "N = 9947" = 2, "No : N = 9703" = 2, "Yes : N = 244" = 2, "No : N = 9712" = 2, "Yes : N = 235" = 2, " " = 3)) %>%
+  add_header_above(c(" " = 1, "Overall" = 2, "Death" = 4, "CHD" = 4, "Death" = 1, "CHD" = 1, " " = 1)) %>%
+  add_header_above(c(" " = 1, "Mean (sd) or N (%)" = 10, "pvalues" = 2, "NA" = 1)) %>%
+kable_styling(latex_options = c("repeat_header"))
 ```
 
 

@@ -4,15 +4,26 @@ output: html_notebook
 ---
 
 
-On fait une matrice de dcorrélation des 20 var d'échotracking aprés imputation sans les sujets prevalents.
-
-Les corrélations positives sont affichées en bleu et les corrélations négatives en rouge. L’intensité de la couleur et la taille des cercles sont proportionnelles aux coefficients de corrélation. A droite du corrélogramme, la légende de couleurs montre les coefficients de corrélation et les couleurs correspondantes.
-
 ```{r}
-mat_cor = round(cor(data_clean[,var_et_jpe_tot]),1)
-p.mat = cor_pmat(data_clean[,var_et_jpe_tot], method = "pearson")
-library(corrplot)
-corrplot(mat_cor, type = "upper", tl.col="black", method = "number" , tl.srt=45)#, lab = F, p.mat = p.mat)
+data_cor_deces = as.data.frame(lapply(data2[,test_univar_deces],as.numeric))
+mat_cor_deces = cor(data_cor_deces, use = "complete.obs" )
+pmat_deces = cor_pmat(mat_cor_deces)
+
+data_cor_chd = as.data.frame(lapply(data2[,test_univar_chd],as.numeric))
+mat_cor_chd = cor(data_cor_chd, use = "complete.obs")
+pmat_chd = cor_pmat(mat_cor_chd)
+
+plot_grid(ggcorrplot(mat_cor_deces, type = "lower", p.mat = pmat_deces),
+ggcorrplot(mat_cor_deces, type = "lower", lab = T, digits = 1))
 ```
 
+
+```{r}
+data_cor_univar = as.data.frame(lapply(data2[,cox_univar],as.numeric))
+mat_cor_univar = cor(data_cor_univar, use = "complete.obs" )
+pmat_univar = cor_pmat(mat_cor_univar)
+
+plot_grid(ggcorrplot(mat_cor_univar, type = "lower", p.mat = pmat_univar),
+ggcorrplot(mat_cor_univar, type = "lower", lab = T, digits = 1))
+```
 

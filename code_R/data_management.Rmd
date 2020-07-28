@@ -24,6 +24,7 @@ library(FactoMineR)
 library(mclust)
 library(questionr)
 library(naniar)
+library(corrplot)
 ```
 
 # 1. Reading the data
@@ -37,9 +38,22 @@ data = cbind(data, data_supp[,3:13])
 rm(data_supp)
 ```
 
-# 2. Types
+
+# 2. Noms et types des variables
+
+
 ```{r}
-factor = c("sexe", "adm14", "qm9", "qm10", "qm16", "tdr","aomi","stroke","chd","deces", "deptot", "diab", "hypolip2", "antihta2", "educ","sens_hf_t_phase", "sens_phase_hf_c", "sens_phase", "qm34","qm35","qm36","qm37","qm38","qm39","qm40","qm41", "atcdcv", "pr_sence_de_plaque_s____l__cho")
+colnames(data)[86] = "plaques"
+colnames(data)[15] = "pad"
+colnames(data)[14] = "pas"
+colnames(data)[17] = "diam_bm"
+colnames(data)[18] = "imt" 
+colnames(data)[19] = "diam_fbm"
+colnames(data)[20] = "distension"
+```
+
+```{r}
+factor = c("sexe", "adm14", "qm9", "qm10", "qm16", "tdr","aomi","stroke","chd","deces", "deptot", "diab", "hypolip2", "antihta2", "educ","sens_hf_t_phase", "sens_phase_hf_c", "sens_phase", "qm34","qm35","qm36","qm37","qm38","qm39","qm40","qm41", "atcdcv", "plaques")
 int = c("nepp3", "n__ipc")
 date = c("datnaiss", "datinclu", "date_tdr", "date_aomi", "date_stroke", "date_chd", "date_deces")
 
@@ -60,18 +74,18 @@ rm(date)
 ```{r}
 data$logain = as.numeric(log(data$lf_gain_max*100))
 data$logyoung = as.numeric(log(data$young))
-data$dextdias = as.numeric(data$diam_tre_en_bm__mm_*1000)
+data$dextdias = as.numeric(data$diam_bm*1000)
 data$stiffness = as.numeric(sqrt(1/(data$coeffDist)*1000))
-data$mbp = as.numeric((data$pas_basale__mm_hg_ + 2*data$pad_basale__mm_hg_)/3) # mean blood pressure
+data$mbp = as.numeric((data$pas+ 2*data$pad)/3) # mean blood pressure
 ```
 
 ```{r}
 data$pa_cat = NA
-data$pa_cat[data$pas_basale__mm_hg_ < 120 & data$pad_basale__mm_hg_ < 80] = "Normal"
-data$pa_cat[data$pas_basale__mm_hg_< 129 & data$pas_basale__mm_hg_ > 120 & data$pad_basale__mm_hg_ < 80] = "Elevée"
-data$pa_cat[(data$pas_basale__mm_hg_ < 139 & data$pas_basale__mm_hg_ > 130) | (data$pad_basale__mm_hg_ < 89 & data$pad_basale__mm_hg_ > 80)] = "HP Stage 1"
-data$pa_cat[data$pas_basale__mm_hg_ >= 140 | data$pad_basale__mm_hg_ >= 90] = "HP Stage 2"
-data$pa_cat[data$pas_basale__mm_hg_ >= 180 | data$pad_basale__mm_hg_ > 120] = "HP Crisis"
+data$pa_cat[data$pas < 120 & data$pad < 80] = "Normal"
+data$pa_cat[data$pas < 129 & data$pas > 120 & data$pad < 80] = "Elevée"
+data$pa_cat[(data$pas < 139 & data$pas > 130) | (data$pad < 89 & data$pad > 80)] = "HP Stage 1"
+data$pa_cat[data$pas >= 140 | data$pad >= 90] = "HP Stage 2"
+data$pa_cat[data$pas >= 180 | data$pad > 120] = "HP Crisis"
 ```
 ```{r}
 table(data$pa_cat, useNA = "ifany")
@@ -156,18 +170,19 @@ qual_vie = c("qm9","qm10","qm16","bmi","diab","deptot","epice")
 
 traitement = c("antihta2", "hypolip2")
 
-bio = c("trb17", "ldl","bio10","mbp","bio6", "pa_cat", "mbp_cat","pas_basale__mm_hg_","pad_basale__mm_hg_")
+bio = c("trb17", "ldl","bio10","mbp","bio6", "pa_cat", "mbp_cat","pas","pad")
 
-echotracking =  c("fc_basale","diam_tre_en_bm__mm_","imt___m_","diam_tre_en_fbm__mm_","distension___m_","pwvloc", "dploc","debut","dist_rate_moy","dist_rate_var","rr_int_moy","rr_int_var","lf_dist_rate_t","hf_dist_rate_t","hf_dist_rate_c","lf_rrint_t","hf_rr_int_t","hf_rrint_c","freq_resp","lf_coh_max","lf_coh_moy","lf_gain_max","lf_gain_moy","lf_phase","sens_phase","hf_c_coh_max","hf_c_coh_moy","hf_c_gain_max","hf_c_gain_moy","hf_c_phase","sens_phase_hf_c","hf_t_coh_max","hf_t_coh_moy","hf_t_gain_max","hf_t_gain_moy","hf_t_phase","sens_hf_t_phase","dist_moy","dist_var","cws","coeffDist","compli","wcsa","young","pr_sence_de_plaque_s____l__cho","logain","logyoung","dextdias","stiffness")
+echotracking =  c("fc_basale","diam_bm","imt","diam_fbm","distension","pwvloc", "dploc","debut","dist_rate_moy","dist_rate_var","rr_int_moy","rr_int_var","lf_dist_rate_t","hf_dist_rate_t","hf_dist_rate_c","lf_rrint_t","hf_rr_int_t","hf_rrint_c","freq_resp","lf_coh_max","lf_coh_moy","lf_gain_max","lf_gain_moy","lf_phase","sens_phase","hf_c_coh_max","hf_c_coh_moy","hf_c_gain_max","hf_c_gain_moy","hf_c_phase","sens_phase_hf_c","hf_t_coh_max","hf_t_coh_moy","hf_t_gain_max","hf_t_gain_moy","hf_t_phase","sens_hf_t_phase","dist_moy","dist_var","cws","coeffDist","compli","wcsa","young","plaques","logain","logyoung","dextdias","stiffness")
 
+names_echotracking = c("Basale cardiac rate", "Diastolic outer diameter (bm)", "Itima Media Thickness","Diastolic Outer Diameter (fbm)","Distension", "Pulse Wave Velocity","Central Pulse Pressure",  "Bigining", "Distension Rate (Mean)", "Distension Rate (Variance)", "RR interval (Mean)","RR interval (Variance)", "Low frequency Distension Rate (t)","High frequency Distension rate (t)","High frequency Distensin Rate (c)", "Low frequency RR interval (t)", "High frequency RR interval (t)","High frequency RR interval (c)", "Respiratory rate", "Low frequency COH (Max)","Low frequency COH (Mean)","Low frequency Gain (Max)","Low frequency Gain (Mean)","Low frequency phase","Sens phase","High frequency COH (Max) (c)","High frequency COH (Mean) (c)", "High frequency Gain (Max) (c)","High frequency Gain (Mean) (c)","High frequency phase (c)", "High frequency sens phase (c)","High frequency COH (Max) (t)","High frequency COH (Mean) (t)","High frequency Gain (Max) (t)","High frequency Gain (Mean) (t)", "High frequency phase (t)","High freqeuncy sens_phase (t)","Distension (Mean)","Distension (Variance)","Circumferential Wall Stress","Coefficient of distensibility","Cross Sectional Compliance", "Wall Cross Sectionnal Area", "Young Module","Presence og plaques","Gain (log)", "Young Module (log)","Diastolic outer diameter (bm*1000)","Stiffness")
 
-echotracking_clean =  c("imt___m_","distension___m_","pwvloc", "dploc","rr_int_moy","cws","coeffDist","compli","wcsa","pr_sence_de_plaque_s____l__cho","logain","logyoung","dextdias","stiffness")
+echotracking_clean =  c("fc_basale","diam_bm","imt","distension","pwvloc", "dploc","dist_rate_moy","rr_int_moy","lf_dist_rate_t","hf_dist_rate_t","hf_dist_rate_c","lf_rrint_t","hf_rr_int_t","hf_rrint_c","freq_resp","lf_coh_moy","lf_gain_moy","hf_c_coh_moy","hf_c_gain_moy","hf_t_coh_moy","hf_t_gain_moy","dist_moy","cws","coeffDist","compli","wcsa","young","plaques","logain","logyoung","dextdias","stiffness")
 
-var_et_jpe_tot = c("diam_tre_en_bm__mm_", "imt___m_", "distension___m_", "dploc", "dist_rate_moy",  "rr_int_moy","lf_dist_rate_t","hf_dist_rate_t","lf_rrint_t","hf_rr_int_t","lf_coh_moy", "hf_c_coh_moy", "hf_c_gain_moy", "cws","coeffDist", "compli", "wcsa", "young","logain","stiffness")
+var_et_jpe_tot = c("diam_bm", "imt", "distension", "dploc", "dist_rate_moy",  "rr_int_moy","lf_dist_rate_t","hf_dist_rate_t","lf_rrint_t","hf_rr_int_t","lf_coh_moy", "hf_c_coh_moy", "hf_c_gain_moy", "cws","coeffDist", "compli", "wcsa", "young","logain","stiffness")
 
-var_et_jpe_inf = c("diam_tre_en_bm__mm_" , "imt___m_", "distension___m_", "dploc", "dist_rate_moy","coeffDist", "young","logain","stiffness")
+var_et_jpe_inf = c("diam_bm" , "imt", "distension", "dploc", "dist_rate_moy","coeffDist", "young","logain","stiffness")
 
-param_carotid = c("logain", "coeffDist","pwvloc", "dploc", "logyoung","imt___m_", "dextdias", "stiffness", "pr_sence_de_plaque_s____l__cho")
+param_carotid = c("logain", "coeffDist","pwvloc", "dploc", "logyoung","imt", "dextdias", "stiffness", "plaques")
 ```
 
 

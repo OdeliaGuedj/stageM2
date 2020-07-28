@@ -1,0 +1,188 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# 0. Préliminaires
+
+Necessaire que les evt soient numériques sinon pas pris en charge par la fonction coxph.
+
+```{r}
+ for(evt in var_evt){
+   data[,evt] = as.numeric(as.character(data[,evt]))
+   data2[,evt] = as.numeric(as.character(data2[,evt]))
+   data_std[,evt] = as.numeric(as.character(data_std[,evt]))
+   data2_std[,evt] = as.numeric(as.character(data2_std[,evt]))
+   }
+```
+
+# 2. Modèles univariés
+
+## 2.1 Paramètres carotidiens prioritaires issus analyses déjà faites (9)
+
+
+```{r}
+i = 1
+list_univar_pc = list()
+list_univarSTD_pc = list()
+
+for(evt in var_evt){
+  
+  time = paste0("time_to_",evt)
+  res_univar_pc = data.frame()
+  res_univarSTD_pc = data.frame()
+  
+  for(var in param_carotid){
+    
+    cox = cox_univar(time, var, evt, data2)
+    coxSTD = cox_univar(time, var, evt, data2_std)
+    
+    res_univar_pc = rbind(res_univar_pc, cox$res_df)
+    res_univarSTD_pc = rbind(res_univarSTD_pc, coxSTD$res_df)
+  }
+  
+  res_univar_pc$Evt = rep(evt,nrow(res_univar_pc))
+  res_univarSTD_pc$Evt = rep(evt,nrow(res_univarSTD_pc))
+  
+  list_univar_pc[[i]] = res_univar_pc
+  list_univarSTD_pc[[i]] = res_univarSTD_pc
+  
+  i = i + 1
+}
+rm(i)
+
+names(list_univar_pc) = var_evt
+names(list_univarSTD_pc) = var_evt
+```
+
+
+```{r}
+list_univar_pc[["deces"]]
+list_univar_pc[["chd"]]
+```
+
+
+## 2.2 Modèls de Cox univariés pour toutes les variables d'échotracking (clean)
+
+Ici avec l'argument round = F pour pouvoir tracer le graph
+
+
+```{r}
+i = 1
+list_univar_et = list()
+list_univarSTD_et = list()
+
+for(evt in c("deces","chd")){
+  
+  time = paste0("time_to_",evt)
+  res_univar_et = data.frame()
+  res_univarSTD_et = data.frame()
+  
+  for(var in echotracking_clean){
+    
+    cox = cox_univar(time, var, evt, data2, round = F)
+    coxSTD = cox_univar(time, var, evt, data2_std, round = F)
+    
+    res_univar_et = rbind(res_univar_et, cox)
+    res_univarSTD_et = rbind(res_univarSTD_et, coxSTD)
+  }
+  
+  res_univar_et$Evt = rep(evt,nrow(res_univar_et))
+  res_univarSTD_et$Evt = rep(evt,nrow(res_univarSTD_et))
+  
+  list_univar_et[[i]] = res_univar_et
+  list_univarSTD_et[[i]] = res_univarSTD_et
+  
+  i = i + 1
+}
+rm(i)
+
+names(list_univar_et) = c("deces","chd")
+names(list_univarSTD_et) = c("deces","chd")
+```
+
+
+## 2.3 Modèles de cox univariés pour param selectionnées par tests
+
+### 2.3.1 Death
+
+```{r}
+i = 1
+list_univar_et_deces = list()
+
+for(evt in c("deces")){
+  
+  time = paste0("time_to_",evt)
+  res_univar_et_deces = data.frame()
+  
+  for(var in test_univar_deces){
+    
+    cox = cox_univar(time, var, evt, data2, round = F)
+    res_univar_et_deces = rbind(res_univar_et_deces, cox)
+  }
+  
+  res_univar_et_deces$Evt = rep(evt,nrow(res_univar_et_deces))
+  list_univar_et_deces[[i]] = res_univar_et_deces
+
+  i = i + 1
+}
+rm(i)
+
+names(list_univar_et_deces) = "deces"
+```
+
+### 2.3.2 Coronary Heart disease
+
+```{r}
+i = 1
+list_univar_et_chd = list()
+
+for(evt in c("chd")){
+  
+  time = paste0("time_to_",evt)
+  res_univar_et_chd = data.frame()
+
+  for(var in test_univar_chd){
+    
+    cox = cox_univar(time, var, evt, data2, round = F)
+    res_univar_et_chd = rbind(res_univar_et_chd, cox)
+  }
+  
+  res_univar_et_chd$Evt = rep(evt,nrow(res_univar_et_chd))
+  list_univar_et_chd[[i]] = res_univar_et_chd
+
+  i = i + 1
+}
+rm(i)
+
+names(list_univar_et_chd) = "chd"
+```
+
+```{r}
+plot_pv_HR(list_univar_et_deces[["deces"]])
+plot_pv_HR(list_univar_et_chd[["chd"]])
+```
+
+# 3. Stockage des param signif
+
+On stock les param signif dans cox univarié et verifiant hypothèses
+```{r}
+cox_univar_deces = as.character(list_univar_et_deces[["deces"]]$Name[list_univar_et_deces[["deces"]]$pv_signif == 1 & list_univar_et_deces[["deces"]]$Hyp.Prop.verif == 1])
+
+cox_univar_chd = as.character(list_univar_et_chd[["chd"]]$Name[list_univar_et_chd[["chd"]]$pv_signif == 1 & list_univar_et_chd[["chd"]]$Hyp.Prop.verif == 1])
+```
+
+On joint les deux vecteurs (deces et chd) en virant les doublons
+
+```{r}
+cox_univar = unique(c(cox_univar_deces, cox_univar_chd))
+```
+
+```{r}
+length(cox_univar)
+```
+
+```{r}
+getwd()
+```
+
