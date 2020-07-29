@@ -1,6 +1,8 @@
 ---
 title: "R Notebook"
 output: html_notebook
+editor_options: 
+  chunk_output_type: inline
 ---
 
 # 0. Préliminaires
@@ -49,7 +51,9 @@ for(evt in var_evt){
   
   i = i + 1
 }
-rm(i)
+rm(i);
+rm(res_univar_pc);rm(res_univarSTD_pc);
+rm(cox);rm(coxSTD)
 
 names(list_univar_pc) = var_evt
 names(list_univarSTD_pc) = var_evt
@@ -66,7 +70,7 @@ list_univar_pc[["chd"]]
 
 Ici avec l'argument round = F pour pouvoir tracer le graph
 
-
+(Ici seulement pour death et chd, on peut étendre aux autres evt : modifier boucle for et les deux dernières lignes (names))
 ```{r}
 i = 1
 list_univar_et = list()
@@ -95,81 +99,88 @@ for(evt in c("deces","chd")){
   
   i = i + 1
 }
-rm(i)
+rm(i);
+rm(res_univar_et); rm(res_univarSTD_et);
+rm(cox);rm(coxSTD)
 
 names(list_univar_et) = c("deces","chd")
 names(list_univarSTD_et) = c("deces","chd")
 ```
 
+```{r}
+list_univar_et[["deces"]]
+list_univar_et[["chd"]]
+```
+```{r echo=FALSE}
+plot_grid(plot_pv_HR(list_univar_et[["deces"]]),
+          plot_pv_HR(list_univar_et[["chd"]]))
+```
 
 ## 2.3 Modèles de cox univariés pour param selectionnées par tests
 
 ### 2.3.1 Death
 
 ```{r}
-i = 1
 list_univar_et_deces = list()
-
-for(evt in c("deces")){
+evt = "deces"
+time = paste0("time_to_",evt)
+res_univar_et_deces = data.frame()
   
-  time = paste0("time_to_",evt)
-  res_univar_et_deces = data.frame()
-  
-  for(var in test_univar_deces){
-    
-    cox = cox_univar(time, var, evt, data2, round = F)
-    res_univar_et_deces = rbind(res_univar_et_deces, cox)
+for(var in test_univar_deces){
+  cox = cox_univar(time, var, evt, data2, round = F)
+  res_univar_et_deces = rbind(res_univar_et_deces, cox)
   }
   
-  res_univar_et_deces$Evt = rep(evt,nrow(res_univar_et_deces))
-  list_univar_et_deces[[i]] = res_univar_et_deces
+res_univar_et_deces$Evt = rep(evt,nrow(res_univar_et_deces))
+list_univar_et_deces[[evt]] = res_univar_et_deces
 
-  i = i + 1
-}
-rm(i)
+rm(res_univar_et_deces);
+rm(cox);
+rm(evt);
+rm(time);
 
-names(list_univar_et_deces) = "deces"
+list_univar_et_deces = list_univar_et_deces$deces
 ```
+```{r}
+plot_pv_HR(list_univar_et_deces)
+```
+
 
 ### 2.3.2 Coronary Heart disease
 
 ```{r}
-i = 1
 list_univar_et_chd = list()
+evt = "chd"
+time = paste0("time_to_",evt)
+res_univar_et_chd = data.frame()
 
-for(evt in c("chd")){
-  
-  time = paste0("time_to_",evt)
-  res_univar_et_chd = data.frame()
-
-  for(var in test_univar_chd){
-    
-    cox = cox_univar(time, var, evt, data2, round = F)
-    res_univar_et_chd = rbind(res_univar_et_chd, cox)
+for(var in test_univar_chd){
+  cox = cox_univar(time, var, evt, data2, round = F)
+  res_univar_et_chd = rbind(res_univar_et_chd, cox)
   }
   
-  res_univar_et_chd$Evt = rep(evt,nrow(res_univar_et_chd))
-  list_univar_et_chd[[i]] = res_univar_et_chd
+res_univar_et_chd$Evt = rep(evt,nrow(res_univar_et_chd))
+list_univar_et_chd[[evt]] = res_univar_et_chd
 
-  i = i + 1
-}
-rm(i)
+rm(res_univar_et_chd);
+rm(cox);
+rm(evt);
+rm(time);
 
-names(list_univar_et_chd) = "chd"
+list_univar_et_chd = list_univar_et_chd$chd
 ```
 
 ```{r}
-plot_pv_HR(list_univar_et_deces[["deces"]])
-plot_pv_HR(list_univar_et_chd[["chd"]])
+ggsave("test5.pdf",plot_pv_HR(list_univar_et_chd))
 ```
 
 # 3. Stockage des param signif
 
 On stock les param signif dans cox univarié et verifiant hypothèses
 ```{r}
-cox_univar_deces = as.character(list_univar_et_deces[["deces"]]$Name[list_univar_et_deces[["deces"]]$pv_signif == 1 & list_univar_et_deces[["deces"]]$Hyp.Prop.verif == 1])
+cox_univar_deces = as.character(list_univar_et_deces$Name[list_univar_et_deces$pv_signif == 1 & list_univar_et_deces$Hyp.Prop.verif == 1])
 
-cox_univar_chd = as.character(list_univar_et_chd[["chd"]]$Name[list_univar_et_chd[["chd"]]$pv_signif == 1 & list_univar_et_chd[["chd"]]$Hyp.Prop.verif == 1])
+cox_univar_chd = as.character(list_univar_et_chd$Name[list_univar_et_chd$pv_signif == 1 & list_univar_et_chd$Hyp.Prop.verif == 1])
 ```
 
 On joint les deux vecteurs (deces et chd) en virant les doublons
@@ -182,7 +193,21 @@ cox_univar = unique(c(cox_univar_deces, cox_univar_chd))
 length(cox_univar)
 ```
 
+
+
 ```{r}
-getwd()
+for(var in echotracking_clean){
+  if(is.numeric(data2[,var])){
+    #print(boxplot(data2[,var] ~data2$sexe))
+    if(t.test(data2[,var] ~ data2$sexe)$p.value <= 0.05){
+      print(var)
+      print(t.test(data2[,var] ~ data2$sexe)$p.value)
+      boxplot(data2[,var] ~data2$sexe)
+    }
+  
+  }
+  
+}
 ```
+
 
