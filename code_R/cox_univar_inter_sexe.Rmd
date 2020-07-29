@@ -1,0 +1,42 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+i = 1
+list_univar_et_interSexe = list()
+
+for(evt in c("deces","chd")){
+  
+  time = paste0("time_to_",evt)
+  res_univar_et_interSexe = data.frame()
+  
+  for(var in echotracking_clean){
+    
+    cox = cox_univar(time, var, evt, data2, round = F, interaction = T, var.inter = "sexe")
+    res_univar_et_interSexe = rbind(res_univar_et_interSexe, cox)
+
+  }
+  
+  res_univar_et_interSexe$Evt = rep(evt,nrow(res_univar_et_interSexe))
+  
+  list_univar_et_interSexe[[i]] = res_univar_et_interSexe
+  
+  i = i + 1
+}
+rm(i);
+rm(res_univar_et_interSexe);
+rm(cox)
+
+names(list_univar_et_interSexe) = c("deces","chd")
+```
+
+```{r}
+list_univar_et[["deces"]]
+list_univar_et_interSexe[["deces"]]
+```
+```{r}
+plot_pv_HR(list_univar_et_interSexe[["deces"]])
+```
+
