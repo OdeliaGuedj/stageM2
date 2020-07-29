@@ -7,7 +7,7 @@ output: html_notebook
 Permet de faire des modèles de cox univariés et d'avoir les resultats sous la forme extract_coxReg (donc dataframe).
 
 ```{r}
-cox_univar = function(time, var, evt, dt, round = T, d.round = 2, alpha = 0.05){
+cox_univar = function(time, var, evt, dt, round = T, d.round = 2, alpha = 0.05, interaction = F, var.inter){
   
   # time : time-to-event
   # evt : variable d'evenement (binaire)
@@ -16,7 +16,8 @@ cox_univar = function(time, var, evt, dt, round = T, d.round = 2, alpha = 0.05){
   # round : variable booléenne d'arondis, F par défaut. Valeur T utile pour les graphes
   # d.round : nb de décimale conservée aprés arrondis, 2 par défaut
   # alpha : risque de première éspèce. 5% par défaut
-  
+  # interaction : variable booléenne sur inclusion d'une interraction. FALSE par defaut
+  # var.inter : variable d'interraction, uniquement si interraction vaut TRUE
   
   
   # On s'assure que le time-to-event et l'event sont bien numériques
@@ -24,7 +25,11 @@ cox_univar = function(time, var, evt, dt, round = T, d.round = 2, alpha = 0.05){
   evt = as.numeric(as.character(dt[,evt]))
   
   # On fit le modèle
-  model = coxph(Surv(time,evt) ~ dt[,var], data = dt)
+  if(interaction == T){
+    model = coxph(Surv(time,evt) ~ dt[,var] + dt[,var]*dt[,var.inter], data = dt)}
+  else
+    model = coxph(Surv(time,evt) ~ dt[,var], data = dt)
+  
   summary = summary(model)
   
   #test de shonfeld pour vérifier l'hypothèse de proportionnalité des risques
@@ -34,10 +39,10 @@ cox_univar = function(time, var, evt, dt, round = T, d.round = 2, alpha = 0.05){
   if (round == T){
     
     df = data.frame("Name" = var,
-                    "HR" = round(summary$coefficient[,2],d.round),
-                    "IC" = paste0("[", round(summary$conf.int[,3],d.round +1), " ; ", ... = round(summary$conf.int[,4],d.round+1), "]"),
-                    "p.value" = signif(summary$coefficient[,5],3),
-                    "pv_signif" = ifelse(summary$coefficient[,5] <= alpha, "*"," "),
+                    "HR" = round(summary$coefficient[length(summary$coefficient[,2]),2],d.round),
+                    "IC" = paste0("[", round(summary$conf.int[length(summary$conf.int[,3]),3],d.round +1), " ; ", ... = round(summary$conf.int[length(summary$conf.int[,4]),4],d.round+1), "]"),
+                    "p.value" = signif(summary$coefficient[length(summary$coefficient[,5]),5],3),
+                    "pv_signif" = ifelse(summary$coefficient[length(summary$coefficient[,5]),5] <= alpha, "*"," "),
                     "p.shonfeld" = signif(test.shonfeld$table[dim(test.shonfeld$table)[1],dim(test.shonfeld$table)[2]],d.round+1),
                     "n" = model$n,
                     "n.events" = model$nevent
@@ -50,11 +55,11 @@ cox_univar = function(time, var, evt, dt, round = T, d.round = 2, alpha = 0.05){
   else if (round == F){
     
     df = data.frame("Name" = var,
-                    "HR" = summary$coefficient[,2],
-                    "ICinf" = summary$conf.int[,3],
-                    "ICsup" = summary$conf.int[,4],
-                    "p.value" = summary$coefficient[,5],
-                    "pv_signif" = ifelse(summary$coefficient[,5] <= alpha, 1,0),
+                    "HR" = summary$coefficient[length(summary$coefficient[,2]),2],
+                    "ICinf" = summary$conf.int[length(summary$conf.int[,3]),3],
+                    "ICsup" = summary$conf.int[length(summary$conf.int[,4]),4],
+                    "p.value" = summary$coefficient[length(summary$coefficient[,5]),5],
+                    "pv_signif" = ifelse(summary$coefficient[length(summary$coefficient[,5]),5] <= alpha, 1,0),
                     "p.shonfeld" = signif(test.shonfeld$table[dim(test.shonfeld$table)[1],dim(test.shonfeld$table)[2]],d.round+1),
                     "Hyp.Prop.verif" = ifelse(test.shonfeld$table[dim(test.shonfeld$table)[1],dim(test.shonfeld$table)[2]] <= alpha ,0,1),
                     "n" = model$n,
@@ -67,33 +72,69 @@ cox_univar = function(time, var, evt, dt, round = T, d.round = 2, alpha = 0.05){
 }
 ```
 
+
 Permet d'afficher les HR  de modèles univariés (Autant de paramètres qu'on veut pour 1 evenement particulier) avec un code couleur pour leur significativité.
 
+
+
 ```{r}
-plot_pv_HR = function(cox_nice_info, hj = 0, vj = 0, main = " "){
+plot_pv_HR  = function(cox_nice_info, hj = 0, vj = 0, main = " "){
   
   # Pour pouvoir utiliser cette fonction il faut que cox_nice_info soit un objet cox_univar ou cox_multivar utilisé avec l'argument round = F
   
-  ggplot(cox_nice_info, aes(p.value, HR)) + 
+  # Extraction des noms des param et
+  tmp = c()
+  for(var in cox_nice_info$Name)
+    {tmp = c(tmp,which(echotracking == var))}
+  cox_nice_info$Name_nice = names_echotracking[tmp]
+  
+  # Colonne pour couleur et legende
+   for(i in 1:nrow(cox_nice_info)){
+     if(cox_nice_info[i,"pv_signif"] == 1 & 
+      cox_nice_info[i,"Hyp.Prop.verif"] == 1 & 
+      cox_nice_info[i,"HR"] <= 1)
+       {cox_nice_info[i,"col"] = 1}
+     else if (cox_nice_info[i,"pv_signif"] == 1 & 
+            cox_nice_info[i,"Hyp.Prop.verif"] == 1 & 
+            cox_nice_info[i,"HR"] > 1)
+      {cox_nice_info[i,"col"] = 2}
+     else if (cox_nice_info[i,"pv_signif"] == 0 & 
+            cox_nice_info[i,"Hyp.Prop.verif"] == 1)
+      {cox_nice_info[i,"col"] = 3}
+     else if (cox_nice_info[i,"Hyp.Prop.verif"] == 0)
+     {cox_nice_info[i,"col"] = 4}
+   }
+  cox_nice_info$col = as.factor(cox_nice_info$col)
+  
+  
+  ggplot(cox_nice_info,aes(p.value, HR, color = col)) +
+
+  geom_point(size = 3) +
+  
+  scale_color_manual(labels = c("Deleterious effect","Protective effect", "Non significant","Hyp non verified"), values=c('aquamarine3','coral2','red','black')) +
+
+  scale_y_continuous(name="HR",limits=c(min(cox_nice_info$HR)-0.1 , max(cox_nice_info$HR)+0.1)) +
     
-    geom_point(color = dplyr::case_when((cox_nice_info$pv_signif == 1 & cox_nice_info$Hyp.Prop.verif == 1)~ "green", (cox_nice_info$pv_signif == 0 & cox_nice_info$Hyp.Prop.verif == 1) ~ "red",cox_nice_info$Hyp.Prop.verif == 0 ~ "black" ), size = 3) +
-    
-      geom_hline(yintercept = 1, col = "red") + #geom_vline(xintercept =0.05, col = "red") +
-    
-        scale_y_continuous(name="HR",limits=c(min(cox_nice_info$HR)-0.1 , max(cox_nice_info$HR)+0.1)) +
-            
-    geom_text_repel(aes(label = Name), box.padding   = 0.35, point.padding = 0.5, segment.color = "grey50", force = 15,
-                    segment.size  = 1 ,#epaisseur segments
-                    size = 5 #taille label 
-                    )+
-    
-            xlab("p.values") +
-        
-              ggtitle(main)
+
+  theme_classic() +
+
+  geom_text_repel(aes(label = Name_nice),
+                  segment.colour = NA,
+                  box.padding   = 0.35,
+                  point.padding = 0.5,
+                  #segment.color = "black",
+                  force = 15,
+                  segment.size  = .7 ,#epaisseur segments
+                  size = 3 #taille label
+                     ) +
+
+
+  labs(title = main, y = "Hazard Ratio", x = "p value", color = " ")
+  
+  #return(cox_nice_info[1,"pv_signif"])
   
 }
 ```
-
 Permet de fiter des régressions de cox multivariées et de récupérer les info du dernier coefficients qui correspond au paramètre d'échotracking que l'on étudie.
 
 ```{r}
