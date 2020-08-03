@@ -3,6 +3,7 @@ title: "R Notebook"
 output: html_document
 ---
 
+# 1. Tests
 
 ```{r}
 i = 0
@@ -42,7 +43,7 @@ length(test_univar_chd)
 ```
 
 
-
+# 2. Tableau récap (table1 paper1)
 
 ```{r}
 IncrementalTable_all = c() 
