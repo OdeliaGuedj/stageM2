@@ -1,0 +1,63 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+ for(evt in var_evt){
+   data[,evt] = as.numeric(as.character(data[,evt]))
+   data2[,evt] = as.numeric(as.character(data2[,evt]))
+   data_std[,evt] = as.numeric(as.character(data_std[,evt]))
+   data2_std[,evt] = as.numeric(as.character(data2_std[,evt]))
+   }
+```
+
+
+
+
+```{r}
+time_on_study_brut = c()
+pv_tos_brut = c()
+time_on_study_age = c()
+pv_tos_age = c()
+age_scale_brut = c()
+pv_as_brut = c()
+age_scale_genera = c()
+pv_as_genera = c()
+
+for(var in "stiffness"){
+  cox1 = coxph(Surv(time_to_deces, deces) ~ data2[,var] , data = data2)
+  cox2 = coxph(Surv(time_to_deces, deces) ~ data2[,var] + age0, data = data2)
+  cox3 = coxph(Surv(age0,age_at_deces, deces) ~ data2[,var], data = data2)
+  cox4 = coxph(Surv(age0,age_at_deces, deces) ~ data2[,var] + year_naiss_cat, data = data2)
+
+time_on_study_brut = c(time_on_study_brut,summary(cox1)$coefficient[,2])
+pv_tos_brut = c(pv_tos_brut,signif(summary(cox1)$coefficients[5],2))
+
+time_on_study_age = c(time_on_study_age,summary(cox2)$coefficient[1,2])
+pv_tos_age = c(pv_tos_age,signif(summary(cox2)$coefficients[1,5],2))
+
+age_scale_brut = c(age_scale_brut,summary(cox3)$coefficient[,2])
+pv_as_brut = c(pv_as_brut,signif(summary(cox3)$coefficients[5],2))
+
+age_scale_genera = c(age_scale_genera,summary(cox4)$coefficient[1,2])
+pv_as_genera = c(pv_as_genera,signif(summary(cox4)$coefficients[1,5],2))
+}
+```
+
+
+```{r}
+compare_methods = data.frame("Name" = echotracking_clean, 
+                             "time_on_study_brut" = round(time_on_study_brut,2),
+                             "pv_tos_brut" = ifelse(pv_tos_brut<=0.05,"*"," "),
+                             "time_on_study_age" = round(time_on_study_age,2),
+                             "pv_tos_age" = ifelse(pv_tos_age<=0.05,"*"," "),
+                             "age_scale_brut" = round(age_scale_brut,2),
+                             "pv_as_brut" = ifelse(pv_as_brut<=0.05,"*"," "),
+                             "age_scale_genera" = round(age_scale_genera,2),
+                             "pv_as_genera" = ifelse(pv_as_genera<=0.05,"*"," "))
+```
+```{r}
+head(compare_methods)
+```
+
