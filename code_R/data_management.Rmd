@@ -151,7 +151,31 @@ data$time_to_chd = as.numeric(difftime(data$date_chd, data$datinclu, unit = "day
 data$time_to_tdr = as.numeric(difftime(data$date_tdr, data$datinclu, unit = "days"))
 ```
 
-# 6. Classif des catégories de variables
+# 6. Création des variables age_at_event
+```{r}
+data$age_at_deces = round(as.numeric(difftime(data$date_deces, data$datnaiss, unit = "days"))/365,2)
+
+data$age_at_stroke = round(as.numeric(difftime(data$date_stroke, data$datnaiss, unit = "days"))/365,2)
+
+data$age_at_aomi = round(as.numeric(difftime(data$date_aomi, data$datnaiss, unit = "days"))/365,2)
+
+data$age_at_chd = round(as.numeric(difftime(data$date_chd, data$datnaiss, unit = "days"))/365,2)
+
+data$age_at_tdr = round(as.numeric(difftime(data$date_tdr, data$datnaiss, unit = "days"))/365,2)
+```
+
+# 7. Création variable anéée de naissance + catégorisation
+
+```{r}
+year_naiss = as.numeric(format(as.Date(data$datnaiss, format="%Y/%m/%d"),"%Y"))
+data$year_naiss = year_naiss
+```
+```{r}
+year_naiss_cat = quantileCut(year_naiss,5)
+data$year_naiss_cat = year_naiss_cat
+```
+
+# 8. Classif des catégories de variables
 
 ```{r}
 id = c("nepp3","n__ipc")
@@ -161,6 +185,8 @@ date = c("datnaiss", "datinclu", "date_tdr", "date_aomi", "date_stroke", "date_c
 var_evt = c("deces","stroke","aomi","tdr","chd")
 
 time_to_evt = c("time_to_stroke", "time_to_aomi", "time_to_tdr", "time_to_chd","time_to_deces")
+
+age_at_evt = c("age_at_stroke", "age_at_aomi", "age_at_tdr", "age_at_chd","age_at_deces")
 
 prev_cvd = c("qm34","qm35","qm36","qm37","qm38","qm39","qm40","qm41","atcdcv","prevalence_cvd")
 
@@ -187,7 +213,7 @@ param_carotid = c("logain", "coeffDist","pwvloc", "dploc", "logyoung","imt", "de
 
 
 
-# 7. Création d'une base de données centrée réduite
+# 9. Création d'une base de données centrée réduite
 
 ```{r}
 data_std = data
@@ -199,7 +225,7 @@ for(var in colnames(data)){
 rm(var)
 ```
 
-# 8. Création base de données sans les prévalents cvd
+# 10. Création base de données sans les prévalents cvd
 
 On retire les patients ayant des antécédants de maladie cardiovasculaire.
 ```{r}
