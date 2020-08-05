@@ -24,45 +24,45 @@ Necessaire que les evt soient numériques sinon pas pris en charge par la foncti
 
 
 ```{r}
-i = 1
-list_univar_pc = list()
-list_univarSTD_pc = list()
-
-for(evt in var_evt){
-  
-  time = paste0("time_to_",evt)
-  res_univar_pc = data.frame()
-  res_univarSTD_pc = data.frame()
-  
-  for(var in param_carotid){
-    
-    cox = cox_univar(time, var, evt, data2)
-    coxSTD = cox_univar(time, var, evt, data2_std)
-    
-    res_univar_pc = rbind(res_univar_pc, cox$res_df)
-    res_univarSTD_pc = rbind(res_univarSTD_pc, coxSTD$res_df)
-  }
-  
-  res_univar_pc$Evt = rep(evt,nrow(res_univar_pc))
-  res_univarSTD_pc$Evt = rep(evt,nrow(res_univarSTD_pc))
-  
-  list_univar_pc[[i]] = res_univar_pc
-  list_univarSTD_pc[[i]] = res_univarSTD_pc
-  
-  i = i + 1
-}
-rm(i);
-rm(res_univar_pc);rm(res_univarSTD_pc);
-rm(cox);rm(coxSTD)
-
-names(list_univar_pc) = var_evt
-names(list_univarSTD_pc) = var_evt
+# i = 1
+# list_univar_pc = list()
+# list_univarSTD_pc = list()
+# 
+# for(evt in var_evt){
+#   
+#   time = paste0("time_to_",evt)
+#   res_univar_pc = data.frame()
+#   res_univarSTD_pc = data.frame()
+#   
+#   for(var in param_carotid){
+#     
+#     cox = cox_univar(time, var, evt, data2)
+#     coxSTD = cox_univar(time, var, evt, data2_std)
+#     
+#     res_univar_pc = rbind(res_univar_pc, cox$res_df)
+#     res_univarSTD_pc = rbind(res_univarSTD_pc, coxSTD$res_df)
+#   }
+#   
+#   res_univar_pc$Evt = rep(evt,nrow(res_univar_pc))
+#   res_univarSTD_pc$Evt = rep(evt,nrow(res_univarSTD_pc))
+#   
+#   list_univar_pc[[i]] = res_univar_pc
+#   list_univarSTD_pc[[i]] = res_univarSTD_pc
+#   
+#   i = i + 1
+# }
+# rm(i);
+# rm(res_univar_pc);rm(res_univarSTD_pc);
+# rm(cox);rm(coxSTD)
+# 
+# names(list_univar_pc) = var_evt
+# names(list_univarSTD_pc) = var_evt
 ```
 
 
 ```{r}
-list_univar_pc[["deces"]]
-list_univar_pc[["chd"]]
+# list_univar_pc[["deces"]]
+# list_univar_pc[["chd"]]
 ```
 
 
@@ -72,48 +72,48 @@ Ici avec l'argument round = F pour pouvoir tracer le graph
 
 (Ici seulement pour death et chd, on peut étendre aux autres evt : modifier boucle for et les deux dernières lignes (names))
 ```{r}
-i = 1
-list_univar_et = list()
-list_univarSTD_et = list()
-
-for(evt in c("deces","chd")){
-  
-  time = paste0("time_to_",evt)
-  res_univar_et = data.frame()
-  res_univarSTD_et = data.frame()
-  
-  for(var in echotracking_clean){
-    
-    cox = cox_univar(time, var, evt, data2, round = F)
-    coxSTD = cox_univar(time, var, evt, data2_std, round = F)
-    
-    res_univar_et = rbind(res_univar_et, cox)
-    res_univarSTD_et = rbind(res_univarSTD_et, coxSTD)
-  }
-  
-  res_univar_et$Evt = rep(evt,nrow(res_univar_et))
-  res_univarSTD_et$Evt = rep(evt,nrow(res_univarSTD_et))
-  
-  list_univar_et[[i]] = res_univar_et
-  list_univarSTD_et[[i]] = res_univarSTD_et
-  
-  i = i + 1
-}
-rm(i);
-rm(res_univar_et); rm(res_univarSTD_et);
-rm(cox);rm(coxSTD)
-
-names(list_univar_et) = c("deces","chd")
-names(list_univarSTD_et) = c("deces","chd")
+# i = 1
+# list_univar_et = list()
+# list_univarSTD_et = list()
+# 
+# for(evt in c("deces","chd")){
+#   
+#   time = paste0("time_to_",evt)
+#   res_univar_et = data.frame()
+#   res_univarSTD_et = data.frame()
+#   
+#   for(var in echotracking_clean){
+#     
+#     cox = cox_univar(time, var, evt, data2, round = F)
+#     coxSTD = cox_univar(time, var, evt, data2_std, round = F)
+#     
+#     res_univar_et = rbind(res_univar_et, cox)
+#     res_univarSTD_et = rbind(res_univarSTD_et, coxSTD)
+#   }
+#   
+#   res_univar_et$Evt = rep(evt,nrow(res_univar_et))
+#   res_univarSTD_et$Evt = rep(evt,nrow(res_univarSTD_et))
+#   
+#   list_univar_et[[i]] = res_univar_et
+#   list_univarSTD_et[[i]] = res_univarSTD_et
+#   
+#   i = i + 1
+# }
+# rm(i);
+# rm(res_univar_et); rm(res_univarSTD_et);
+# rm(cox);rm(coxSTD)
+# 
+# names(list_univar_et) = c("deces","chd")
+# names(list_univarSTD_et) = c("deces","chd")
 ```
 
 ```{r}
-list_univar_et[["deces"]]
-list_univar_et[["chd"]]
+# list_univar_et[["deces"]]
+# list_univar_et[["chd"]]
 ```
 ```{r echo=FALSE}
-plot_grid(plot_pv_HR(list_univar_et[["deces"]]),
-          plot_pv_HR(list_univar_et[["chd"]]))
+# plot_grid(plot_pv_HR(list_univar_et[["deces"]]),
+#           plot_pv_HR(list_univar_et[["chd"]]))
 ```
 
 ## 2.3 Modèles de cox univariés pour param selectionnées par tests
@@ -142,10 +142,19 @@ rm(time);
 list_univar_et_deces = list_univar_et_deces$deces
 ```
 ```{r}
+list_univar_et_deces
+```
+
+```{r}
 plot_pv_HR(list_univar_et_deces)
 ```
 
-
+```{r}
+par(mfrow = c(4,5))
+for(var in cox_univar_deces){
+  plot(log(survfit(coxph(Surv(time_to_deces,deces) ~ data2[,var], data = data2))$time),log(-log(survfit(coxph(Surv(time_to_deces,deces) ~ data2[,var], data = data2))$surv)))
+}
+```
 ### 2.3.2 Coronary Heart disease
 
 ```{r}
@@ -171,8 +180,13 @@ list_univar_et_chd = list_univar_et_chd$chd
 ```
 
 ```{r}
-ggsave("test5.pdf",plot_pv_HR(list_univar_et_chd))
+list_univar_et_chd
 ```
+```{r}
+plot_pv_HR(list_univar_et_chd)
+```
+
+
 
 # 3. Stockage des param signif
 
@@ -194,20 +208,5 @@ length(cox_univar)
 ```
 
 
-
-```{r}
-for(var in echotracking_clean){
-  if(is.numeric(data2[,var])){
-    #print(boxplot(data2[,var] ~data2$sexe))
-    if(t.test(data2[,var] ~ data2$sexe)$p.value <= 0.05){
-      print(var)
-      print(t.test(data2[,var] ~ data2$sexe)$p.value)
-      boxplot(data2[,var] ~data2$sexe)
-    }
-  
-  }
-  
-}
-```
 
 
