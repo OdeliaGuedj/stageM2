@@ -9,6 +9,7 @@ output: html_notebook
 library(tidyverse)
 library(lubridate)
 library(survival)
+library(survminer)
 library(Hmisc)
 library(ggplot2)
 library(ggcorrplot)
@@ -25,6 +26,7 @@ library(mclust)
 library(questionr)
 library(naniar)
 library(corrplot)
+library(lsr)
 ```
 
 # 1. Reading the data
@@ -164,7 +166,7 @@ data$age_at_chd = round(as.numeric(difftime(data$date_chd, data$datnaiss, unit =
 data$age_at_tdr = round(as.numeric(difftime(data$date_tdr, data$datnaiss, unit = "days"))/365,2)
 ```
 
-# 7. Création variable anéée de naissance + catégorisation
+# 7. Création variable année de naissance + catégorisation
 
 ```{r}
 year_naiss = as.numeric(format(as.Date(data$datnaiss, format="%Y/%m/%d"),"%Y"))
