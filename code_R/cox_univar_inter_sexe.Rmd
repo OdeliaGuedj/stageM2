@@ -12,7 +12,7 @@ for(evt in c("deces","chd")){
   time = paste0("time_to_",evt)
   res_univar_et_interSexe = data.frame()
   
-  for(var in echotracking_clean){
+  for(var in cox_univar_deces){
     
     cox = cox_univar(time, var, evt, data2, round = F, interaction = T, var.inter = "sexe")
     res_univar_et_interSexe = rbind(res_univar_et_interSexe, cox)
@@ -33,7 +33,6 @@ names(list_univar_et_interSexe) = c("deces","chd")
 ```
 
 ```{r}
-list_univar_et[["deces"]]
 list_univar_et_interSexe[["deces"]]
 ```
 ```{r}
