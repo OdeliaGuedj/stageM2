@@ -187,3 +187,80 @@ generate_str_var = function(list_var){
   return(str)
 }
 ```
+
+
+Vérification de la loglinéarité de cox univariés avec la méthode du livre de biostat
+
+
+
+```{r}
+verifHyp_loglin_coxUnivar = function(var_verif, time, evt, dt, method = "center", nb.class = 4 ){
+  #var_verif : (string) variable que dont on veut prouver la log linéarité
+  #time : (string) le time_to_evt
+  #evt : (string) l'évenement
+  #dt : (data.frame) le data frame contennant au moins var_verif, time et evt
+  #method : (string) à choisir dans "center"(defaut), "mean", "median"
+  #nb.class : (integer) nombre de classe à construire à partir de var_verif
+  
+  
+  dt[,time] = as.numeric(dt[,time])
+  dt[,evt] = as.numeric(dt[,evt])
+
+  if(!(method %in% c("center", "mean", "median"))){return("method should be one of center, mean or median")}
+  
+
+  dt[,"var_verif_cat"] =lsr::quantileCut(dt[,var_verif],nb.class)
+  
+  
+  res = data.frame("Levels"=rep(NA,nb.class),
+                   "N"=rep(NA,nb.class),
+                   "tmp"=rep(NA,nb.class),
+                   "d"=rep(NA,nb.class),
+                   "HR_computed"=rep(NA,nb.class),
+                   "HR_fitted"=rep(NA,nb.class),
+                   "IC_fitted"=rep(NA,nb.class),
+                   "verif" = rep(NA,nb.class))
+  res$Levels = levels(dt$var_verif_cat)
+  res$N = table(dt$var_verif_cat)
+  
+   if(method == "mean"){
+      res$tmp=round(with(dt,tapply(dt[,var_verif],as.factor(dt[,"var_verif_cat"]),mean)),3)
+    }
+   
+    else if(method == "center"){
+      res$tmp= round(with(dt,tapply(dt[,var_verif],as.factor(dt[,"var_verif_cat"]),min)) +
+        (with(dt,tapply(dt[,var_verif],as.factor(dt[,"var_verif_cat"]),max)) - with(dt,tapply(dt[,var_verif],as.factor(dt[,"var_verif_cat"]),min)))
+        /2,0)
+    }
+   
+    else if(method == "median"){
+      res$tmp=round(with(dt,tapply(dt[,var_verif],as.factor(dt[,"var_verif_cat"]),median)),3)
+    }
+  
+  res$d = res$tmp - res$tmp[1]
+  res$d[1] = 1
+  
+  cox_cont = summary(coxph(Surv(dt[,time],dt[,evt]) ~ dt[,var_verif], data = dt))
+  coef = cox_cont$coefficients[1,1]
+  
+  res$HR_computed = round(exp(res$d*coef),2)
+  res$HR_computed[1] = 1
+  
+  cox_cat = summary(coxph(Surv(dt[,time],dt[,evt]) ~ var_verif_cat, data = dt))
+  
+  res$HR_fitted = round(c(1,cox_cat$coefficients[,2]),2)
+  
+  res$IC_fitted = c("ref.",paste("[",round(cox_cat$conf.int[,3],2),";",round(cox_cat$conf.int[,4],2),"]"))
+  
+  res$verif[1] = "ref."
+  res$verif[2:nb.class] = ifelse((res$HR_computed[2:nb.class]>=cox_cat$conf.int[,3]) & (res$HR_computed[2:nb.class]<=cox_cat$conf.int[,4]) ,"*"," ")
+  
+  res$HR_computed = as.character(res$HR_computed)
+  res$HR_computed[1] = "ref."
+  res$HR_fitted = as.character(res$HR_fitted)
+  res$HR_fitted[1] = "ref."
+
+  return(res[,c("Levels","N","verif","HR_computed","HR_fitted","IC_fitted")])
+  }
+
+```
