@@ -3,22 +3,118 @@ title: "R Notebook"
 output: html_notebook
 ---
 
+# 1. Vérification des hypothèses des modèles de cox univariés
+
+## 1.1 Risques proportionnels 
+
+### 1.1.1 Avec le deces comme outcome
+
+
 ```{r}
-cox_test = coxph(Surv(time_to_deces, deces) ~ data2$coeffDist, data = data2)
-```
-```{r}
-summary(cox_test)
+g = c()
+for(var in test_univar_deces){
+  cox = coxph(Surv(time_to_deces,deces)~data2[,var], data = data2)
+  schon.test = cox.zph(cox)
+  g = c(g,ggcoxzph(schon.test) + 
+          ylab(" ") + 
+          xlab(paste("p=", signif(schon.test$table[2,3],2))) +
+          ggtitle(names_echotracking[which(echotracking == var)])
+        )
+}
 ```
 
 ```{r}
-schon_test = cox.zph(cox_test)
+grid.arrange(grobs = g, nrow = 5, ncol = 4)
+```
+
+#### Variables qualitatives
+
+```{r}
+plot (survfit(Surv(time_to_deces, deces) ~ plaques, data = data2), fun = "cloglog")
+```
+
+### 1.1.2 Avec le CHD comme outcome
+
+
+```{r}
+g = c()
+for(var in test_univar_chd){
+  cox = coxph(Surv(time_to_chd,chd)~data2[,var], data = data2)
+  schon.test = cox.zph(cox)
+  g = c(g,ggcoxzph(schon.test) + 
+          ylab(" ") + 
+          xlab(paste("p=", signif(schon.test$table[2,3],2))) +
+          ggtitle(names_echotracking[which(echotracking == var)]) 
+        )
+}
 ```
 
 ```{r}
-schon_test
-```
-```{r}
-plot(survfit(cox_test), col=c(2,3), main="Fonctions de
-survies estimées", ylim = c(0.95,1))
+grid.arrange(grobs = g, nrow = 5, ncol = 3)
 ```
 
+#### Variables qualitatives
+
+```{r}
+plot (survfit(Surv(time_to_chd, chd) ~ plaques, data = data2), fun = "cloglog")
+```
+## 1.2 Log Linéarité
+
+### 1.2.1 Avec le deces comme outcome
+
+#### Méthode du livre de biostat
+```{r}
+for(var in test_univar_deces){
+  if(is.numeric(data2[,var])){
+    print(var)
+  print(verifHyp_loglin_coxUnivar(var,"time_to_deces","deces",data2,nb.class = 10))}
+}
+```
+
+
+#### Plot des résidus martingales
+
+```{r}
+g = c()
+for(var in test_univar_deces){
+  if(is.numeric(data2[,var])){
+    data_tmp = data2[which(!(is.na(data2[,var]))),]
+    cox = coxph(Surv(time_to_deces, deces) ~ data_tmp[,var], data = data_tmp)
+    g = c(g,ggcoxfunctional(cox, data = data_tmp))
+  }
+}
+```
+```{r}
+grid.arrange(grobs = g, nrow = 6, ncol = 3)
+```
+
+
+### 1.2.1 Avec le CHD comme outcome
+
+#### Méthode du livre de biostat
+```{r}
+for(var in test_univar_deces){
+  if(is.numeric(data2[,var])){
+    print(var)
+  print(verifHyp_loglin_coxUnivar(var,"time_to_chd","chd",data2,nb.class = 10))}
+}
+```
+
+
+#### Plot des résidus martingales
+
+```{r}
+g = c()
+for(var in test_univar_chd){
+  if(is.numeric(data2[,var])){
+    data_tmp = data2[which(!(is.na(data2[,var]))),]
+    cox = coxph(Surv(time_to_chd, chd) ~ data_tmp[,var], data = data_tmp)
+    g = c(g,ggcoxfunctional(cox, data = data_tmp))
+  }
+}
+```
+```{r}
+grid.arrange(grobs = g, nrow = 6, ncol = 3)
+```
+
+# 2. Vérification des hypothèses des modèles de cox multivariés
