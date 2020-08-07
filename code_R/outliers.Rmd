@@ -1,0 +1,44 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+
+
+```{r}
+out_idx_et = c()
+for(var in echotracking_clean){
+  if(is.numeric(data2[,var])){
+     tmp = cut_outlier_quantile(var,data2,0.005)$out_idx
+      out_idx_et = c(out_idx_et,tmp) 
+  }
+}
+```
+```{r}
+table(data2$deces)
+table(data2[-out_idx_et,"deces"])
+```
+```{r}
+table(data2$chd)
+table(data2[-out_idx_et,"chd"])
+```
+
+
+```{r}
+table(data2$deces)
+table(data2$deces[-out_idx])
+```
+
+
+
+```{r}
+for(var in echotracking_clean){
+  print(ggplot(data2, aes(x=data2[,var])) + 
+                      geom_density(alpha=.5) + ggtitle(var))
+}
+
+```
+
+
+

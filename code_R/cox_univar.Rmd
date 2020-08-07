@@ -149,12 +149,8 @@ list_univar_et_deces
 plot_pv_HR(list_univar_et_deces)
 ```
 
-```{r}
-par(mfrow = c(4,5))
-for(var in cox_univar_deces){
-  plot(log(survfit(coxph(Surv(time_to_deces,deces) ~ data2[,var], data = data2))$time),log(-log(survfit(coxph(Surv(time_to_deces,deces) ~ data2[,var], data = data2))$surv)))
-}
-```
+
+
 ### 2.3.2 Coronary Heart disease
 
 ```{r}
@@ -200,11 +196,11 @@ cox_univar_chd = as.character(list_univar_et_chd$Name[list_univar_et_chd$pv_sign
 On joint les deux vecteurs (deces et chd) en virant les doublons
 
 ```{r}
-cox_univar = unique(c(cox_univar_deces, cox_univar_chd))
+res_cox_univar = unique(c(cox_univar_deces, cox_univar_chd))
 ```
 
 ```{r}
-length(cox_univar)
+length(res_cox_univar)
 ```
 
 

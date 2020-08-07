@@ -9,7 +9,7 @@ output: html_notebook
 
 ### 1.1.1 Avec le deces comme outcome
 
-
+Plot des résidus de schonfeld 
 ```{r}
 g = c()
 for(var in test_univar_deces){
@@ -27,7 +27,7 @@ for(var in test_univar_deces){
 grid.arrange(grobs = g, nrow = 5, ncol = 4)
 ```
 
-#### Variables qualitatives
+plot des du log(-log(S(t))) pout la variable binaire (présence de plaques).
 
 ```{r}
 plot (survfit(Surv(time_to_deces, deces) ~ plaques, data = data2), fun = "cloglog")
@@ -53,7 +53,6 @@ for(var in test_univar_chd){
 grid.arrange(grobs = g, nrow = 5, ncol = 3)
 ```
 
-#### Variables qualitatives
 
 ```{r}
 plot (survfit(Surv(time_to_chd, chd) ~ plaques, data = data2), fun = "cloglog")
@@ -64,13 +63,34 @@ plot (survfit(Surv(time_to_chd, chd) ~ plaques, data = data2), fun = "cloglog")
 
 #### Méthode du livre de biostat
 ```{r}
+table_verif = c()
 for(var in test_univar_deces){
   if(is.numeric(data2[,var])){
-    print(var)
-  print(verifHyp_loglin_coxUnivar(var,"time_to_deces","deces",data2,nb.class = 10))}
+    
+    out_idx = cut_outlier_quantile(var,data2,0.0035)$out_idx
+
+    tmp_tab = verifHyp_loglin_coxUnivar(var,"time_to_deces","deces",data2,nb.class = 6)
+    
+    tmp_tab_noOut = verifHyp_loglin_coxUnivar(var,"time_to_deces","deces",data2[-out_idx,],nb.class = 6)
+    
+     tmp_name = matrix(c(names_echotracking[which(var == echotracking)],rep(" ",5)), ncol = 6)
+     colnames(tmp_name) = colnames(tmp_tab)
+     
+     tmp_nameNoOut = matrix(c(paste(names_echotracking[which(var == echotracking)],"NO OUTLIERS"),rep(" ",5)), ncol = 6)
+     colnames(tmp_nameNoOut) = colnames(tmp_tab)
+     
+     tab = rbind(tmp_name,tmp_tab,tmp_nameNoOut,tmp_tab_noOut)
+  }
+  table_verif = rbind(table_verif,tab)
 }
+rm(var)
 ```
 
+
+```{r}
+kable(table_verif, longtable = T) %>% 
+  kable_styling(bootstrap_options = "striped", full_width = F)
+```
 
 #### Plot des résidus martingales
 
@@ -80,7 +100,7 @@ for(var in test_univar_deces){
   if(is.numeric(data2[,var])){
     data_tmp = data2[which(!(is.na(data2[,var]))),]
     cox = coxph(Surv(time_to_deces, deces) ~ data_tmp[,var], data = data_tmp)
-    g = c(g,ggcoxfunctional(cox, data = data_tmp))
+    g = c(g,ggcoxfunctional(cox, data = data_tmp)+xlab(var))
   }
 }
 ```
@@ -116,5 +136,13 @@ for(var in test_univar_chd){
 ```{r}
 grid.arrange(grobs = g, nrow = 6, ncol = 3)
 ```
+
+
+# ```{r}
+#  for(var in test_univar_deces){
+#    plot(main =var,log(survfit(coxph(Surv(time_to_deces,deces) ~ data2[,var], data = data2))$time),log(-log(survfit(coxph(Surv(time_to_deces,deces) ~ data2[,var], data = data2))$surv)))
+#  }
+# ```
+
 
 # 2. Vérification des hypothèses des modèles de cox multivariés

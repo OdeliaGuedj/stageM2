@@ -195,7 +195,7 @@ Vérification de la loglinéarité de cox univariés avec la méthode du livre d
 
 ```{r}
 verifHyp_loglin_coxUnivar = function(var_verif, time, evt, dt, method = "center", nb.class = 4 ){
-  #var_verif : (string) variable que dont on veut prouver la log linéarité
+  #var_verif : (string) variable dont on veut prouver la log linéarité
   #time : (string) le time_to_evt
   #evt : (string) l'évenement
   #dt : (data.frame) le data frame contennant au moins var_verif, time et evt
@@ -208,6 +208,7 @@ verifHyp_loglin_coxUnivar = function(var_verif, time, evt, dt, method = "center"
 
   if(!(method %in% c("center", "mean", "median"))){return("method should be one of center, mean or median")}
   
+  nb.class = round(nb.class,0)
 
   dt[,"var_verif_cat"] =lsr::quantileCut(dt[,var_verif],nb.class)
   
@@ -215,11 +216,11 @@ verifHyp_loglin_coxUnivar = function(var_verif, time, evt, dt, method = "center"
   res = data.frame("Levels"=rep(NA,nb.class),
                    "N"=rep(NA,nb.class),
                    "tmp"=rep(NA,nb.class),
-                   "d"=rep(NA,nb.class),
-                   "HR_computed"=rep(NA,nb.class),
-                   "HR_fitted"=rep(NA,nb.class),
+                   "d"=rep(NA,nb.class),       "HR_computed"=rep(NA,nb.class),
+            "HR_fitted"=rep(NA,nb.class),
                    "IC_fitted"=rep(NA,nb.class),
                    "verif" = rep(NA,nb.class))
+  
   res$Levels = levels(dt$var_verif_cat)
   res$N = table(dt$var_verif_cat)
   
@@ -259,8 +260,26 @@ verifHyp_loglin_coxUnivar = function(var_verif, time, evt, dt, method = "center"
   res$HR_computed[1] = "ref."
   res$HR_fitted = as.character(res$HR_fitted)
   res$HR_fitted[1] = "ref."
+  res$N = as.character(res$N)
 
   return(res[,c("Levels","N","verif","HR_computed","HR_fitted","IC_fitted")])
   }
 
+```
+
+Retirer les outliers methode des quantiles
+```{r}
+cut_outlier_quantile = function(var,dt,pinf = 0.01){
+  #dt: (data.frame) dataframe contennant au moins var
+  #var: (string) variable dont on veut retirer les outliers
+  #pinf: proportion de valeurs à retirer (borne inf)
+  
+  psup = 1-pinf
+  binf = quantile(dt[,var],pinf, na.rm = T)
+  bsup = quantile(dt[,var],psup, na.rm = T)
+  out_idx = which(dt[,var] < binf | dt[,var] > bsup)
+  var_new = dt[-out_idx,var]
+  
+  return(list("out_idx" = out_idx, "var_new" = var_new))
+}
 ```
