@@ -18,9 +18,9 @@ Necessaire que les evt soient numériques sinon pas pris en charge par la foncti
    }
 ```
 
-# 2. Modèles univariés
 
-## 2.1 Paramètres carotidiens prioritaires issus analyses déjà faites (9)
+
+# 1 Paramètres carotidiens prioritaires issus analyses déjà faites (9)
 
 
 ```{r}
@@ -66,7 +66,7 @@ Necessaire que les evt soient numériques sinon pas pris en charge par la foncti
 ```
 
 
-## 2.2 Modèls de Cox univariés pour toutes les variables d'échotracking (clean)
+# 2 Modèls de Cox univariés pour toutes les variables d'échotracking (clean)
 
 Ici avec l'argument round = F pour pouvoir tracer le graph
 
@@ -116,92 +116,227 @@ Ici avec l'argument round = F pour pouvoir tracer le graph
 #           plot_pv_HR(list_univar_et[["chd"]]))
 ```
 
-## 2.3 Modèles de cox univariés pour param selectionnées par tests
+# 3 Modèles de cox univariés pour param selectionnées par tests
 
-### 2.3.1 Death
+## 3.1 Death
 
+### 3.1.1 Time on study as time scale
 ```{r}
 list_univar_et_deces = list()
+list_univar_et_deces_std = list()
 evt = "deces"
 time = paste0("time_to_",evt)
 res_univar_et_deces = data.frame()
+res_univar_et_deces_std = data.frame()
   
-for(var in test_univar_deces){
+for(var in test_univar){
   cox = cox_univar(time, var, evt, data2, round = F)
+  cox_std = cox_univar(time, var, evt, data2_std, round = F)
   res_univar_et_deces = rbind(res_univar_et_deces, cox)
+  res_univar_et_deces_std = rbind(res_univar_et_deces_std, cox_std)
   }
   
 res_univar_et_deces$Evt = rep(evt,nrow(res_univar_et_deces))
+res_univar_et_deces_std$Evt = rep(evt,nrow(res_univar_et_deces_std))
+
 list_univar_et_deces[[evt]] = res_univar_et_deces
+list_univar_et_deces_std[[evt]] = res_univar_et_deces_std
 
 rm(res_univar_et_deces);
+rm(res_univar_et_deces_std);
 rm(cox);
+rm(cox_std);
 rm(evt);
 rm(time);
 
 list_univar_et_deces = list_univar_et_deces$deces
+list_univar_et_deces_std = list_univar_et_deces_std$deces
 ```
+
+
 ```{r}
-list_univar_et_deces
+plot_pv_HR3(list_univar_et_deces_std)
 ```
+
+### 3.1.2 Age as time scale
+```{r}
+list_univar_et_deces_as = list()
+list_univar_et_deces_as_std = list()
+evt = "deces"
+time = paste0("age_at_",evt)
+res_univar_et_deces_as = data.frame()
+res_univar_et_deces_as_std = data.frame()
+  
+for(var in test_univar){
+  cox_as = cox_univar(time, var, evt, data2, round = F)
+  cox_as_std = cox_univar(time, var, evt, data2_std, round = F)
+  res_univar_et_deces_as = rbind(res_univar_et_deces_as, cox_as)
+  res_univar_et_deces_as_std = rbind(res_univar_et_deces_as_std, cox_as_std)
+  }
+  
+res_univar_et_deces_as$Evt = rep(evt,nrow(res_univar_et_deces_as))
+res_univar_et_deces_as_std$Evt = rep(evt,nrow(res_univar_et_deces_as_std))
+
+list_univar_et_deces_as[[evt]] = res_univar_et_deces_as
+list_univar_et_deces_as_std[[evt]] = res_univar_et_deces_as_std
+
+rm(res_univar_et_deces_as);
+rm(res_univar_et_deces_as_std);
+rm(cox_as);
+rm(cox_as_std);
+rm(evt);
+rm(time);
+
+list_univar_et_deces_as = list_univar_et_deces_as$deces
+list_univar_et_deces_as_std = list_univar_et_deces_as_std$deces
+```
+
 
 ```{r}
-plot_pv_HR(list_univar_et_deces)
+plot_pv_HR3(list_univar_et_deces_as_std)
 ```
 
+## 3.2 Coronary Heart disease
 
-
-### 2.3.2 Coronary Heart disease
-
+### 3.2.1 Time on study as time scale
 ```{r}
 list_univar_et_chd = list()
+list_univar_et_chd_std = list()
 evt = "chd"
 time = paste0("time_to_",evt)
 res_univar_et_chd = data.frame()
+res_univar_et_chd_std = data.frame()
 
-for(var in test_univar_chd){
+for(var in test_univar){
   cox = cox_univar(time, var, evt, data2, round = F)
+  cox_std = cox_univar(time, var, evt, data2_std, round = F)
   res_univar_et_chd = rbind(res_univar_et_chd, cox)
+  res_univar_et_chd_std = rbind(res_univar_et_chd_std, cox_std)
   }
   
 res_univar_et_chd$Evt = rep(evt,nrow(res_univar_et_chd))
+res_univar_et_chd_std$Evt = rep(evt,nrow(res_univar_et_chd_std))
 list_univar_et_chd[[evt]] = res_univar_et_chd
+list_univar_et_chd_std[[evt]] = res_univar_et_chd_std
 
 rm(res_univar_et_chd);
+rm(res_univar_et_chd_std);
 rm(cox);
+rm(cox_std);
 rm(evt);
 rm(time);
 
 list_univar_et_chd = list_univar_et_chd$chd
+list_univar_et_chd_std = list_univar_et_chd_std$chd
+
 ```
 
 ```{r}
 list_univar_et_chd
 ```
 ```{r}
-plot_pv_HR(list_univar_et_chd)
+plot_pv_HR3(list_univar_et_chd_std)
+```
+
+### 3.2.2 Age as time scale
+```{r}
+list_univar_et_chd_as = list()
+list_univar_et_chd_as_std = list()
+evt = "chd"
+time = paste0("age_at_",evt)
+res_univar_et_chd_as = data.frame()
+res_univar_et_chd_as_std = data.frame()
+
+for(var in test_univar){
+  cox_as = cox_univar(time, var, evt, data2, round = F)
+  cox_as_std = cox_univar(time, var, evt, data2_std, round = F)
+  res_univar_et_chd_as = rbind(res_univar_et_chd_as, cox_as)
+  res_univar_et_chd_as_std = rbind(res_univar_et_chd_as_std, cox_as_std)
+  }
+  
+res_univar_et_chd_as$Evt = rep(evt,nrow(res_univar_et_chd_as))
+res_univar_et_chd_as_std$Evt = rep(evt,nrow(res_univar_et_chd_as_std))
+list_univar_et_chd_as[[evt]] = res_univar_et_chd_as
+list_univar_et_chd_as_std[[evt]] = res_univar_et_chd_as_std
+
+rm(res_univar_et_chd_as);
+rm(res_univar_et_chd_as_std);
+rm(cox_as);
+rm(cox_as_std);
+rm(evt);
+rm(time);
+
+list_univar_et_chd_as = list_univar_et_chd_as$chd
+list_univar_et_chd_as_std = list_univar_et_chd_as_std$chd
+```
+
+```{r}
+plot_pv_HR3(list_univar_et_chd_as_std)
+```
+## 3.3 Tableau résultats
+
+```{r}
+test_univar_names = c()
+for(var in test_univar){
+  test_univar_names = c(test_univar_names,names_echotracking[which(var == echotracking)])
+}
+```
+
+```{r}
+res_cox_univar_tab = data.frame(
+  "Names" = test_univar_names ,
+  "HR_univar_deces" = round(list_univar_et_deces$HR,2),
+  "IC_univar_deces" = paste("[",round(list_univar_et_deces$ICinf,2),";",round(list_univar_et_deces$ICsup,2),"]"),
+  "p_univar_deces" = signif(list_univar_et_deces$p.value,2),
+  "HR_univar_chd" = round(list_univar_et_chd$HR,2),
+  "IC_univar_chd" = paste("[",round(list_univar_et_chd$ICinf,2),";",round(list_univar_et_chd$ICsup,2),"]"),
+  "p_univar_chd" = round(signif(list_univar_et_chd$p.value,2),3)
+  )
+
+
+res_cox_univar_tab_std = data.frame(
+  "Names" = test_univar_names,
+  "HR_univar_deces" = round(list_univar_et_deces_std$HR,2),
+  "IC_univar_deces" = paste("[",round(list_univar_et_deces_std$ICinf,2),";",round(list_univar_et_deces_std$ICsup,2),"]"),
+  "p_univar_deces" = signif(list_univar_et_deces_std$p.value,2),
+  "HR_univar_chd" = round(list_univar_et_chd_std$HR,2),
+  "IC_univar_chd" = paste("[",round(list_univar_et_chd_std$ICinf,2),";",round(list_univar_et_chd_std$ICsup,2),"]"),
+  "p_univar_chd" = round(signif(list_univar_et_chd_std$p.value,2),3)
+  )
 ```
 
 
-
-# 3. Stockage des param signif
+```{r}
+kable(res_cox_univar_tab, longtable = T, caption = "Cox univariés sur données brutes") %>% 
+  kable_styling(bootstrap_options = "striped", full_width = F)
+```
+```{r}
+kable(res_cox_univar_tab_std, longtable = T, caption = "Cox univariés sur données scaled") %>% 
+  kable_styling(bootstrap_options = "striped", full_width = F)
+```
+## 3.4 Stockage des param signif
 
 On stock les param signif dans cox univarié et verifiant hypothèses
 ```{r}
-cox_univar_deces = as.character(list_univar_et_deces$Name[list_univar_et_deces$pv_signif == 1 & list_univar_et_deces$Hyp.Prop.verif == 1])
+cox_univar_deces = as.character(list_univar_et_deces$Name[list_univar_et_deces$pv_signif == 1 ])
 
-cox_univar_chd = as.character(list_univar_et_chd$Name[list_univar_et_chd$pv_signif == 1 & list_univar_et_chd$Hyp.Prop.verif == 1])
+cox_univar_chd = as.character(list_univar_et_chd$Name[list_univar_et_chd$pv_signif == 1])
+```
+```{r}
+length(cox_univar_deces)
+length(cox_univar_chd)
 ```
 
 On joint les deux vecteurs (deces et chd) en virant les doublons
 
 ```{r}
-res_cox_univar = unique(c(cox_univar_deces, cox_univar_chd))
+cox_univar_all = unique(c(cox_univar_deces, cox_univar_chd))
 ```
 
 ```{r}
-length(res_cox_univar)
+length(cox_univar_all)
 ```
+
 
 
 

@@ -4,7 +4,7 @@ output: html_notebook
 ---
 
 
-Permet de faire des modèles de cox univariés et d'avoir les resultats sous la forme extract_coxReg (donc dataframe).
+Permet de faire des modeles de cox univariés et d'avoir les resultats sous la forme extract_coxReg (donc dataframe).
 
 ```{r}
 cox_univar = function(time, var, evt, dt, round = T, d.round = 2, alpha = 0.05, interaction = F, var.inter){
@@ -132,6 +132,171 @@ plot_pv_HR  = function(cox_nice_info, hj = 0, vj = 0, main = " "){
   
 }
 ```
+
+Idem que plot_pv_HR mais sans la catégorie de verification de l'hypothèse des risques proportionnelsS.
+
+```{r}
+plot_pv_HR2  = function(cox_nice_info, hj = 0, vj = 0, main = " "){
+  
+  # Pour pouvoir utiliser cette fonction il faut que cox_nice_info soit un objet cox_univar ou cox_multivar utilisé avec l'argument round = F
+  
+  # Extraction des noms des param et
+  tmp = c()
+  for(var in cox_nice_info$Name)
+  {
+    tmp = c(tmp,which(echotracking == var))
+    }
+   cox_nice_info$Name_nice = names_echotracking[tmp]
+  
+
+  # Colonne pour couleur et legende
+   for(i in 1:nrow(cox_nice_info)){
+     # non significatif
+     if ((cox_nice_info[i,"pv_signif"] == 0) )
+     {cox_nice_info[i,"col"] = "Non significant"}
+     # effet protecteur
+     else if ((cox_nice_info[i,"pv_signif"] == 1) & (cox_nice_info[i,"HR"] <= 1))
+     {cox_nice_info[i,"col"] = "Protective effect"}
+     # effet deletere
+     else if((cox_nice_info[i,"pv_signif"] == 1) & (cox_nice_info[i,"HR"] > 1))
+     {cox_nice_info[i,"col"] = "Deleterious effect"}
+   }
+  cox_nice_info$col = as.factor(cox_nice_info$col)
+
+
+  ggplot(cox_nice_info,aes(p.value, HR, color = col)) +
+
+  geom_point(size = 3) +
+
+  scale_y_continuous(name="HR",limits=c(min(cox_nice_info$HR)-0.1 , max(cox_nice_info$HR)+0.1)) +
+
+
+  theme_classic() +
+
+  geom_text_repel(aes(label = Name_nice),
+                  segment.colour = NA,
+                  box.padding   = 0.35,
+                  point.padding = 0.5,
+                  #segment.color = "black",
+                  force = 5,
+                  segment.size  = .7 ,#epaisseur segments
+                  size = 3 #taille label
+                     ) +
+
+
+  labs(title = main, y = "Hazard Ratio", x = "p value", color = " ")
+
+  #return(cox_nice_info[,c("Name","Name_nice")])
+  
+}
+```
+
+```{r}
+plot_pv_HR3  = function(cox_nice_info, hj = 0, vj = 0, main = " ", nice.names = T){
+  
+  # Pour pouvoir utiliser cette fonction il faut que cox_nice_info soit un objet cox_univar ou cox_multivar utilisé avec l'argument round = F
+  
+  # Extraction des noms des param et
+  
+  if(nice.names == T){
+    tmp = c()
+  for(var in cox_nice_info$Name)
+  {
+    tmp = c(tmp,which(echotracking == var))
+    }
+   cox_nice_info$Name_nice = names_echotracking[tmp]
+  
+
+  # Colonne pour couleur et legende
+   for(i in 1:nrow(cox_nice_info)){
+     # non significatif
+     if ((cox_nice_info[i,"pv_signif"] == 0) )
+     {cox_nice_info[i,"col"] = "Non significant"}
+     # effet protecteur
+     else if ((cox_nice_info[i,"pv_signif"] == 1) & (cox_nice_info[i,"HR"] <= 1))
+     {cox_nice_info[i,"col"] = "Protective effect"}
+     # effet deletere
+     else if((cox_nice_info[i,"pv_signif"] == 1) & (cox_nice_info[i,"HR"] > 1))
+     {cox_nice_info[i,"col"] = "Deleterious effect"}
+   }
+  cox_nice_info$col = as.factor(cox_nice_info$col)
+
+
+  ggplot(cox_nice_info,aes(p.value, HR, color = col)) +
+
+  geom_point(size = 3) +
+
+  scale_y_continuous(name="HR",limits=c(min(cox_nice_info$HR)-0.1 , max(cox_nice_info$HR)+0.1)) +
+
+
+  theme_classic() +
+    
+     scale_colour_manual(values = c("red", "blue", "green")) +
+
+  geom_text_repel(aes(label = Name_nice),
+                  segment.colour = NA,
+                  box.padding   = 0.35,
+                  point.padding = 0.5,
+                  #segment.color = "black",
+                  force = 5,
+                  segment.size  = .7 ,#epaisseur segments
+                  size = 3 #taille label
+                     ) +
+
+
+  labs(title = main, y = "Hazard Ratio", x = "p value", color = " ")
+    
+  }
+  
+  else if(nice.names == F){
+    
+
+  # Colonne pour couleur et legende
+   for(i in 1:nrow(cox_nice_info)){
+     # non significatif
+     if ((cox_nice_info[i,"pv_signif"] == 0) )
+     {cox_nice_info[i,"col"] = "Non significant"}
+     # effet protecteur
+     else if ((cox_nice_info[i,"pv_signif"] == 1) & (cox_nice_info[i,"HR"] <= 1))
+     {cox_nice_info[i,"col"] = "Protective effect"}
+     # effet deletere
+     else if((cox_nice_info[i,"pv_signif"] == 1) & (cox_nice_info[i,"HR"] > 1))
+     {cox_nice_info[i,"col"] = "Deleterious effect"}
+   }
+  cox_nice_info$col = as.factor(cox_nice_info$col)
+
+
+  ggplot(cox_nice_info,aes(p.value, HR, color = col)) +
+
+  geom_point(size = 3) +
+
+  scale_y_continuous(name="HR",limits=c(min(cox_nice_info$HR)-0.1 , max(cox_nice_info$HR)+0.1)) +
+
+
+  theme_classic() +
+  
+    scale_colour_manual(values = c("red", "blue", "green")) +
+
+  geom_text_repel(aes(label = Name),
+                  segment.colour = NA,
+                  box.padding   = 0.35,
+                  point.padding = 0.5,
+                  #segment.color = "black",
+                  force = 5,
+                  segment.size  = .7 ,#epaisseur segments
+                  size = 3 #taille label
+                     ) +
+
+
+  labs(title = main, y = "Hazard Ratio", x = "p value", color = " ")
+  }
+  
+  
+
+
+  
+}
+```
 Permet de fiter des régressions de cox multivariées et de récupérer les info du dernier coefficients qui correspond au paramètre d'échotracking que l'on étudie.
 
 ```{r}
@@ -140,15 +305,17 @@ cox_multivar = function(formula, list_param, dt, round = T, d.round = 2){
   df_res = data.frame()
   
     for(param in list_param){
-      
+     
       f = update(formula, as.formula( paste0(".~.+",param) ) )
+      
       cox = coxph(f, data)
       summary = summary(cox)
       test.shonfeld = cox.zph(cox)
-      
+
       # Pour pouvoir acceder a dernier élément du tableau qui correspond au paramètre d'échotracking qu'on rajoute à la fin de chaque formula
-      r = nrow(summary$coefficients) 
       
+      r = nrow(summary$coefficients)
+
       if(round == T){
           df_tmp = data.frame("Name" = rownames(summary$coefficients)[r],
                     "HR" = round(summary$coefficient[r,2],d.round),
@@ -157,8 +324,10 @@ cox_multivar = function(formula, list_param, dt, round = T, d.round = 2){
                     "Signif" = ifelse(summary$coefficient[r,5] <= 0.05, "*"," "),
                     "p.shonfeld" = signif(test.shonfeld$table[dim(test.shonfeld$table)[1],3],d.round+1),
                     "prop.hyp" = ifelse(test.shonfeld$table[dim(test.shonfeld$table)[1],3] < 0.05,"X"," "))
-      
+
       }
+
+
       else if(round == F){
         df_tmp = data.frame("Name" = rownames(summary$coefficients)[r],
                     "HR" = summary$coefficient[r,2],
@@ -168,12 +337,69 @@ cox_multivar = function(formula, list_param, dt, round = T, d.round = 2){
                     "p.shonfeld" = signif(test.shonfeld$table[dim(test.shonfeld$table)[1],3],d.round+1),
                     "Hyp.Prop.verif" = ifelse(test.shonfeld$table[dim(test.shonfeld$table)[1],3] <= 0.05 ,0,1))
         df_tmp$pv_signif = ifelse(df_tmp$p.value <= 0.05 , 1, 0)
-        
-      }
-      
+
+       }
+
       df_res = rbind(df_res,df_tmp)
+       }
+   return(df_res)
+}
+```
+
+  Generer une châine de nom de variables séparés par un +.
+```{r}
+generate_str_var = function(list_var){
+  str = NULL
+  for(var in list_var){
+    tmp = paste("+",var)
+    str = paste0(str,tmp)
+  }
+  str = substr(str,2,nchar(str))
+  return(str)
+}
+```
+
+
+Idem à cox_multivar sans le test de schonfeld
+```{r}
+cox_multivar2 = function(formula, list_param, dt, round = T, d.round = 2){
+  
+  df_res = data.frame()
+  
+    for(param in list_param){
+      
+      f = update(formula, as.formula( paste0(".~.+",param) ) )
+      
+      cox = coxph(f, data)
+      summary = summary(cox)
+
+      # Pour pouvoir acceder a dernier élément du tableau qui correspond au paramètre d'échotracking qu'on rajoute à la fin de chaque formula
+      
+      r = nrow(summary$coefficients)
+
+      if(round == T){
+          df_tmp = data.frame("Name" = rownames(summary$coefficients)[r],
+                    "HR" = round(summary$coefficient[r,2],d.round),
+                    "IC" = paste0("[", round(summary$conf.int[r,3],d.round), " ; ",round(summary$conf.int[r,4],d.round), "]"),
+                    "p.value" = signif(summary$coefficient[r,5],d.round+3),
+                    "Signif" = ifelse(summary$coefficient[r,5] <= 0.05, "*"," "))
+
       }
-  return(df_res)
+
+
+      else if(round == F){
+        df_tmp = data.frame("Name" = rownames(summary$coefficients)[r],
+                    "HR" = summary$coefficient[r,2],
+                    "ICinf" = summary$conf.int[r,3],
+                    "ICsup" = summary$conf.int[r,4],
+                    "p.value" = signif(summary$coefficient[r,5],d.round+3))
+        df_tmp$pv_signif = ifelse(df_tmp$p.value <= 0.05 , 1, 0)
+
+       }
+
+      df_res = rbind(df_res,df_tmp)
+       }
+   return(df_res)
 }
 ```
 ```{r}
@@ -281,5 +507,68 @@ cut_outlier_quantile = function(var,dt,pinf = 0.01){
   var_new = dt[-out_idx,var]
   
   return(list("out_idx" = out_idx, "var_new" = var_new))
+}
+```
+Stocker la legende d'un graphe
+```{r}
+get_legend =function(myggplot){
+  tmp = ggplot_gtable(ggplot_build(myggplot))
+  leg = which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  return(legend)
+}
+```
+
+Modèles de cox multivariés avec plusieurs paramètres d'echotracking
+
+```{r}
+cox_multivar_multi_param = function(evt, list_param, list_var_ajust, dt, round = T, d.round = 2){
+  
+  time = paste0("time_to_",evt)
+  evt = as.numeric(as.character(data2[,evt]))
+  time = as.numeric(as.character(data2[,time]))
+  param = generate_str_var(list_param)
+  var_ajust = generate_str_var(list_var_ajust)
+  f = formula(paste("Surv(time, evt)~", generate_str_var(list_param),"+" ,generate_str_var(list_var_ajust)))
+  
+  cox = coxph(f,dt)
+  summary = summary(cox)
+  test.shonfeld = cox.zph(cox)
+  
+  df_res = data.frame()
+
+    
+  r = sum(sapply(dt[,list_param], is.numeric))
+  for(p in list_param){if(is.factor(dt[,p])){r = r + length(levels(dt[,p])) - 1 }}
+
+      if(round == T){
+          df_tmp = data.frame("Name" = rownames(summary$coefficients)[1:r],
+                    "HR" = round(summary$coefficient[1:r,2],d.round),
+                    "IC" = paste0("[", round(summary$conf.int[1:r,3],d.round), " ; ",round(summary$conf.int[r,4],d.round), "]"),
+                    "p.value" = signif(summary$coefficient[1:r,5],d.round+3),
+                    "Signif" = ifelse(summary$coefficient[1:r,5] <= 0.05, "*"," "),
+                    "p.shonfeld" = signif(test.shonfeld$table[1:r,3],d.round+1),
+                    
+                    "prop.hyp" = ifelse(test.shonfeld$table[1:r,3] < 0.05,"X"," ")
+                    )
+
+      }
+       else if(round == F){
+         df_tmp = data.frame("Name" = rownames(summary$coefficients)[1:r],
+                     "HR" = summary$coefficient[1:r,2],
+                     "ICinf" = summary$conf.int[1:r,3],
+                     "ICsup" = summary$conf.int[1:r,4],
+                     "p.value" = signif(summary$coefficient[1:r,5],d.round+3),
+                     "p.shonfeld" = signif(test.shonfeld$table[1:r,3],d.round+1),
+                     "Hyp.Prop.verif" = ifelse(test.shonfeld$table[1:r,3] <= 0.05 ,0,1))
+         df_tmp$pv_signif = ifelse(df_tmp$p.value <= 0.05 , 1, 0)
+       
+       
+       
+       df_res = rbind(df_res,df_tmp)
+       }
+
+
+  return(df_res)
 }
 ```

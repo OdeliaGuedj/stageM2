@@ -1,0 +1,42 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+cox_univar_all
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+var_ajust_m4 = c("age0",  "sexe",  "qm16",  "qm10",  "diab",  "bio10", "bmi",   "mbp" )
+var_et_deces_m4 = as.character(m4_deces_brut_ss_prevcvd$Name[m4_deces_brut_ss_prevcvd$pv_signif == 1])
+var_et_deces_m4[4] = "pr_sence_de_plaque_s____l__cho"
+var_et_chd_m4 = as.character(m4_chd_brut_ss_prevcvd$Name[m4_chd_brut_ss_prevcvd$pv_signif == 1])
+var_et_chd_m4[6] = "pr_sence_de_plaque_s____l__cho"
+```
+
+
+```{r}
+m4_deces = cox_multivar_multi_param("deces",var_et_deces_m4,var_ajust_m4,data2, round = F)
+plot_pv_HR(m4_deces)
+```
+
+```{r}
+m4_chd = cox_multivar_multi_param("chd",var_et_chd_m4,var_ajust_m4,data2, round = F)
+plot_pv_HR(m4_chd)
+```
+
+

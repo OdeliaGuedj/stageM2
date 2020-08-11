@@ -27,7 +27,7 @@ for(var in test_univar_deces){
 grid.arrange(grobs = g, nrow = 5, ncol = 4)
 ```
 
-plot des du log(-log(S(t))) pout la variable binaire (présence de plaques).
+plot des du log(-log(S(t))) pour la variable binaire (présence de plaques).
 
 ```{r}
 plot (survfit(Surv(time_to_deces, deces) ~ plaques, data = data2), fun = "cloglog")
@@ -63,13 +63,13 @@ plot (survfit(Surv(time_to_chd, chd) ~ plaques, data = data2), fun = "cloglog")
 
 #### Méthode du livre de biostat
 ```{r}
-table_verif = c()
+table_verif_deces = c()
 for(var in test_univar_deces){
   if(is.numeric(data2[,var])){
     
     out_idx = cut_outlier_quantile(var,data2,0.0035)$out_idx
 
-    tmp_tab = verifHyp_loglin_coxUnivar(var,"time_to_deces","deces",data2,nb.class = 6)
+    tmp_tab = verifHyp_loglin_coxUnivar(var,"time_to_deces","deces",data2,nb.class = 6, method = "mean")
     
     tmp_tab_noOut = verifHyp_loglin_coxUnivar(var,"time_to_deces","deces",data2[-out_idx,],nb.class = 6)
     
@@ -81,14 +81,14 @@ for(var in test_univar_deces){
      
      tab = rbind(tmp_name,tmp_tab,tmp_nameNoOut,tmp_tab_noOut)
   }
-  table_verif = rbind(table_verif,tab)
+  table_verif_deces = rbind(table_verif_deces,tab)
 }
 rm(var)
 ```
 
 
 ```{r}
-kable(table_verif, longtable = T) %>% 
+kable(table_verif_deces, longtable = T) %>% 
   kable_styling(bootstrap_options = "striped", full_width = F)
 ```
 

@@ -5,6 +5,7 @@ output: html_document
 
 # 1. Tests
 
+
 ```{r}
 i = 0
 test_univar_deces = c()
@@ -241,6 +242,14 @@ kable_styling(latex_options = c("repeat_header"))
 ```
 
 
+```{r}
+length(test_univar_deces)
+length(test_univar_chd)
+```
+```{r}
+test_univar = unique(c(test_univar_chd,test_univar_deces))
+length(test_univar)
+```
 
 
 
