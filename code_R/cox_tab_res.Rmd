@@ -126,6 +126,9 @@ for(var in test_univar){
 }
 
 ```
+```{r}
+colnames(res_cox_all_tab_tos)
+```
 
 ```{r}
 kable(res_cox_all_tab_tos, longtable = T, col.names = c(" " ," ", "HR" ,"IC","p", "HR" ,"IC","p"), align = "llcccccc", caption = "Time on study as time scale, données brutes") %>% 

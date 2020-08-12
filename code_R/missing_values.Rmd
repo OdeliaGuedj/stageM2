@@ -5,23 +5,7 @@ output: html_notebook
 # 1. Descriptif
 ## 1.1 Fonction 
 
-Permet de virer les sujets (identifiés par id, var devant être présente dans la base dt) ayant au moins une NA dans au moins une des variables de list_var.
 
-```{r}
-subset_SubjectsNA = function(dt, list_var, id){
-  na_id = c()
-  for(var in list_var){
-    tmp = dt[is.na(dt[,var]),id]
-    na_id = c(na_id, tmp)
-  }
-  length(na_id)
-  dbl = which(duplicated(na_id))
-  length(dbl)
-  na_id = na_id[-dbl]
-  length(na_id)
-  return(list("data_no_na" = dt[!(dt[,id] %in% na_id),], "na_id" = na_id))
-    }
-```
 
 Permet de crer une châine de charactère contennant les var contennues dans list_var séparées par un "+"
 ```{r}
@@ -38,11 +22,21 @@ generate_str_var = function(list_var){
 
 ## 1.2 Application à toutes la variables d'échotraking
 
+```{r}
+which(echotracking == "pwvloc")
+```
+
 
 ```{r}
-data$na_et = ifelse(data$nepp3 %in% subset_SubjectsNA(data, echotracking, "nepp3")$na_id,1,0)
-data$na_et = as.factor(data$na_et)
-table(data$na_et)
+data2$na_et = ifelse(data2$nepp3 %in% subset_SubjectsNA(data2, echotracking,"nepp3")$na_id,1,0)
+data2$na_et = as.factor(data2$na_et)
+table(data2$na_et, useNA = "always")
+```
+```{r}
+table("na" = data$na_et, "deces"=data$chd)
+```
+```{r}
+length(which(data$na_et == 0 & data$chd == 1& data$atcdcv == 0))
 ```
 
 

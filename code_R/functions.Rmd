@@ -572,3 +572,19 @@ cox_multivar_multi_param = function(evt, list_param, list_var_ajust, dt, round =
   return(df_res)
 }
 ```
+Permet de virer les sujets (identifiés par id, var devant être présente dans la base dt) ayant au moins une NA dans au moins une des variables de list_var.
+
+
+```{r}
+subset_SubjectsNA = function(dt, list_var,id){
+  na_idx = c()
+  for(v in list_var){
+    tmp = which(is.na(dt[,v]))
+    na_idx = c(na_idx,tmp)
+  }
+  if(sum(duplicated(na_idx)) != 0){na_idx = na_idx[-which(duplicated(na_idx))]}
+  #print(length(na_idx))
+  na_id = dt[na_idx,id]
+  return(list("data_no_na" = dt[-na_id,], "na_id" = na_id))
+    }
+```

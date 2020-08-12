@@ -225,6 +225,8 @@ var_et_jpe_inf = c("diam_bm" , "imt", "distension", "dploc", "dist_rate_moy","co
 param_carotid = c("logain", "coeffDist","pwvloc", "dploc", "logyoung","imt", "dextdias", "stiffness", "plaques")
 
 df_echo = data.frame("var" = echotracking,  "names" = names_echotracking)
+
+var_ajust = c("age0","sexe" , "qm16" , "qm10" , "diab" , "bio10" , "bmi" , "mbp", "year_naiss_cat")
 ```
 
 
@@ -263,6 +265,32 @@ data3_std = data2_std[!(is.na(data2$qm10) |
              is.na(data2$bio10) |
              is.na(data2$diab) |
              is.na(data2$qm16) ),]
-dim(data3)
-dim(data3_std)
 ```
+
+# 12. Création d'une base de donnée sans les NA dans au moins une des variables d'echotracking
+
+```{r}
+data3 = subset_SubjectsNA(data2,echotracking,"nepp3")$data_no_na
+dim(data3)
+```
+
+# 13. Création d'una base de donnée sans les NA dans les variables d'ajustement.
+
+```{r}
+data4 = subset_SubjectsNA(data2,var_ajust,"nepp3")$data_no_na
+dim(data4)
+```
+
+# 13. Création d'una base de donnée sans les NA dans les variables d'ajustement et dans les variables d'et
+
+```{r}
+data5 = subset_SubjectsNA(data2,c(var_ajust,echotracking),"nepp3")$data_no_na
+dim(data5)
+```
+
+data4 et data5 sont équivalentes:
+
+```{r}
+sum(data4$nepp3 %in% data5$nepp3)
+```
+

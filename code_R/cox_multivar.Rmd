@@ -25,6 +25,27 @@ Necessaire que les evt soient numériques sinon pas pris en charge par la foncti
 
 # 1. Modèles de Cox
 
+## 1.1 Modèle de base
+
+```{r}
+modele_base_deces_tos_std = coxph(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, data = data2_std) 
+```
+```{r}
+summary(modele_base_deces_tos_std)
+```
+```{r}
+data2_std$age_at_chd = as.numeric(as.character(data2_std$age_at_chd))
+coxph(Surv())
+```
+```{r}
+data2_std$age_at_chd = data2_std$age_at_chd + 0.01
+```
+
+```{r}
+summary(
+coxph(Surv(time = age0, time2 = age_at_chd, event = chd) ~   sexe + qm16 + qm10 + diab + bio10 + bmi + mbp+ year_naiss_cat, data = data2))
+```
+
 Les analyses déjà faites avaient la structure suivante
 1. Univarié
 2. Modèle 1: age + sexe + tabac (qm16) + activité physique

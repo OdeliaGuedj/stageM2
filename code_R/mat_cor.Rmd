@@ -3,6 +3,13 @@ title: "R Notebook"
 output: html_notebook
 ---
 
+```{r}
+data_cor_deces = as.data.frame(lapply(data2[,test_univar_deces],as.numeric))
+mat_cor_deces = cor(data_cor_deces, use = "complete.obs" )
+pmat_deces = cor_pmat(mat_cor_deces)
+```
+
+
 
 ```{r}
 data_cor_deces = as.data.frame(lapply(data2[,test_univar_deces],as.numeric))

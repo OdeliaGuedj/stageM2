@@ -233,7 +233,7 @@ IncrementalTable_all[,1] =  c("Basale cardiac rate",
 
 
 ```{r}
-kable(IncrementalTable_all, longtable = T) %>% 
+kable(IncrementalTable_all, longtable = T, caption = "table 1, test univariés") %>% 
   kable_styling(bootstrap_options = "striped", full_width = F) %>%
   add_header_above(c(" " = 1, "N = 9947" = 2, "No : N = 9703" = 2, "Yes : N = 244" = 2, "No : N = 9712" = 2, "Yes : N = 235" = 2, " " = 3)) %>%
   add_header_above(c(" " = 1, "Overall" = 2, "Death" = 4, "CHD" = 4, "Death" = 1, "CHD" = 1, " " = 1)) %>%

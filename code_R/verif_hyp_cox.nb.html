@@ -233,17 +233,69 @@ summary {
 <h2>1.1 Risques proportionnels</h2>
 <div id="avec-le-deces-comme-outcome" class="section level3">
 <h3>1.1.1 Avec le deces comme outcome</h3>
+<div id="time-on-study-as-time-scale" class="section level4">
+<h4>1.1.1.1 Time on study as time scale</h4>
 <p>Plot des résidus de schonfeld</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZyA9IGMoKVxuZm9yKHZhciBpbiB0ZXN0X3VuaXZhcl9kZWNlcyl7XG4gIGNveCA9IGNveHBoKFN1cnYodGltZV90b19kZWNlcyxkZWNlcyl+ZGF0YTJbLHZhcl0sIGRhdGEgPSBkYXRhMilcbiAgc2Nob24udGVzdCA9IGNveC56cGgoY294KVxuICBnID0gYyhnLGdnY294enBoKHNjaG9uLnRlc3QpICsgXG4gICAgICAgICAgeWxhYihcIiBcIikgKyBcbiAgICAgICAgICB4bGFiKHBhc3RlKFwicD1cIiwgc2lnbmlmKHNjaG9uLnRlc3QkdGFibGVbMiwzXSwyKSkpICtcbiAgICAgICAgICBnZ3RpdGxlKG5hbWVzX2VjaG90cmFja2luZ1t3aGljaChlY2hvdHJhY2tpbmcgPT0gdmFyKV0pXG4gICAgICAgIClcbn1cbmBgYCJ9 -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZyA9IGMoKVxuZm9yKHZhciBpbiB0ZXN0X3VuaXZhcl9kZWNlcyl7XG4gIGNveCA9IGNveHBoKFN1cnYodGltZV90b19kZWNlcyxkZWNlcyl+ZGF0YTJbLHZhcl0sIGRhdGEgPSBkYXRhMilcbiAgY294X3N0ZCA9IGNveHBoKFN1cnYodGltZV90b19kZWNlcyxkZWNlcyl+ZGF0YTJfc3RkWyx2YXJdLCBkYXRhID0gZGF0YTJfc3RkKVxuICBzY2hvbi50ZXN0ID0gY294LnpwaChjb3gpXG4gIHNjaG9uLnRlc3Rfc3RkID0gY294LnpwaChjb3hfc3RkKVxuICBnID0gYyhnLGdnY294enBoKHNjaG9uLnRlc3QpICsgXG4gICAgICAgICAgeWxhYihcIiBcIikgKyBcbiAgICAgICAgICB4bGFiKHBhc3RlKFwicD1cIiwgc2lnbmlmKHNjaG9uLnRlc3QkdGFibGVbMiwzXSwyKSkpICtcbiAgICAgICAgICBnZ3RpdGxlKG5hbWVzX2VjaG90cmFja2luZ1t3aGljaChlY2hvdHJhY2tpbmcgPT0gdmFyKV0pXG4gICAgICAgIClcbiAgZ19zdGQgPSBjKGcsZ2djb3h6cGgoc2Nob24udGVzdF9zdGQpICsgXG4gICAgICAgICAgeWxhYihcIiBcIikgKyBcbiAgICAgICAgICB4bGFiKHBhc3RlKFwicD1cIiwgc2lnbmlmKHNjaG9uLnRlc3Rfc3RkJHRhYmxlWzIsM10sMikpKSArXG4gICAgICAgICAgZ2d0aXRsZShuYW1lc19lY2hvdHJhY2tpbmdbd2hpY2goZWNob3RyYWNraW5nID09IHZhcildKSlcbn1cbmBgYCJ9 -->
 <pre class="r"><code>g = c()
 for(var in test_univar_deces){
   cox = coxph(Surv(time_to_deces,deces)~data2[,var], data = data2)
+  cox_std = coxph(Surv(time_to_deces,deces)~data2_std[,var], data = data2_std)
   schon.test = cox.zph(cox)
+  schon.test_std = cox.zph(cox_std)
   g = c(g,ggcoxzph(schon.test) + 
           ylab(&quot; &quot;) + 
           xlab(paste(&quot;p=&quot;, signif(schon.test$table[2,3],2))) +
+          ggtitle(names_echotracking[which(echotracking == var)])
+        )
+  g_std = c(g,ggcoxzph(schon.test_std) + 
+          ylab(&quot; &quot;) + 
+          xlab(paste(&quot;p=&quot;, signif(schon.test_std$table[2,3],2))) +
+          ggtitle(names_echotracking[which(echotracking == var)]))
+}</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZ3JpZC5hcnJhbmdlKGdyb2JzID0gZywgbnJvdyA9IDUsIG5jb2wgPSA0KVxuZ3JpZC5hcnJhbmdlKGdyb2JzID0gZ19zdGQsIG5yb3cgPSA1LCBuY29sID0gNClcbmBgYCJ9 -->
+<pre class="r"><code>grid.arrange(grobs = g, nrow = 5, ncol = 4)
+grid.arrange(grobs = g_std, nrow = 5, ncol = 4)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>plot des du log(-log(S(t))) pour la variable binaire (présence de plaques).</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucGxvdCAoc3VydmZpdChTdXJ2KHRpbWVfdG9fZGVjZXMsIGRlY2VzKSB+IHBsYXF1ZXMsIGRhdGEgPSBkYXRhMiksIGZ1biA9IFwiY2xvZ2xvZ1wiKVxucGxvdCAoc3VydmZpdChTdXJ2KHRpbWVfdG9fZGVjZXMsIGRlY2VzKSB+IHBsYXF1ZXMsIGRhdGEgPSBkYXRhMl9zdGQpLCBmdW4gPSBcImNsb2dsb2dcIilcbmBgYCJ9 -->
+<pre class="r"><code>plot (survfit(Surv(time_to_deces, deces) ~ plaques, data = data2), fun = &quot;cloglog&quot;)
+plot (survfit(Surv(time_to_deces, deces) ~ plaques, data = data2_std), fun = &quot;cloglog&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
+<div id="age-as-time-scale" class="section level4">
+<h4>1.1.1.2 Age as time scale</h4>
+<p>Plot des résidus de schonfeld</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZyA9IGMoKVxuZm9yKHZhciBpbiB0ZXN0X3VuaXZhcl9kZWNlcyl7XG4gIGNveCA9IGNveHBoKFN1cnYoYWdlX2F0X2RlY2VzLGRlY2VzKX5kYXRhMlssdmFyXSwgZGF0YSA9IGRhdGEyKVxuICBjb3hfc3RkID0gY294cGgoU3VydihhZ2VfYXRfZGVjZXMsZGVjZXMpfmRhdGEyX3N0ZFssdmFyXSwgZGF0YSA9IGRhdGEyX3N0ZClcbiAgc2Nob24udGVzdCA9IGNveC56cGgoY294KVxuICBzY2hvbi50ZXN0X3N0ZCA9IGNveC56cGgoY294X3N0ZClcbiAgZyA9IGMoZyxnZ2NveHpwaChzY2hvbi50ZXN0KSArIFxuICAgICAgICAgIHlsYWIoXCIgXCIpICsgXG4gICAgICAgICAgeGxhYihwYXN0ZShcInA9XCIsIHNpZ25pZihzY2hvbi50ZXN0JHRhYmxlWzIsM10sMikpKSArXG4gICAgICAgICAgZ2d0aXRsZShuYW1lc19lY2hvdHJhY2tpbmdbd2hpY2goZWNob3RyYWNraW5nID09IHZhcildKVxuICAgICAgICApXG4gIGdfc3RkID0gYyhnLGdnY294enBoKHNjaG9uLnRlc3Rfc3RkKSArIFxuICAgICAgICAgIHlsYWIoXCIgXCIpICsgXG4gICAgICAgICAgeGxhYihwYXN0ZShcInA9XCIsIHNpZ25pZihzY2hvbi50ZXN0X3N0ZCR0YWJsZVsyLDNdLDIpKSkgK1xuICAgICAgICAgIGdndGl0bGUobmFtZXNfZWNob3RyYWNraW5nW3doaWNoKGVjaG90cmFja2luZyA9PSB2YXIpXSlcbiAgICAgICAgKVxufVxuYGBgIn0= -->
+<pre class="r"><code>g = c()
+for(var in test_univar_deces){
+  cox = coxph(Surv(age_at_deces,deces)~data2[,var], data = data2)
+  cox_std = coxph(Surv(age_at_deces,deces)~data2_std[,var], data = data2_std)
+  schon.test = cox.zph(cox)
+  schon.test_std = cox.zph(cox_std)
+  g = c(g,ggcoxzph(schon.test) + 
+          ylab(&quot; &quot;) + 
+          xlab(paste(&quot;p=&quot;, signif(schon.test$table[2,3],2))) +
+          ggtitle(names_echotracking[which(echotracking == var)])
+        )
+  g_std = c(g,ggcoxzph(schon.test_std) + 
+          ylab(&quot; &quot;) + 
+          xlab(paste(&quot;p=&quot;, signif(schon.test_std$table[2,3],2))) +
           ggtitle(names_echotracking[which(echotracking == var)])
         )
 }</code></pre>
@@ -252,32 +304,44 @@ for(var in test_univar_deces){
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZ3JpZC5hcnJhbmdlKGdyb2JzID0gZywgbnJvdyA9IDUsIG5jb2wgPSA0KVxuYGBgIn0= -->
-<pre class="r"><code>grid.arrange(grobs = g, nrow = 5, ncol = 4)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZ3JpZC5hcnJhbmdlKGdyb2JzID0gZywgbnJvdyA9IDUsIG5jb2wgPSA0KVxuZ3JpZC5hcnJhbmdlKGdyb2JzID0gZ19zdGQsIG5yb3cgPSA1LCBuY29sID0gNClcbmBgYCJ9 -->
+<pre class="r"><code>grid.arrange(grobs = g, nrow = 5, ncol = 4)
+grid.arrange(grobs = g_std, nrow = 5, ncol = 4)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <p>plot des du log(-log(S(t))) pour la variable binaire (présence de plaques).</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucGxvdCAoc3VydmZpdChTdXJ2KHRpbWVfdG9fZGVjZXMsIGRlY2VzKSB+IHBsYXF1ZXMsIGRhdGEgPSBkYXRhMiksIGZ1biA9IFwiY2xvZ2xvZ1wiKVxuYGBgIn0= -->
-<pre class="r"><code>plot (survfit(Surv(time_to_deces, deces) ~ plaques, data = data2), fun = &quot;cloglog&quot;)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucGxvdCAoc3VydmZpdChTdXJ2KGFnZV9hdF9kZWNlcywgZGVjZXMpIH4gcGxhcXVlcywgZGF0YSA9IGRhdGEyKSwgZnVuID0gXCJjbG9nbG9nXCIpXG5wbG90IChzdXJ2Zml0KFN1cnYoYWdlX2F0X2RlY2VzLCBkZWNlcykgfiBwbGFxdWVzLCBkYXRhID0gZGF0YTJfc3RkKSwgZnVuID0gXCJjbG9nbG9nXCIpXG5gYGAifQ== -->
+<pre class="r"><code>plot (survfit(Surv(age_at_deces, deces) ~ plaques, data = data2), fun = &quot;cloglog&quot;)
+plot (survfit(Surv(age_at_deces, deces) ~ plaques, data = data2_std), fun = &quot;cloglog&quot;)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 </div>
+</div>
 <div id="avec-le-chd-comme-outcome" class="section level3">
 <h3>1.1.2 Avec le CHD comme outcome</h3>
+<div id="time-on-study-as-time-scale-1" class="section level4">
+<h4>1.1.2.1 Time on study as time scale</h4>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZyA9IGMoKVxuZm9yKHZhciBpbiB0ZXN0X3VuaXZhcl9jaGQpe1xuICBjb3ggPSBjb3hwaChTdXJ2KHRpbWVfdG9fY2hkLGNoZCl+ZGF0YTJbLHZhcl0sIGRhdGEgPSBkYXRhMilcbiAgc2Nob24udGVzdCA9IGNveC56cGgoY294KVxuICBnID0gYyhnLGdnY294enBoKHNjaG9uLnRlc3QpICsgXG4gICAgICAgICAgeWxhYihcIiBcIikgKyBcbiAgICAgICAgICB4bGFiKHBhc3RlKFwicD1cIiwgc2lnbmlmKHNjaG9uLnRlc3QkdGFibGVbMiwzXSwyKSkpICtcbiAgICAgICAgICBnZ3RpdGxlKG5hbWVzX2VjaG90cmFja2luZ1t3aGljaChlY2hvdHJhY2tpbmcgPT0gdmFyKV0pIFxuICAgICAgICApXG59XG5gYGAifQ== -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZyA9IGMoKVxuZm9yKHZhciBpbiB0ZXN0X3VuaXZhcl9jaGQpe1xuICBjb3ggPSBjb3hwaChTdXJ2KHRpbWVfdG9fY2hkLGNoZCl+ZGF0YTJbLHZhcl0sIGRhdGEgPSBkYXRhMilcbiAgY294X3N0ZCA9IGNveHBoKFN1cnYodGltZV90b19jaGQsY2hkKX5kYXRhMl9zdGRbLHZhcl0sIGRhdGEgPSBkYXRhMl9zdGQpXG4gIHNjaG9uLnRlc3QgPSBjb3guenBoKGNveClcbiAgc2Nob24udGVzdF9zdGQgPSBjb3guenBoKGNveF9zdGQpXG4gIGcgPSBjKGcsZ2djb3h6cGgoc2Nob24udGVzdCkgKyBcbiAgICAgICAgICB5bGFiKFwiIFwiKSArIFxuICAgICAgICAgIHhsYWIocGFzdGUoXCJwPVwiLCBzaWduaWYoc2Nob24udGVzdCR0YWJsZVsyLDNdLDIpKSkgK1xuICAgICAgICAgIGdndGl0bGUobmFtZXNfZWNob3RyYWNraW5nW3doaWNoKGVjaG90cmFja2luZyA9PSB2YXIpXSkgXG4gICAgICAgIClcbiAgZ19zdGQgPSBjKGcsZ2djb3h6cGgoc2Nob24udGVzdF9zdGQpICsgXG4gICAgICAgICAgeWxhYihcIiBcIikgKyBcbiAgICAgICAgICB4bGFiKHBhc3RlKFwicD1cIiwgc2lnbmlmKHNjaG9uLnRlc3Rfc3RkJHRhYmxlWzIsM10sMikpKSArXG4gICAgICAgICAgZ2d0aXRsZShuYW1lc19lY2hvdHJhY2tpbmdbd2hpY2goZWNob3RyYWNraW5nID09IHZhcildKSBcbiAgICAgICAgKVxufVxuYGBgIn0= -->
 <pre class="r"><code>g = c()
 for(var in test_univar_chd){
   cox = coxph(Surv(time_to_chd,chd)~data2[,var], data = data2)
+  cox_std = coxph(Surv(time_to_chd,chd)~data2_std[,var], data = data2_std)
   schon.test = cox.zph(cox)
+  schon.test_std = cox.zph(cox_std)
   g = c(g,ggcoxzph(schon.test) + 
           ylab(&quot; &quot;) + 
           xlab(paste(&quot;p=&quot;, signif(schon.test$table[2,3],2))) +
+          ggtitle(names_echotracking[which(echotracking == var)]) 
+        )
+  g_std = c(g,ggcoxzph(schon.test_std) + 
+          ylab(&quot; &quot;) + 
+          xlab(paste(&quot;p=&quot;, signif(schon.test_std$table[2,3],2))) +
           ggtitle(names_echotracking[which(echotracking == var)]) 
         )
 }</code></pre>
@@ -286,18 +350,63 @@ for(var in test_univar_chd){
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZ3JpZC5hcnJhbmdlKGdyb2JzID0gZywgbnJvdyA9IDUsIG5jb2wgPSAzKVxuYGBgIn0= -->
-<pre class="r"><code>grid.arrange(grobs = g, nrow = 5, ncol = 3)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZ3JpZC5hcnJhbmdlKGdyb2JzID0gZywgbnJvdyA9IDUsIG5jb2wgPSAzKVxuZ3JpZC5hcnJhbmdlKGdyb2JzID0gZ19zdGQsIG5yb3cgPSA1LCBuY29sID0gMylcbmBgYCJ9 -->
+<pre class="r"><code>grid.arrange(grobs = g, nrow = 5, ncol = 3)
+grid.arrange(grobs = g_std, nrow = 5, ncol = 3)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucGxvdCAoc3VydmZpdChTdXJ2KHRpbWVfdG9fY2hkLCBjaGQpIH4gcGxhcXVlcywgZGF0YSA9IGRhdGEyKSwgZnVuID0gXCJjbG9nbG9nXCIpXG5gYGAifQ== -->
-<pre class="r"><code>plot (survfit(Surv(time_to_chd, chd) ~ plaques, data = data2), fun = &quot;cloglog&quot;)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucGxvdCAoc3VydmZpdChTdXJ2KHRpbWVfdG9fY2hkLCBjaGQpIH4gcGxhcXVlcywgZGF0YSA9IGRhdGEyKSwgZnVuID0gXCJjbG9nbG9nXCIpXG5wbG90IChzdXJ2Zml0KFN1cnYodGltZV90b19jaGQsIGNoZCkgfiBwbGFxdWVzLCBkYXRhID0gZGF0YTJfc3RkKSwgZnVuID0gXCJjbG9nbG9nXCIpXG5gYGAifQ== -->
+<pre class="r"><code>plot (survfit(Surv(time_to_chd, chd) ~ plaques, data = data2), fun = &quot;cloglog&quot;)
+plot (survfit(Surv(time_to_chd, chd) ~ plaques, data = data2_std), fun = &quot;cloglog&quot;)</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
+</div>
+<div id="age-as-time-scale-1" class="section level4">
+<h4>1.1.2.2 Age as time scale</h4>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZyA9IGMoKVxuZm9yKHZhciBpbiB0ZXN0X3VuaXZhcl9jaGQpe1xuICBjb3ggPSBjb3hwaChTdXJ2KGFnZV9hdF9jaGQsY2hkKX5kYXRhMlssdmFyXSwgZGF0YSA9IGRhdGEyKVxuICBjb3hfc3RkID0gY294cGgoU3VydihhZ2VfYXRfY2hkLGNoZCl+ZGF0YTJfc3RkWyx2YXJdLCBkYXRhID0gZGF0YTJfc3RkKVxuICBzY2hvbi50ZXN0ID0gY294LnpwaChjb3gpXG4gIHNjaG9uLnRlc3Rfc3RkID0gY294LnpwaChjb3hfc3RkKVxuICBnID0gYyhnLGdnY294enBoKHNjaG9uLnRlc3QpICsgXG4gICAgICAgICAgeWxhYihcIiBcIikgKyBcbiAgICAgICAgICB4bGFiKHBhc3RlKFwicD1cIiwgc2lnbmlmKHNjaG9uLnRlc3QkdGFibGVbMiwzXSwyKSkpICtcbiAgICAgICAgICBnZ3RpdGxlKG5hbWVzX2VjaG90cmFja2luZ1t3aGljaChlY2hvdHJhY2tpbmcgPT0gdmFyKV0pIFxuICAgICAgICApXG4gIGdfc3RkID0gYyhnLGdnY294enBoKHNjaG9uLnRlc3Rfc3RkKSArIFxuICAgICAgICAgIHlsYWIoXCIgXCIpICsgXG4gICAgICAgICAgeGxhYihwYXN0ZShcInA9XCIsIHNpZ25pZihzY2hvbi50ZXN0X3N0ZCR0YWJsZVsyLDNdLDIpKSkgK1xuICAgICAgICAgIGdndGl0bGUobmFtZXNfZWNob3RyYWNraW5nW3doaWNoKGVjaG90cmFja2luZyA9PSB2YXIpXSkgXG4gICAgICAgIClcbn1cbmBgYCJ9 -->
+<pre class="r"><code>g = c()
+for(var in test_univar_chd){
+  cox = coxph(Surv(age_at_chd,chd)~data2[,var], data = data2)
+  cox_std = coxph(Surv(age_at_chd,chd)~data2_std[,var], data = data2_std)
+  schon.test = cox.zph(cox)
+  schon.test_std = cox.zph(cox_std)
+  g = c(g,ggcoxzph(schon.test) + 
+          ylab(&quot; &quot;) + 
+          xlab(paste(&quot;p=&quot;, signif(schon.test$table[2,3],2))) +
+          ggtitle(names_echotracking[which(echotracking == var)]) 
+        )
+  g_std = c(g,ggcoxzph(schon.test_std) + 
+          ylab(&quot; &quot;) + 
+          xlab(paste(&quot;p=&quot;, signif(schon.test_std$table[2,3],2))) +
+          ggtitle(names_echotracking[which(echotracking == var)]) 
+        )
+}</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuZ3JpZC5hcnJhbmdlKGdyb2JzID0gZywgbnJvdyA9IDUsIG5jb2wgPSAzKVxuZ3JpZC5hcnJhbmdlKGdyb2JzID0gZ19zdGQsIG5yb3cgPSA1LCBuY29sID0gMylcbmBgYCJ9 -->
+<pre class="r"><code>grid.arrange(grobs = g, nrow = 5, ncol = 3)
+grid.arrange(grobs = g_std, nrow = 5, ncol = 3)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucGxvdCAoc3VydmZpdChTdXJ2KGFnZV9hdF9jaGQsIGNoZCkgfiBwbGFxdWVzLCBkYXRhID0gZGF0YTIpLCBmdW4gPSBcImNsb2dsb2dcIilcbnBsb3QgKHN1cnZmaXQoU3VydihhZ2VfYXRfY2hkLCBjaGQpIH4gcGxhcXVlcywgZGF0YSA9IGRhdGEyX3N0ZCksIGZ1biA9IFwiY2xvZ2xvZ1wiKVxuYGBgIn0= -->
+<pre class="r"><code>plot (survfit(Surv(age_at_chd, chd) ~ plaques, data = data2), fun = &quot;cloglog&quot;)
+plot (survfit(Surv(age_at_chd, chd) ~ plaques, data = data2_std), fun = &quot;cloglog&quot;)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
 </div>
 </div>
 <div id="log-linéarité" class="section level2">
@@ -308,13 +417,13 @@ for(var in test_univar_chd){
 <h4>Méthode du livre de biostat</h4>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGFibGVfdmVyaWZfZGVjZXMgPSBjKClcbmZvcih2YXIgaW4gdGVzdF91bml2YXJfZGVjZXMpe1xuICBpZihpcy5udW1lcmljKGRhdGEyWyx2YXJdKSl7XG4gICAgXG4gICAgb3V0X2lkeCA9IGN1dF9vdXRsaWVyX3F1YW50aWxlKHZhcixkYXRhMiwwLjAwMzUpJG91dF9pZHhcbiAgICB0bXBfdGFiID0gdmVyaWZIeXBfbG9nbGluX2NveFVuaXZhcih2YXIsXCJ0aW1lX3RvX2RlY2VzXCIsXCJkZWNlc1wiLGRhdGEyLG5iLmNsYXNzID0gNilcbiAgICBcbiAgICB0bXBfdGFiX25vT3V0ID0gdmVyaWZIeXBfbG9nbGluX2NveFVuaXZhcih2YXIsXCJ0aW1lX3RvX2RlY2VzXCIsXCJkZWNlc1wiLGRhdGEyWy1vdXRfaWR4LF0sbmIuY2xhc3MgPSA2KVxuICAgIFxuICAgICB0bXBfbmFtZSA9IG1hdHJpeChjKG5hbWVzX2VjaG90cmFja2luZ1t3aGljaCh2YXIgPT0gZWNob3RyYWNraW5nKV0scmVwKFwiIFwiLDUpKSwgbmNvbCA9IDYpXG4gICAgIGNvbG5hbWVzKHRtcF9uYW1lKSA9IGNvbG5hbWVzKHRtcF90YWIpXG4gICAgIFxuICAgICB0bXBfbmFtZU5vT3V0ID0gbWF0cml4KGMocGFzdGUobmFtZXNfZWNob3RyYWNraW5nW3doaWNoKHZhciA9PSBlY2hvdHJhY2tpbmcpXSxcIk5PIE9VVExJRVJTXCIpLHJlcChcIiBcIiw1KSksIG5jb2wgPSA2KVxuICAgICBjb2xuYW1lcyh0bXBfbmFtZU5vT3V0KSA9IGNvbG5hbWVzKHRtcF90YWIpXG4gICAgIFxuICAgICB0YWIgPSByYmluZCh0bXBfbmFtZSx0bXBfdGFiLHRtcF9uYW1lTm9PdXQsdG1wX3RhYl9ub091dClcbiAgfVxuICB0YWJsZV92ZXJpZl9kZWNlcyA9IHJiaW5kKHRhYmxlX3ZlcmlmX2RlY2VzLHRhYilcbn1cbnJtKHZhcilcbmBgYCJ9 -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxudGFibGVfdmVyaWZfZGVjZXMgPSBjKClcbmZvcih2YXIgaW4gdGVzdF91bml2YXJfZGVjZXMpe1xuICBpZihpcy5udW1lcmljKGRhdGEyWyx2YXJdKSl7XG4gICAgXG4gICAgb3V0X2lkeCA9IGN1dF9vdXRsaWVyX3F1YW50aWxlKHZhcixkYXRhMiwwLjAwMSkkb3V0X2lkeFxuICAgIHRtcF90YWIgPSB2ZXJpZkh5cF9sb2dsaW5fY294VW5pdmFyKHZhcixcInRpbWVfdG9fZGVjZXNcIixcImRlY2VzXCIsZGF0YTIsbmIuY2xhc3MgPSA2LCBtZXRob2QgPSBcImNlbnRlclwiKVxuICAgIFxuICAgIHRtcF90YWJfbm9PdXQgPSB2ZXJpZkh5cF9sb2dsaW5fY294VW5pdmFyKHZhcixcInRpbWVfdG9fZGVjZXNcIixcImRlY2VzXCIsZGF0YTJbLW91dF9pZHgsXSxuYi5jbGFzcyA9IDYpXG4gICAgXG4gICAgIHRtcF9uYW1lID0gbWF0cml4KGMobmFtZXNfZWNob3RyYWNraW5nW3doaWNoKHZhciA9PSBlY2hvdHJhY2tpbmcpXSxyZXAoXCIgXCIsNSkpLCBuY29sID0gNilcbiAgICAgY29sbmFtZXModG1wX25hbWUpID0gY29sbmFtZXModG1wX3RhYilcbiAgICAgXG4gICAgIHRtcF9uYW1lTm9PdXQgPSBtYXRyaXgoYyhwYXN0ZShuYW1lc19lY2hvdHJhY2tpbmdbd2hpY2godmFyID09IGVjaG90cmFja2luZyldLFwiTk8gT1VUTElFUlNcIikscmVwKFwiIFwiLDUpKSwgbmNvbCA9IDYpXG4gICAgIGNvbG5hbWVzKHRtcF9uYW1lTm9PdXQpID0gY29sbmFtZXModG1wX3RhYilcbiAgICAgXG4gICAgIHRhYiA9IHJiaW5kKHRtcF9uYW1lLHRtcF90YWIsdG1wX25hbWVOb091dCx0bXBfdGFiX25vT3V0KVxuICB9XG4gIHRhYmxlX3ZlcmlmX2RlY2VzID0gcmJpbmQodGFibGVfdmVyaWZfZGVjZXMsdGFiKVxufVxucm0odmFyKVxuYGBgIn0= -->
 <pre class="r"><code>table_verif_deces = c()
 for(var in test_univar_deces){
   if(is.numeric(data2[,var])){
     
-    out_idx = cut_outlier_quantile(var,data2,0.0035)$out_idx
-    tmp_tab = verifHyp_loglin_coxUnivar(var,&quot;time_to_deces&quot;,&quot;deces&quot;,data2,nb.class = 6)
+    out_idx = cut_outlier_quantile(var,data2,0.001)$out_idx
+    tmp_tab = verifHyp_loglin_coxUnivar(var,&quot;time_to_deces&quot;,&quot;deces&quot;,data2,nb.class = 6, method = &quot;center&quot;)
     
     tmp_tab_noOut = verifHyp_loglin_coxUnivar(var,&quot;time_to_deces&quot;,&quot;deces&quot;,data2[-out_idx,],nb.class = 6)
     
@@ -418,8 +527,8 @@ rm(var)</code></pre>
    <td style="text-align:left;">  </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (40.9,53] </td>
-   <td style="text-align:left;"> 1639 </td>
+   <td style="text-align:left;"> (37.9,53] </td>
+   <td style="text-align:left;"> 1663 </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
@@ -429,41 +538,41 @@ rm(var)</code></pre>
    <td style="text-align:left;"> (53,58] </td>
    <td style="text-align:left;"> 1920 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.15 </td>
-   <td style="text-align:left;"> 1.03 </td>
-   <td style="text-align:left;"> [ 0.66 ; 1.6 ] </td>
+   <td style="text-align:left;"> 1.19 </td>
+   <td style="text-align:left;"> 1.04 </td>
+   <td style="text-align:left;"> [ 0.67 ; 1.62 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (58,61] </td>
    <td style="text-align:left;"> 1469 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.22 </td>
-   <td style="text-align:left;"> 0.97 </td>
-   <td style="text-align:left;"> [ 0.6 ; 1.57 ] </td>
+   <td style="text-align:left;"> 1.28 </td>
+   <td style="text-align:left;"> 0.98 </td>
+   <td style="text-align:left;"> [ 0.61 ; 1.59 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (61,65] </td>
    <td style="text-align:left;"> 1693 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.29 </td>
-   <td style="text-align:left;"> 1.12 </td>
-   <td style="text-align:left;"> [ 0.71 ; 1.76 ] </td>
+   <td style="text-align:left;"> 1.37 </td>
+   <td style="text-align:left;"> 1.14 </td>
+   <td style="text-align:left;"> [ 0.72 ; 1.78 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (65,70] </td>
    <td style="text-align:left;"> 1689 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.38 </td>
-   <td style="text-align:left;"> 1.17 </td>
-   <td style="text-align:left;"> [ 0.75 ; 1.84 ] </td>
+   <td style="text-align:left;"> 1.48 </td>
+   <td style="text-align:left;"> 1.19 </td>
+   <td style="text-align:left;"> [ 0.76 ; 1.86 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (70,93.1] </td>
-   <td style="text-align:left;"> 1373 </td>
+   <td style="text-align:left;"> (70,102] </td>
+   <td style="text-align:left;"> 1397 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.7 </td>
-   <td style="text-align:left;"> 1.47 </td>
-   <td style="text-align:left;"> [ 0.95 ; 2.29 ] </td>
+   <td style="text-align:left;"> 2.03 </td>
+   <td style="text-align:left;"> 1.54 </td>
+   <td style="text-align:left;"> [ 0.99 ; 2.38 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> Diastolic outer diameter (bm) </td>
@@ -530,52 +639,52 @@ rm(var)</code></pre>
    <td style="text-align:left;">  </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (5.57,6.51] </td>
-   <td style="text-align:left;"> 1651 </td>
+   <td style="text-align:left;"> (5.28,6.5] </td>
+   <td style="text-align:left;"> 1628 </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (6.51,6.83] </td>
-   <td style="text-align:left;"> 1587 </td>
+   <td style="text-align:left;"> (6.5,6.83] </td>
+   <td style="text-align:left;"> 1633 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.67 </td>
-   <td style="text-align:left;"> 1.21 </td>
-   <td style="text-align:left;"> [ 0.71 ; 2.05 ] </td>
+   <td style="text-align:left;"> 1.73 </td>
+   <td style="text-align:left;"> 1.16 </td>
+   <td style="text-align:left;"> [ 0.69 ; 1.97 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (6.83,7.11] </td>
    <td style="text-align:left;"> 1615 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.67 </td>
-   <td style="text-align:left;"> 1.14 </td>
-   <td style="text-align:left;"> [ 0.67 ; 1.93 ] </td>
+   <td style="text-align:left;"> 1.73 </td>
+   <td style="text-align:left;"> 1.12 </td>
+   <td style="text-align:left;"> [ 0.66 ; 1.9 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (7.11,7.41] </td>
    <td style="text-align:left;"> 1611 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.67 </td>
-   <td style="text-align:left;"> 1.12 </td>
-   <td style="text-align:left;"> [ 0.65 ; 1.91 ] </td>
+   <td style="text-align:left;"> 1.73 </td>
+   <td style="text-align:left;"> 1.1 </td>
+   <td style="text-align:left;"> [ 0.65 ; 1.88 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (7.41,7.81] </td>
-   <td style="text-align:left;"> 1573 </td>
-   <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 2.78 </td>
-   <td style="text-align:left;"> 1.81 </td>
-   <td style="text-align:left;"> [ 1.11 ; 2.93 ] </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> (7.81,9.67] </td>
+   <td style="text-align:left;"> (7.41,7.82] </td>
    <td style="text-align:left;"> 1598 </td>
    <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> 4.63 </td>
-   <td style="text-align:left;"> 2.85 </td>
-   <td style="text-align:left;"> [ 1.81 ; 4.46 ] </td>
+   <td style="text-align:left;"> 2.99 </td>
+   <td style="text-align:left;"> 1.79 </td>
+   <td style="text-align:left;"> [ 1.11 ; 2.9 ] </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> (7.82,10.2] </td>
+   <td style="text-align:left;"> 1597 </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 5.16 </td>
+   <td style="text-align:left;"> 2.93 </td>
+   <td style="text-align:left;"> [ 1.87 ; 4.58 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> Itima Media Thickness </td>
@@ -642,52 +751,52 @@ rm(var)</code></pre>
    <td style="text-align:left;">  </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (392,530] </td>
-   <td style="text-align:left;"> 1628 </td>
+   <td style="text-align:left;"> (348,529] </td>
+   <td style="text-align:left;"> 1626 </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (530,585] </td>
-   <td style="text-align:left;"> 1617 </td>
+   <td style="text-align:left;"> (529,584] </td>
+   <td style="text-align:left;"> 1607 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.23 </td>
-   <td style="text-align:left;"> 1.53 </td>
-   <td style="text-align:left;"> [ 0.93 ; 2.54 ] </td>
+   <td style="text-align:left;"> 1.27 </td>
+   <td style="text-align:left;"> 1.4 </td>
+   <td style="text-align:left;"> [ 0.84 ; 2.32 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (585,631] </td>
-   <td style="text-align:left;"> 1597 </td>
+   <td style="text-align:left;"> (584,631] </td>
+   <td style="text-align:left;"> 1633 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.36 </td>
-   <td style="text-align:left;"> 1.61 </td>
-   <td style="text-align:left;"> [ 0.98 ; 2.67 ] </td>
+   <td style="text-align:left;"> 1.4 </td>
+   <td style="text-align:left;"> 1.59 </td>
+   <td style="text-align:left;"> [ 0.97 ; 2.6 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (631,681] </td>
    <td style="text-align:left;"> 1590 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.51 </td>
-   <td style="text-align:left;"> 1.48 </td>
-   <td style="text-align:left;"> [ 0.89 ; 2.47 ] </td>
+   <td style="text-align:left;"> 1.54 </td>
+   <td style="text-align:left;"> 1.42 </td>
+   <td style="text-align:left;"> [ 0.86 ; 2.35 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (681,748] </td>
-   <td style="text-align:left;"> 1600 </td>
+   <td style="text-align:left;"> (681,749] </td>
+   <td style="text-align:left;"> 1616 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.71 </td>
-   <td style="text-align:left;"> 1.75 </td>
-   <td style="text-align:left;"> [ 1.07 ; 2.87 ] </td>
+   <td style="text-align:left;"> 1.74 </td>
+   <td style="text-align:left;"> 1.66 </td>
+   <td style="text-align:left;"> [ 1.02 ; 2.71 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (748,1.03e+03] </td>
-   <td style="text-align:left;"> 1597 </td>
+   <td style="text-align:left;"> (749,1.11e+03] </td>
+   <td style="text-align:left;"> 1606 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 2.47 </td>
-   <td style="text-align:left;"> 2.14 </td>
-   <td style="text-align:left;"> [ 1.33 ; 3.46 ] </td>
+   <td style="text-align:left;"> 2.67 </td>
+   <td style="text-align:left;"> 2.08 </td>
+   <td style="text-align:left;"> [ 1.3 ; 3.33 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> Pulse Wave Velocity </td>
@@ -754,50 +863,50 @@ rm(var)</code></pre>
    <td style="text-align:left;">  </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (4.44,6.27] </td>
-   <td style="text-align:left;"> 1165 </td>
+   <td style="text-align:left;"> (3.75,6.26] </td>
+   <td style="text-align:left;"> 1161 </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (6.27,6.87] </td>
-   <td style="text-align:left;"> 1140 </td>
+   <td style="text-align:left;"> (6.26,6.87] </td>
+   <td style="text-align:left;"> 1162 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.47 </td>
-   <td style="text-align:left;"> 1.75 </td>
-   <td style="text-align:left;"> [ 0.96 ; 3.17 ] </td>
+   <td style="text-align:left;"> 1.44 </td>
+   <td style="text-align:left;"> 1.71 </td>
+   <td style="text-align:left;"> [ 0.94 ; 3.1 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (6.87,7.43] </td>
    <td style="text-align:left;"> 1148 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.47 </td>
-   <td style="text-align:left;"> 1.14 </td>
-   <td style="text-align:left;"> [ 0.59 ; 2.17 ] </td>
+   <td style="text-align:left;"> 1.44 </td>
+   <td style="text-align:left;"> 1.13 </td>
+   <td style="text-align:left;"> [ 0.59 ; 2.16 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (7.43,8.07] </td>
    <td style="text-align:left;"> 1157 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.78 </td>
+   <td style="text-align:left;"> 1.73 </td>
    <td style="text-align:left;"> 1.2 </td>
    <td style="text-align:left;"> [ 0.63 ; 2.27 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (8.07,9.07] </td>
-   <td style="text-align:left;"> 1132 </td>
+   <td style="text-align:left;"> (8.07,9.09] </td>
+   <td style="text-align:left;"> 1154 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 2.16 </td>
-   <td style="text-align:left;"> 2.02 </td>
-   <td style="text-align:left;"> [ 1.13 ; 3.62 ] </td>
+   <td style="text-align:left;"> 2.07 </td>
+   <td style="text-align:left;"> 2.09 </td>
+   <td style="text-align:left;"> [ 1.18 ; 3.72 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (9.07,15.1] </td>
-   <td style="text-align:left;"> 1146 </td>
-   <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 3.84 </td>
+   <td style="text-align:left;"> (9.09,21.7] </td>
+   <td style="text-align:left;"> 1142 </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 6.2 </td>
    <td style="text-align:left;"> 2.18 </td>
    <td style="text-align:left;"> [ 1.23 ; 3.87 ] </td>
   </tr>
@@ -866,52 +975,52 @@ rm(var)</code></pre>
    <td style="text-align:left;">  </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (23,36.2] </td>
-   <td style="text-align:left;"> 1549 </td>
+   <td style="text-align:left;"> (18.6,36.1] </td>
+   <td style="text-align:left;"> 1558 </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (36.2,40.6] </td>
-   <td style="text-align:left;"> 1549 </td>
+   <td style="text-align:left;"> (36.1,40.6] </td>
+   <td style="text-align:left;"> 1554 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.24 </td>
-   <td style="text-align:left;"> 1.41 </td>
-   <td style="text-align:left;"> [ 0.82 ; 2.41 ] </td>
+   <td style="text-align:left;"> 1.32 </td>
+   <td style="text-align:left;"> 1.35 </td>
+   <td style="text-align:left;"> [ 0.8 ; 2.3 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (40.6,44.6] </td>
-   <td style="text-align:left;"> 1546 </td>
+   <td style="text-align:left;"> 1555 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.42 </td>
-   <td style="text-align:left;"> 1.46 </td>
-   <td style="text-align:left;"> [ 0.86 ; 2.49 ] </td>
+   <td style="text-align:left;"> 1.5 </td>
+   <td style="text-align:left;"> 1.4 </td>
+   <td style="text-align:left;"> [ 0.83 ; 2.37 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (44.6,49] </td>
-   <td style="text-align:left;"> 1548 </td>
+   <td style="text-align:left;"> 1556 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.59 </td>
-   <td style="text-align:left;"> 1.24 </td>
-   <td style="text-align:left;"> [ 0.71 ; 2.16 ] </td>
+   <td style="text-align:left;"> 1.67 </td>
+   <td style="text-align:left;"> 1.19 </td>
+   <td style="text-align:left;"> [ 0.69 ; 2.05 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (49,55.3] </td>
-   <td style="text-align:left;"> 1550 </td>
+   <td style="text-align:left;"> 1555 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.82 </td>
-   <td style="text-align:left;"> 2.13 </td>
-   <td style="text-align:left;"> [ 1.29 ; 3.51 ] </td>
+   <td style="text-align:left;"> 1.89 </td>
+   <td style="text-align:left;"> 2.08 </td>
+   <td style="text-align:left;"> [ 1.27 ; 3.41 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (55.3,86.3] </td>
-   <td style="text-align:left;"> 1546 </td>
+   <td style="text-align:left;"> (55.3,95.2] </td>
+   <td style="text-align:left;"> 1556 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 3.04 </td>
-   <td style="text-align:left;"> 2.4 </td>
-   <td style="text-align:left;"> [ 1.46 ; 3.92 ] </td>
+   <td style="text-align:left;"> 3.4 </td>
+   <td style="text-align:left;"> 2.29 </td>
+   <td style="text-align:left;"> [ 1.41 ; 3.72 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> RR interval (Mean) </td>
@@ -978,52 +1087,52 @@ rm(var)</code></pre>
    <td style="text-align:left;">  </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (567,759] </td>
-   <td style="text-align:left;"> 1513 </td>
+   <td style="text-align:left;"> (532,758] </td>
+   <td style="text-align:left;"> 1520 </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (759,825] </td>
-   <td style="text-align:left;"> 1512 </td>
+   <td style="text-align:left;"> (758,824] </td>
+   <td style="text-align:left;"> 1520 </td>
    <td style="text-align:left;"> * </td>
+   <td style="text-align:left;"> 0.78 </td>
    <td style="text-align:left;"> 0.83 </td>
-   <td style="text-align:left;"> 0.89 </td>
-   <td style="text-align:left;"> [ 0.58 ; 1.36 ] </td>
+   <td style="text-align:left;"> [ 0.55 ; 1.26 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (825,877] </td>
-   <td style="text-align:left;"> 1513 </td>
-   <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 0.76 </td>
-   <td style="text-align:left;"> 0.69 </td>
-   <td style="text-align:left;"> [ 0.44 ; 1.09 ] </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> (877,934] </td>
-   <td style="text-align:left;"> 1512 </td>
+   <td style="text-align:left;"> (824,877] </td>
+   <td style="text-align:left;"> 1520 </td>
    <td style="text-align:left;"> * </td>
    <td style="text-align:left;"> 0.7 </td>
-   <td style="text-align:left;"> 0.76 </td>
-   <td style="text-align:left;"> [ 0.49 ; 1.17 ] </td>
+   <td style="text-align:left;"> 0.65 </td>
+   <td style="text-align:left;"> [ 0.42 ; 1.01 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (934,1.01e+03] </td>
-   <td style="text-align:left;"> 1512 </td>
+   <td style="text-align:left;"> (877,935] </td>
+   <td style="text-align:left;"> 1519 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 0.63 </td>
-   <td style="text-align:left;"> 0.57 </td>
-   <td style="text-align:left;"> [ 0.35 ; 0.92 ] </td>
+   <td style="text-align:left;"> 0.64 </td>
+   <td style="text-align:left;"> 0.71 </td>
+   <td style="text-align:left;"> [ 0.46 ; 1.1 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (1.01e+03,1.46e+03] </td>
-   <td style="text-align:left;"> 1513 </td>
+   <td style="text-align:left;"> (935,1.01e+03] </td>
+   <td style="text-align:left;"> 1520 </td>
+   <td style="text-align:left;"> * </td>
+   <td style="text-align:left;"> 0.57 </td>
+   <td style="text-align:left;"> 0.53 </td>
+   <td style="text-align:left;"> [ 0.33 ; 0.85 ] </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> (1.01e+03,1.79e+03] </td>
+   <td style="text-align:left;"> 1520 </td>
    <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> 0.43 </td>
-   <td style="text-align:left;"> 0.68 </td>
-   <td style="text-align:left;"> [ 0.43 ; 1.08 ] </td>
+   <td style="text-align:left;"> 0.28 </td>
+   <td style="text-align:left;"> 0.64 </td>
+   <td style="text-align:left;"> [ 0.41 ; 1 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> Low frequency Distension Rate (t) </td>
@@ -1090,52 +1199,52 @@ rm(var)</code></pre>
    <td style="text-align:left;">  </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (469,3.53e+03] </td>
-   <td style="text-align:left;"> 1513 </td>
+   <td style="text-align:left;"> (104,3.51e+03] </td>
+   <td style="text-align:left;"> 1520 </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (3.53e+03,6.08e+03] </td>
-   <td style="text-align:left;"> 1512 </td>
+   <td style="text-align:left;"> (3.51e+03,6.07e+03] </td>
+   <td style="text-align:left;"> 1520 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.02 </td>
+   <td style="text-align:left;"> 1.01 </td>
    <td style="text-align:left;"> 0.92 </td>
-   <td style="text-align:left;"> [ 0.56 ; 1.51 ] </td>
+   <td style="text-align:left;"> [ 0.56 ; 1.5 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (6.08e+03,9.98e+03] </td>
-   <td style="text-align:left;"> 1513 </td>
+   <td style="text-align:left;"> (6.07e+03,9.98e+03] </td>
+   <td style="text-align:left;"> 1520 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.04 </td>
+   <td style="text-align:left;"> 1.03 </td>
    <td style="text-align:left;"> 0.79 </td>
    <td style="text-align:left;"> [ 0.47 ; 1.32 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (9.98e+03,1.69e+04] </td>
-   <td style="text-align:left;"> 1512 </td>
+   <td style="text-align:left;"> 1519 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.08 </td>
+   <td style="text-align:left;"> 1.05 </td>
    <td style="text-align:left;"> 1.25 </td>
    <td style="text-align:left;"> [ 0.79 ; 1.98 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (1.69e+04,3.48e+04] </td>
-   <td style="text-align:left;"> 1512 </td>
+   <td style="text-align:left;"> (1.69e+04,3.51e+04] </td>
+   <td style="text-align:left;"> 1520 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.16 </td>
+   <td style="text-align:left;"> 1.11 </td>
    <td style="text-align:left;"> 1.13 </td>
-   <td style="text-align:left;"> [ 0.71 ; 1.82 ] </td>
+   <td style="text-align:left;"> [ 0.71 ; 1.81 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (3.48e+04,2.83e+05] </td>
-   <td style="text-align:left;"> 1513 </td>
+   <td style="text-align:left;"> (3.51e+04,4.48e+05] </td>
+   <td style="text-align:left;"> 1520 </td>
    <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> 2.73 </td>
+   <td style="text-align:left;"> 2.89 </td>
    <td style="text-align:left;"> 1.59 </td>
-   <td style="text-align:left;"> [ 1.03 ; 2.48 ] </td>
+   <td style="text-align:left;"> [ 1.03 ; 2.47 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> High frequency Distension rate (t) </td>
@@ -1202,52 +1311,52 @@ rm(var)</code></pre>
    <td style="text-align:left;">  </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (778,3.51e+03] </td>
-   <td style="text-align:left;"> 1513 </td>
+   <td style="text-align:left;"> (534,3.5e+03] </td>
+   <td style="text-align:left;"> 1520 </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (3.51e+03,5.47e+03] </td>
-   <td style="text-align:left;"> 1512 </td>
+   <td style="text-align:left;"> (3.5e+03,5.46e+03] </td>
+   <td style="text-align:left;"> 1520 </td>
    <td style="text-align:left;"> * </td>
    <td style="text-align:left;"> 1.04 </td>
-   <td style="text-align:left;"> 1.36 </td>
-   <td style="text-align:left;"> [ 0.84 ; 2.18 ] </td>
+   <td style="text-align:left;"> 1.35 </td>
+   <td style="text-align:left;"> [ 0.84 ; 2.17 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (5.47e+03,7.84e+03] </td>
-   <td style="text-align:left;"> 1513 </td>
+   <td style="text-align:left;"> (5.46e+03,7.84e+03] </td>
+   <td style="text-align:left;"> 1520 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.09 </td>
+   <td style="text-align:left;"> 1.08 </td>
    <td style="text-align:left;"> 1.13 </td>
    <td style="text-align:left;"> [ 0.69 ; 1.86 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (7.84e+03,1.1e+04] </td>
-   <td style="text-align:left;"> 1512 </td>
+   <td style="text-align:left;"> 1519 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.14 </td>
+   <td style="text-align:left;"> 1.13 </td>
    <td style="text-align:left;"> 0.85 </td>
    <td style="text-align:left;"> [ 0.5 ; 1.44 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (1.1e+04,1.76e+04] </td>
-   <td style="text-align:left;"> 1512 </td>
+   <td style="text-align:left;"> (1.1e+04,1.77e+04] </td>
+   <td style="text-align:left;"> 1520 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.25 </td>
+   <td style="text-align:left;"> 1.23 </td>
    <td style="text-align:left;"> 1.22 </td>
    <td style="text-align:left;"> [ 0.75 ; 1.98 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (1.76e+04,9.62e+04] </td>
-   <td style="text-align:left;"> 1513 </td>
-   <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 2.77 </td>
-   <td style="text-align:left;"> 1.78 </td>
-   <td style="text-align:left;"> [ 1.13 ; 2.8 ] </td>
+   <td style="text-align:left;"> (1.77e+04,1.52e+05] </td>
+   <td style="text-align:left;"> 1520 </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 3.94 </td>
+   <td style="text-align:left;"> 1.85 </td>
+   <td style="text-align:left;"> [ 1.18 ; 2.91 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> High frequency Distension Rate (c) </td>
@@ -1314,52 +1423,52 @@ rm(var)</code></pre>
    <td style="text-align:left;">  </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (22,583] </td>
-   <td style="text-align:left;"> 1513 </td>
+   <td style="text-align:left;"> (-23.4,578] </td>
+   <td style="text-align:left;"> 1520 </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (583,1.27e+03] </td>
-   <td style="text-align:left;"> 1512 </td>
+   <td style="text-align:left;"> (578,1.26e+03] </td>
+   <td style="text-align:left;"> 1520 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.03 </td>
-   <td style="text-align:left;"> 0.82 </td>
-   <td style="text-align:left;"> [ 0.49 ; 1.36 ] </td>
+   <td style="text-align:left;"> 1.02 </td>
+   <td style="text-align:left;"> 0.88 </td>
+   <td style="text-align:left;"> [ 0.53 ; 1.44 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (1.27e+03,2.18e+03] </td>
-   <td style="text-align:left;"> 1513 </td>
+   <td style="text-align:left;"> (1.26e+03,2.18e+03] </td>
+   <td style="text-align:left;"> 1520 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.06 </td>
+   <td style="text-align:left;"> 1.04 </td>
    <td style="text-align:left;"> 1.03 </td>
    <td style="text-align:left;"> [ 0.64 ; 1.65 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (2.18e+03,3.64e+03] </td>
-   <td style="text-align:left;"> 1512 </td>
+   <td style="text-align:left;"> 1519 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.11 </td>
+   <td style="text-align:left;"> 1.08 </td>
    <td style="text-align:left;"> 1.03 </td>
-   <td style="text-align:left;"> [ 0.64 ; 1.66 ] </td>
+   <td style="text-align:left;"> [ 0.64 ; 1.65 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (3.64e+03,6.57e+03] </td>
-   <td style="text-align:left;"> 1512 </td>
+   <td style="text-align:left;"> (3.64e+03,6.61e+03] </td>
+   <td style="text-align:left;"> 1520 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.22 </td>
-   <td style="text-align:left;"> 1.07 </td>
-   <td style="text-align:left;"> [ 0.66 ; 1.71 ] </td>
+   <td style="text-align:left;"> 1.15 </td>
+   <td style="text-align:left;"> 1.09 </td>
+   <td style="text-align:left;"> [ 0.68 ; 1.75 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (6.57e+03,4.52e+04] </td>
-   <td style="text-align:left;"> 1513 </td>
+   <td style="text-align:left;"> (6.61e+03,7.38e+04] </td>
+   <td style="text-align:left;"> 1520 </td>
    <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> 2.9 </td>
-   <td style="text-align:left;"> 1.55 </td>
-   <td style="text-align:left;"> [ 1 ; 2.41 ] </td>
+   <td style="text-align:left;"> 3.15 </td>
+   <td style="text-align:left;"> 1.52 </td>
+   <td style="text-align:left;"> [ 0.98 ; 2.35 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> High frequency Gain (Mean) (t) </td>
@@ -1426,24 +1535,24 @@ rm(var)</code></pre>
    <td style="text-align:left;">  </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (0.0217,0.0615] </td>
-   <td style="text-align:left;"> 1513 </td>
+   <td style="text-align:left;"> (0.0167,0.0612] </td>
+   <td style="text-align:left;"> 1520 </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (0.0615,0.0796] </td>
-   <td style="text-align:left;"> 1512 </td>
+   <td style="text-align:left;"> (0.0612,0.0795] </td>
+   <td style="text-align:left;"> 1520 </td>
    <td style="text-align:left;"> * </td>
    <td style="text-align:left;"> 1 </td>
    <td style="text-align:left;"> 0.66 </td>
    <td style="text-align:left;"> [ 0.43 ; 1.02 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (0.0796,0.0983] </td>
-   <td style="text-align:left;"> 1513 </td>
+   <td style="text-align:left;"> (0.0795,0.0983] </td>
+   <td style="text-align:left;"> 1520 </td>
    <td style="text-align:left;"> * </td>
    <td style="text-align:left;"> 1 </td>
    <td style="text-align:left;"> 0.66 </td>
@@ -1451,27 +1560,27 @@ rm(var)</code></pre>
   </tr>
   <tr>
    <td style="text-align:left;"> (0.0983,0.121] </td>
-   <td style="text-align:left;"> 1512 </td>
+   <td style="text-align:left;"> 1519 </td>
    <td style="text-align:left;">  </td>
    <td style="text-align:left;"> 1 </td>
    <td style="text-align:left;"> 0.6 </td>
    <td style="text-align:left;"> [ 0.38 ; 0.94 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (0.121,0.154] </td>
-   <td style="text-align:left;"> 1512 </td>
+   <td style="text-align:left;"> (0.121,0.155] </td>
+   <td style="text-align:left;"> 1520 </td>
    <td style="text-align:left;"> * </td>
    <td style="text-align:left;"> 1 </td>
-   <td style="text-align:left;"> 0.74 </td>
-   <td style="text-align:left;"> [ 0.49 ; 1.12 ] </td>
+   <td style="text-align:left;"> 0.76 </td>
+   <td style="text-align:left;"> [ 0.5 ; 1.14 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (0.154,0.351] </td>
-   <td style="text-align:left;"> 1513 </td>
+   <td style="text-align:left;"> (0.155,0.43] </td>
+   <td style="text-align:left;"> 1520 </td>
    <td style="text-align:left;">  </td>
    <td style="text-align:left;"> 1 </td>
-   <td style="text-align:left;"> 0.41 </td>
-   <td style="text-align:left;"> [ 0.25 ; 0.67 ] </td>
+   <td style="text-align:left;"> 0.39 </td>
+   <td style="text-align:left;"> [ 0.23 ; 0.65 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> Coefficient of distensibility </td>
@@ -1538,8 +1647,8 @@ rm(var)</code></pre>
    <td style="text-align:left;">  </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (6.03,14.3] </td>
-   <td style="text-align:left;"> 1506 </td>
+   <td style="text-align:left;"> (4.65,14.3] </td>
+   <td style="text-align:left;"> 1513 </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
@@ -1547,43 +1656,43 @@ rm(var)</code></pre>
   </tr>
   <tr>
    <td style="text-align:left;"> (14.3,17.7] </td>
-   <td style="text-align:left;"> 1505 </td>
+   <td style="text-align:left;"> 1513 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 0.83 </td>
    <td style="text-align:left;"> 0.81 </td>
-   <td style="text-align:left;"> [ 0.54 ; 1.21 ] </td>
+   <td style="text-align:left;"> 0.76 </td>
+   <td style="text-align:left;"> [ 0.51 ; 1.14 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (17.7,21] </td>
-   <td style="text-align:left;"> 1506 </td>
-   <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 0.75 </td>
-   <td style="text-align:left;"> 0.47 </td>
-   <td style="text-align:left;"> [ 0.29 ; 0.76 ] </td>
+   <td style="text-align:left;"> 1513 </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 0.73 </td>
+   <td style="text-align:left;"> 0.45 </td>
+   <td style="text-align:left;"> [ 0.28 ; 0.72 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (21,24.4] </td>
-   <td style="text-align:left;"> 1505 </td>
+   <td style="text-align:left;"> 1512 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 0.66 </td>
-   <td style="text-align:left;"> 0.6 </td>
-   <td style="text-align:left;"> [ 0.38 ; 0.93 ] </td>
+   <td style="text-align:left;"> 0.63 </td>
+   <td style="text-align:left;"> 0.56 </td>
+   <td style="text-align:left;"> [ 0.36 ; 0.87 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (24.4,29.1] </td>
-   <td style="text-align:left;"> 1505 </td>
+   <td style="text-align:left;"> (24.4,29.2] </td>
+   <td style="text-align:left;"> 1513 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 0.58 </td>
-   <td style="text-align:left;"> 0.54 </td>
-   <td style="text-align:left;"> [ 0.34 ; 0.86 ] </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> (29.1,52] </td>
-   <td style="text-align:left;"> 1506 </td>
-   <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 0.37 </td>
    <td style="text-align:left;"> 0.55 </td>
-   <td style="text-align:left;"> [ 0.35 ; 0.87 ] </td>
+   <td style="text-align:left;"> 0.53 </td>
+   <td style="text-align:left;"> [ 0.34 ; 0.83 ] </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> (29.2,60.8] </td>
+   <td style="text-align:left;"> 1513 </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 0.29 </td>
+   <td style="text-align:left;"> 0.5 </td>
+   <td style="text-align:left;"> [ 0.32 ; 0.79 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> Wall Cross Sectionnal Area </td>
@@ -1650,8 +1759,8 @@ rm(var)</code></pre>
    <td style="text-align:left;">  </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (7.19,10.3] </td>
-   <td style="text-align:left;"> 1605 </td>
+   <td style="text-align:left;"> (6.4,10.3] </td>
+   <td style="text-align:left;"> 1613 </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
@@ -1659,43 +1768,43 @@ rm(var)</code></pre>
   </tr>
   <tr>
    <td style="text-align:left;"> (10.3,11.6] </td>
-   <td style="text-align:left;"> 1604 </td>
+   <td style="text-align:left;"> 1612 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.23 </td>
-   <td style="text-align:left;"> 0.83 </td>
-   <td style="text-align:left;"> [ 0.49 ; 1.4 ] </td>
+   <td style="text-align:left;"> 1.36 </td>
+   <td style="text-align:left;"> 0.86 </td>
+   <td style="text-align:left;"> [ 0.52 ; 1.45 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (11.6,12.8] </td>
-   <td style="text-align:left;"> 1604 </td>
-   <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.37 </td>
+   <td style="text-align:left;"> 1612 </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 1.5 </td>
    <td style="text-align:left;"> 0.9 </td>
    <td style="text-align:left;"> [ 0.54 ; 1.5 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (12.8,14.1] </td>
-   <td style="text-align:left;"> 1604 </td>
+   <td style="text-align:left;"> 1612 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.51 </td>
-   <td style="text-align:left;"> 1.17 </td>
-   <td style="text-align:left;"> [ 0.72 ; 1.9 ] </td>
+   <td style="text-align:left;"> 1.66 </td>
+   <td style="text-align:left;"> 1.2 </td>
+   <td style="text-align:left;"> [ 0.75 ; 1.94 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (14.1,16] </td>
-   <td style="text-align:left;"> 1604 </td>
+   <td style="text-align:left;"> 1612 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.86 </td>
+   <td style="text-align:left;"> 2.04 </td>
    <td style="text-align:left;"> 1.46 </td>
    <td style="text-align:left;"> [ 0.92 ; 2.31 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (16,25.5] </td>
-   <td style="text-align:left;"> 1604 </td>
+   <td style="text-align:left;"> (16,28.8] </td>
+   <td style="text-align:left;"> 1612 </td>
    <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> 3.48 </td>
-   <td style="text-align:left;"> 2.05 </td>
-   <td style="text-align:left;"> [ 1.33 ; 3.15 ] </td>
+   <td style="text-align:left;"> 4.16 </td>
+   <td style="text-align:left;"> 2.08 </td>
+   <td style="text-align:left;"> [ 1.35 ; 3.19 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> Young Module </td>
@@ -1762,52 +1871,52 @@ rm(var)</code></pre>
    <td style="text-align:left;">  </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (155,314] </td>
-   <td style="text-align:left;"> 1506 </td>
+   <td style="text-align:left;"> (131,313] </td>
+   <td style="text-align:left;"> 1513 </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (314,381] </td>
-   <td style="text-align:left;"> 1505 </td>
+   <td style="text-align:left;"> (313,381] </td>
+   <td style="text-align:left;"> 1513 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.18 </td>
    <td style="text-align:left;"> 1.17 </td>
-   <td style="text-align:left;"> [ 0.69 ; 2 ] </td>
+   <td style="text-align:left;"> 1.13 </td>
+   <td style="text-align:left;"> [ 0.67 ; 1.91 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (381,449] </td>
-   <td style="text-align:left;"> 1506 </td>
+   <td style="text-align:left;"> 1513 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.31 </td>
-   <td style="text-align:left;"> 1.31 </td>
-   <td style="text-align:left;"> [ 0.78 ; 2.2 ] </td>
+   <td style="text-align:left;"> 1.28 </td>
+   <td style="text-align:left;"> 1.27 </td>
+   <td style="text-align:left;"> [ 0.76 ; 2.11 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (449,534] </td>
-   <td style="text-align:left;"> 1505 </td>
+   <td style="text-align:left;"> 1512 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.47 </td>
-   <td style="text-align:left;"> 1.15 </td>
-   <td style="text-align:left;"> [ 0.67 ; 1.95 ] </td>
+   <td style="text-align:left;"> 1.41 </td>
+   <td style="text-align:left;"> 1.18 </td>
+   <td style="text-align:left;"> [ 0.7 ; 1.98 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (534,666] </td>
-   <td style="text-align:left;"> 1505 </td>
+   <td style="text-align:left;"> (534,668] </td>
+   <td style="text-align:left;"> 1513 </td>
    <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> 1.73 </td>
-   <td style="text-align:left;"> 0.96 </td>
-   <td style="text-align:left;"> [ 0.55 ; 1.67 ] </td>
+   <td style="text-align:left;"> 1.63 </td>
+   <td style="text-align:left;"> 0.85 </td>
+   <td style="text-align:left;"> [ 0.48 ; 1.48 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (666,1.67e+03] </td>
-   <td style="text-align:left;"> 1506 </td>
+   <td style="text-align:left;"> (668,2.11e+03] </td>
+   <td style="text-align:left;"> 1513 </td>
    <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> 4.1 </td>
-   <td style="text-align:left;"> 2.57 </td>
-   <td style="text-align:left;"> [ 1.62 ; 4.08 ] </td>
+   <td style="text-align:left;"> 4.5 </td>
+   <td style="text-align:left;"> 2.52 </td>
+   <td style="text-align:left;"> [ 1.6 ; 3.96 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> Young Module </td>
@@ -1874,52 +1983,52 @@ rm(var)</code></pre>
    <td style="text-align:left;">  </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (155,314] </td>
-   <td style="text-align:left;"> 1506 </td>
+   <td style="text-align:left;"> (131,313] </td>
+   <td style="text-align:left;"> 1513 </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (314,381] </td>
-   <td style="text-align:left;"> 1505 </td>
+   <td style="text-align:left;"> (313,381] </td>
+   <td style="text-align:left;"> 1513 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.18 </td>
    <td style="text-align:left;"> 1.17 </td>
-   <td style="text-align:left;"> [ 0.69 ; 2 ] </td>
+   <td style="text-align:left;"> 1.13 </td>
+   <td style="text-align:left;"> [ 0.67 ; 1.91 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (381,449] </td>
-   <td style="text-align:left;"> 1506 </td>
+   <td style="text-align:left;"> 1513 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.31 </td>
-   <td style="text-align:left;"> 1.31 </td>
-   <td style="text-align:left;"> [ 0.78 ; 2.2 ] </td>
+   <td style="text-align:left;"> 1.28 </td>
+   <td style="text-align:left;"> 1.27 </td>
+   <td style="text-align:left;"> [ 0.76 ; 2.11 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (449,534] </td>
-   <td style="text-align:left;"> 1505 </td>
+   <td style="text-align:left;"> 1512 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.47 </td>
-   <td style="text-align:left;"> 1.15 </td>
-   <td style="text-align:left;"> [ 0.67 ; 1.95 ] </td>
+   <td style="text-align:left;"> 1.41 </td>
+   <td style="text-align:left;"> 1.18 </td>
+   <td style="text-align:left;"> [ 0.7 ; 1.98 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (534,666] </td>
-   <td style="text-align:left;"> 1505 </td>
+   <td style="text-align:left;"> (534,668] </td>
+   <td style="text-align:left;"> 1513 </td>
    <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> 1.73 </td>
-   <td style="text-align:left;"> 0.96 </td>
-   <td style="text-align:left;"> [ 0.55 ; 1.67 ] </td>
+   <td style="text-align:left;"> 1.63 </td>
+   <td style="text-align:left;"> 0.85 </td>
+   <td style="text-align:left;"> [ 0.48 ; 1.48 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (666,1.67e+03] </td>
-   <td style="text-align:left;"> 1506 </td>
+   <td style="text-align:left;"> (668,2.11e+03] </td>
+   <td style="text-align:left;"> 1513 </td>
    <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> 4.1 </td>
-   <td style="text-align:left;"> 2.57 </td>
-   <td style="text-align:left;"> [ 1.62 ; 4.08 ] </td>
+   <td style="text-align:left;"> 4.5 </td>
+   <td style="text-align:left;"> 2.52 </td>
+   <td style="text-align:left;"> [ 1.6 ; 3.96 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> Gain (log) </td>
@@ -1986,8 +2095,8 @@ rm(var)</code></pre>
    <td style="text-align:left;">  </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (1.15,2.33] </td>
-   <td style="text-align:left;"> 1513 </td>
+   <td style="text-align:left;"> (0.839,2.33] </td>
+   <td style="text-align:left;"> 1520 </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
@@ -1995,41 +2104,41 @@ rm(var)</code></pre>
   </tr>
   <tr>
    <td style="text-align:left;"> (2.33,2.68] </td>
-   <td style="text-align:left;"> 1512 </td>
+   <td style="text-align:left;"> 1520 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 0.76 </td>
+   <td style="text-align:left;"> 0.77 </td>
    <td style="text-align:left;"> 0.98 </td>
    <td style="text-align:left;"> [ 0.64 ; 1.5 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (2.68,2.96] </td>
-   <td style="text-align:left;"> 1513 </td>
+   <td style="text-align:left;"> 1520 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 0.76 </td>
+   <td style="text-align:left;"> 0.77 </td>
    <td style="text-align:left;"> 0.77 </td>
    <td style="text-align:left;"> [ 0.49 ; 1.22 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (2.96,3.23] </td>
-   <td style="text-align:left;"> 1512 </td>
+   <td style="text-align:left;"> 1519 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 0.76 </td>
+   <td style="text-align:left;"> 0.77 </td>
    <td style="text-align:left;"> 0.81 </td>
    <td style="text-align:left;"> [ 0.52 ; 1.26 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (3.23,3.54] </td>
-   <td style="text-align:left;"> 1512 </td>
+   <td style="text-align:left;"> 1520 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 0.76 </td>
+   <td style="text-align:left;"> 0.77 </td>
    <td style="text-align:left;"> 0.75 </td>
    <td style="text-align:left;"> [ 0.47 ; 1.18 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (3.54,4.65] </td>
-   <td style="text-align:left;"> 1513 </td>
+   <td style="text-align:left;"> (3.54,4.97] </td>
+   <td style="text-align:left;"> 1520 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 0.57 </td>
+   <td style="text-align:left;"> 0.59 </td>
    <td style="text-align:left;"> 0.64 </td>
    <td style="text-align:left;"> [ 0.4 ; 1.03 ] </td>
   </tr>
@@ -2098,8 +2207,8 @@ rm(var)</code></pre>
    <td style="text-align:left;">  </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (5.05,5.75] </td>
-   <td style="text-align:left;"> 1506 </td>
+   <td style="text-align:left;"> (4.89,5.75] </td>
+   <td style="text-align:left;"> 1513 </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
@@ -2107,43 +2216,43 @@ rm(var)</code></pre>
   </tr>
   <tr>
    <td style="text-align:left;"> (5.75,5.94] </td>
-   <td style="text-align:left;"> 1505 </td>
+   <td style="text-align:left;"> 1513 </td>
    <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> 2.14 </td>
-   <td style="text-align:left;"> 1.17 </td>
-   <td style="text-align:left;"> [ 0.69 ; 2 ] </td>
+   <td style="text-align:left;"> 2.04 </td>
+   <td style="text-align:left;"> 1.13 </td>
+   <td style="text-align:left;"> [ 0.67 ; 1.91 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (5.94,6.11] </td>
-   <td style="text-align:left;"> 1506 </td>
+   <td style="text-align:left;"> 1513 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 2.14 </td>
-   <td style="text-align:left;"> 1.31 </td>
-   <td style="text-align:left;"> [ 0.78 ; 2.2 ] </td>
+   <td style="text-align:left;"> 2.04 </td>
+   <td style="text-align:left;"> 1.27 </td>
+   <td style="text-align:left;"> [ 0.76 ; 2.11 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (6.11,6.28] </td>
-   <td style="text-align:left;"> 1505 </td>
+   <td style="text-align:left;"> 1512 </td>
    <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> 2.14 </td>
-   <td style="text-align:left;"> 1.15 </td>
-   <td style="text-align:left;"> [ 0.67 ; 1.95 ] </td>
+   <td style="text-align:left;"> 2.04 </td>
+   <td style="text-align:left;"> 1.18 </td>
+   <td style="text-align:left;"> [ 0.7 ; 1.98 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (6.28,6.5] </td>
-   <td style="text-align:left;"> 1505 </td>
+   <td style="text-align:left;"> 1513 </td>
    <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> 2.14 </td>
-   <td style="text-align:left;"> 0.96 </td>
-   <td style="text-align:left;"> [ 0.55 ; 1.67 ] </td>
+   <td style="text-align:left;"> 2.04 </td>
+   <td style="text-align:left;"> 0.85 </td>
+   <td style="text-align:left;"> [ 0.48 ; 1.48 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (6.5,7.42] </td>
-   <td style="text-align:left;"> 1506 </td>
+   <td style="text-align:left;"> (6.5,7.66] </td>
+   <td style="text-align:left;"> 1513 </td>
    <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> 4.57 </td>
-   <td style="text-align:left;"> 2.57 </td>
-   <td style="text-align:left;"> [ 1.62 ; 4.08 ] </td>
+   <td style="text-align:left;"> 4.18 </td>
+   <td style="text-align:left;"> 2.52 </td>
+   <td style="text-align:left;"> [ 1.6 ; 3.96 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> Diastolic outer diameter (bm*1000) </td>
@@ -2210,52 +2319,52 @@ rm(var)</code></pre>
    <td style="text-align:left;">  </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (5.57e+03,6.51e+03] </td>
-   <td style="text-align:left;"> 1651 </td>
+   <td style="text-align:left;"> (5.28e+03,6.5e+03] </td>
+   <td style="text-align:left;"> 1628 </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (6.51e+03,6.83e+03] </td>
-   <td style="text-align:left;"> 1587 </td>
+   <td style="text-align:left;"> (6.5e+03,6.83e+03] </td>
+   <td style="text-align:left;"> 1633 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.38 </td>
-   <td style="text-align:left;"> 1.21 </td>
-   <td style="text-align:left;"> [ 0.71 ; 2.05 ] </td>
+   <td style="text-align:left;"> 1.53 </td>
+   <td style="text-align:left;"> 1.16 </td>
+   <td style="text-align:left;"> [ 0.69 ; 1.97 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (6.83e+03,7.11e+03] </td>
    <td style="text-align:left;"> 1615 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.61 </td>
-   <td style="text-align:left;"> 1.14 </td>
-   <td style="text-align:left;"> [ 0.67 ; 1.93 ] </td>
+   <td style="text-align:left;"> 1.81 </td>
+   <td style="text-align:left;"> 1.12 </td>
+   <td style="text-align:left;"> [ 0.66 ; 1.9 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> (7.11e+03,7.41e+03] </td>
    <td style="text-align:left;"> 1611 </td>
-   <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.87 </td>
-   <td style="text-align:left;"> 1.12 </td>
-   <td style="text-align:left;"> [ 0.65 ; 1.91 ] </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 2.12 </td>
+   <td style="text-align:left;"> 1.1 </td>
+   <td style="text-align:left;"> [ 0.65 ; 1.88 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (7.41e+03,7.81e+03] </td>
-   <td style="text-align:left;"> 1573 </td>
-   <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 2.23 </td>
-   <td style="text-align:left;"> 1.81 </td>
-   <td style="text-align:left;"> [ 1.11 ; 2.93 ] </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> (7.81e+03,9.67e+03] </td>
+   <td style="text-align:left;"> (7.41e+03,7.82e+03] </td>
    <td style="text-align:left;"> 1598 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 3.98 </td>
-   <td style="text-align:left;"> 2.85 </td>
-   <td style="text-align:left;"> [ 1.81 ; 4.46 ] </td>
+   <td style="text-align:left;"> 2.58 </td>
+   <td style="text-align:left;"> 1.79 </td>
+   <td style="text-align:left;"> [ 1.11 ; 2.9 ] </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> (7.82e+03,1.02e+04] </td>
+   <td style="text-align:left;"> 1597 </td>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:left;"> 5.56 </td>
+   <td style="text-align:left;"> 2.93 </td>
+   <td style="text-align:left;"> [ 1.87 ; 4.58 ] </td>
   </tr>
   <tr>
    <td style="text-align:left;"> Stiffness </td>
@@ -2322,52 +2431,52 @@ rm(var)</code></pre>
    <td style="text-align:left;">  </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (4.38,5.86] </td>
-   <td style="text-align:left;"> 1506 </td>
+   <td style="text-align:left;"> (4.05,5.86] </td>
+   <td style="text-align:left;"> 1513 </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
    <td style="text-align:left;"> ref. </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (5.86,6.41] </td>
-   <td style="text-align:left;"> 1505 </td>
+   <td style="text-align:left;"> (5.86,6.4] </td>
+   <td style="text-align:left;"> 1513 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.23 </td>
-   <td style="text-align:left;"> 0.99 </td>
-   <td style="text-align:left;"> [ 0.59 ; 1.67 ] </td>
+   <td style="text-align:left;"> 1.25 </td>
+   <td style="text-align:left;"> 1.06 </td>
+   <td style="text-align:left;"> [ 0.63 ; 1.79 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (6.41,6.9] </td>
-   <td style="text-align:left;"> 1506 </td>
+   <td style="text-align:left;"> (6.4,6.9] </td>
+   <td style="text-align:left;"> 1513 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.5 </td>
-   <td style="text-align:left;"> 1.08 </td>
-   <td style="text-align:left;"> [ 0.65 ; 1.8 ] </td>
+   <td style="text-align:left;"> 1.55 </td>
+   <td style="text-align:left;"> 1.12 </td>
+   <td style="text-align:left;"> [ 0.67 ; 1.88 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (6.9,7.51] </td>
-   <td style="text-align:left;"> 1505 </td>
+   <td style="text-align:left;"> (6.9,7.52] </td>
+   <td style="text-align:left;"> 1512 </td>
    <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> 1.5 </td>
-   <td style="text-align:left;"> 0.86 </td>
-   <td style="text-align:left;"> [ 0.5 ; 1.48 ] </td>
+   <td style="text-align:left;"> 1.55 </td>
+   <td style="text-align:left;"> 0.89 </td>
+   <td style="text-align:left;"> [ 0.52 ; 1.54 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (7.51,8.35] </td>
-   <td style="text-align:left;"> 1505 </td>
+   <td style="text-align:left;"> (7.52,8.36] </td>
+   <td style="text-align:left;"> 1513 </td>
    <td style="text-align:left;"> * </td>
-   <td style="text-align:left;"> 1.84 </td>
-   <td style="text-align:left;"> 1.47 </td>
-   <td style="text-align:left;"> [ 0.91 ; 2.36 ] </td>
+   <td style="text-align:left;"> 1.93 </td>
+   <td style="text-align:left;"> 1.52 </td>
+   <td style="text-align:left;"> [ 0.94 ; 2.46 ] </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> (8.35,12.8] </td>
-   <td style="text-align:left;"> 1506 </td>
+   <td style="text-align:left;"> (8.36,14.6] </td>
+   <td style="text-align:left;"> 1513 </td>
    <td style="text-align:left;">  </td>
-   <td style="text-align:left;"> 3.4 </td>
-   <td style="text-align:left;"> 1.82 </td>
-   <td style="text-align:left;"> [ 1.15 ; 2.88 ] </td>
+   <td style="text-align:left;"> 3.74 </td>
+   <td style="text-align:left;"> 2 </td>
+   <td style="text-align:left;"> [ 1.26 ; 3.17 ] </td>
   </tr>
 </tbody>
 </table>
@@ -2449,7 +2558,7 @@ for(var in test_univar_chd){
 <!-- rnb-text-end -->
 </div>
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgTm90ZWJvb2siDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQojIDEuIFbDqXJpZmljYXRpb24gZGVzIGh5cG90aMOoc2VzIGRlcyBtb2TDqGxlcyBkZSBjb3ggdW5pdmFyacOpcw0KDQojIyAxLjEgUmlzcXVlcyBwcm9wb3J0aW9ubmVscyANCg0KIyMjIDEuMS4xIEF2ZWMgbGUgZGVjZXMgY29tbWUgb3V0Y29tZQ0KDQpQbG90IGRlcyByw6lzaWR1cyBkZSBzY2hvbmZlbGQgDQpgYGB7cn0NCmcgPSBjKCkNCmZvcih2YXIgaW4gdGVzdF91bml2YXJfZGVjZXMpew0KICBjb3ggPSBjb3hwaChTdXJ2KHRpbWVfdG9fZGVjZXMsZGVjZXMpfmRhdGEyWyx2YXJdLCBkYXRhID0gZGF0YTIpDQogIHNjaG9uLnRlc3QgPSBjb3guenBoKGNveCkNCiAgZyA9IGMoZyxnZ2NveHpwaChzY2hvbi50ZXN0KSArIA0KICAgICAgICAgIHlsYWIoIiAiKSArIA0KICAgICAgICAgIHhsYWIocGFzdGUoInA9Iiwgc2lnbmlmKHNjaG9uLnRlc3QkdGFibGVbMiwzXSwyKSkpICsNCiAgICAgICAgICBnZ3RpdGxlKG5hbWVzX2VjaG90cmFja2luZ1t3aGljaChlY2hvdHJhY2tpbmcgPT0gdmFyKV0pDQogICAgICAgICkNCn0NCmBgYA0KDQpgYGB7cn0NCmdyaWQuYXJyYW5nZShncm9icyA9IGcsIG5yb3cgPSA1LCBuY29sID0gNCkNCmBgYA0KDQpwbG90IGRlcyBkdSBsb2coLWxvZyhTKHQpKSkgcG91ciBsYSB2YXJpYWJsZSBiaW5haXJlIChwcsOpc2VuY2UgZGUgcGxhcXVlcykuDQoNCmBgYHtyfQ0KcGxvdCAoc3VydmZpdChTdXJ2KHRpbWVfdG9fZGVjZXMsIGRlY2VzKSB+IHBsYXF1ZXMsIGRhdGEgPSBkYXRhMiksIGZ1biA9ICJjbG9nbG9nIikNCmBgYA0KDQojIyMgMS4xLjIgQXZlYyBsZSBDSEQgY29tbWUgb3V0Y29tZQ0KDQoNCmBgYHtyfQ0KZyA9IGMoKQ0KZm9yKHZhciBpbiB0ZXN0X3VuaXZhcl9jaGQpew0KICBjb3ggPSBjb3hwaChTdXJ2KHRpbWVfdG9fY2hkLGNoZCl+ZGF0YTJbLHZhcl0sIGRhdGEgPSBkYXRhMikNCiAgc2Nob24udGVzdCA9IGNveC56cGgoY294KQ0KICBnID0gYyhnLGdnY294enBoKHNjaG9uLnRlc3QpICsgDQogICAgICAgICAgeWxhYigiICIpICsgDQogICAgICAgICAgeGxhYihwYXN0ZSgicD0iLCBzaWduaWYoc2Nob24udGVzdCR0YWJsZVsyLDNdLDIpKSkgKw0KICAgICAgICAgIGdndGl0bGUobmFtZXNfZWNob3RyYWNraW5nW3doaWNoKGVjaG90cmFja2luZyA9PSB2YXIpXSkgDQogICAgICAgICkNCn0NCmBgYA0KDQpgYGB7cn0NCmdyaWQuYXJyYW5nZShncm9icyA9IGcsIG5yb3cgPSA1LCBuY29sID0gMykNCmBgYA0KDQoNCmBgYHtyfQ0KcGxvdCAoc3VydmZpdChTdXJ2KHRpbWVfdG9fY2hkLCBjaGQpIH4gcGxhcXVlcywgZGF0YSA9IGRhdGEyKSwgZnVuID0gImNsb2dsb2ciKQ0KYGBgDQojIyAxLjIgTG9nIExpbsOpYXJpdMOpDQoNCiMjIyAxLjIuMSBBdmVjIGxlIGRlY2VzIGNvbW1lIG91dGNvbWUNCg0KIyMjIyBNw6l0aG9kZSBkdSBsaXZyZSBkZSBiaW9zdGF0DQpgYGB7cn0NCnRhYmxlX3ZlcmlmX2RlY2VzID0gYygpDQpmb3IodmFyIGluIHRlc3RfdW5pdmFyX2RlY2VzKXsNCiAgaWYoaXMubnVtZXJpYyhkYXRhMlssdmFyXSkpew0KICAgIA0KICAgIG91dF9pZHggPSBjdXRfb3V0bGllcl9xdWFudGlsZSh2YXIsZGF0YTIsMC4wMDM1KSRvdXRfaWR4DQoNCiAgICB0bXBfdGFiID0gdmVyaWZIeXBfbG9nbGluX2NveFVuaXZhcih2YXIsInRpbWVfdG9fZGVjZXMiLCJkZWNlcyIsZGF0YTIsbmIuY2xhc3MgPSA2LCBtZXRob2QgPSAibWVhbiIpDQogICAgDQogICAgdG1wX3RhYl9ub091dCA9IHZlcmlmSHlwX2xvZ2xpbl9jb3hVbml2YXIodmFyLCJ0aW1lX3RvX2RlY2VzIiwiZGVjZXMiLGRhdGEyWy1vdXRfaWR4LF0sbmIuY2xhc3MgPSA2KQ0KICAgIA0KICAgICB0bXBfbmFtZSA9IG1hdHJpeChjKG5hbWVzX2VjaG90cmFja2luZ1t3aGljaCh2YXIgPT0gZWNob3RyYWNraW5nKV0scmVwKCIgIiw1KSksIG5jb2wgPSA2KQ0KICAgICBjb2xuYW1lcyh0bXBfbmFtZSkgPSBjb2xuYW1lcyh0bXBfdGFiKQ0KICAgICANCiAgICAgdG1wX25hbWVOb091dCA9IG1hdHJpeChjKHBhc3RlKG5hbWVzX2VjaG90cmFja2luZ1t3aGljaCh2YXIgPT0gZWNob3RyYWNraW5nKV0sIk5PIE9VVExJRVJTIikscmVwKCIgIiw1KSksIG5jb2wgPSA2KQ0KICAgICBjb2xuYW1lcyh0bXBfbmFtZU5vT3V0KSA9IGNvbG5hbWVzKHRtcF90YWIpDQogICAgIA0KICAgICB0YWIgPSByYmluZCh0bXBfbmFtZSx0bXBfdGFiLHRtcF9uYW1lTm9PdXQsdG1wX3RhYl9ub091dCkNCiAgfQ0KICB0YWJsZV92ZXJpZl9kZWNlcyA9IHJiaW5kKHRhYmxlX3ZlcmlmX2RlY2VzLHRhYikNCn0NCnJtKHZhcikNCmBgYA0KDQoNCmBgYHtyfQ0Ka2FibGUodGFibGVfdmVyaWZfZGVjZXMsIGxvbmd0YWJsZSA9IFQpICU+JSANCiAga2FibGVfc3R5bGluZyhib290c3RyYXBfb3B0aW9ucyA9ICJzdHJpcGVkIiwgZnVsbF93aWR0aCA9IEYpDQpgYGANCg0KIyMjIyBQbG90IGRlcyByw6lzaWR1cyBtYXJ0aW5nYWxlcw0KDQpgYGB7cn0NCmcgPSBjKCkNCmZvcih2YXIgaW4gdGVzdF91bml2YXJfZGVjZXMpew0KICBpZihpcy5udW1lcmljKGRhdGEyWyx2YXJdKSl7DQogICAgZGF0YV90bXAgPSBkYXRhMlt3aGljaCghKGlzLm5hKGRhdGEyWyx2YXJdKSkpLF0NCiAgICBjb3ggPSBjb3hwaChTdXJ2KHRpbWVfdG9fZGVjZXMsIGRlY2VzKSB+IGRhdGFfdG1wWyx2YXJdLCBkYXRhID0gZGF0YV90bXApDQogICAgZyA9IGMoZyxnZ2NveGZ1bmN0aW9uYWwoY294LCBkYXRhID0gZGF0YV90bXApK3hsYWIodmFyKSkNCiAgfQ0KfQ0KYGBgDQpgYGB7cn0NCmdyaWQuYXJyYW5nZShncm9icyA9IGcsIG5yb3cgPSA2LCBuY29sID0gMykNCmBgYA0KDQoNCiMjIyAxLjIuMSBBdmVjIGxlIENIRCBjb21tZSBvdXRjb21lDQoNCiMjIyMgTcOpdGhvZGUgZHUgbGl2cmUgZGUgYmlvc3RhdA0KYGBge3J9DQpmb3IodmFyIGluIHRlc3RfdW5pdmFyX2RlY2VzKXsNCiAgaWYoaXMubnVtZXJpYyhkYXRhMlssdmFyXSkpew0KICAgIHByaW50KHZhcikNCiAgcHJpbnQodmVyaWZIeXBfbG9nbGluX2NveFVuaXZhcih2YXIsInRpbWVfdG9fY2hkIiwiY2hkIixkYXRhMixuYi5jbGFzcyA9IDEwKSl9DQp9DQpgYGANCg0KDQojIyMjIFBsb3QgZGVzIHLDqXNpZHVzIG1hcnRpbmdhbGVzDQoNCmBgYHtyfQ0KZyA9IGMoKQ0KZm9yKHZhciBpbiB0ZXN0X3VuaXZhcl9jaGQpew0KICBpZihpcy5udW1lcmljKGRhdGEyWyx2YXJdKSl7DQogICAgZGF0YV90bXAgPSBkYXRhMlt3aGljaCghKGlzLm5hKGRhdGEyWyx2YXJdKSkpLF0NCiAgICBjb3ggPSBjb3hwaChTdXJ2KHRpbWVfdG9fY2hkLCBjaGQpIH4gZGF0YV90bXBbLHZhcl0sIGRhdGEgPSBkYXRhX3RtcCkNCiAgICBnID0gYyhnLGdnY294ZnVuY3Rpb25hbChjb3gsIGRhdGEgPSBkYXRhX3RtcCkpDQogIH0NCn0NCmBgYA0KYGBge3J9DQpncmlkLmFycmFuZ2UoZ3JvYnMgPSBnLCBucm93ID0gNiwgbmNvbCA9IDMpDQpgYGANCg0KDQojIGBgYHtyfQ0KIyAgZm9yKHZhciBpbiB0ZXN0X3VuaXZhcl9kZWNlcyl7DQojICAgIHBsb3QobWFpbiA9dmFyLGxvZyhzdXJ2Zml0KGNveHBoKFN1cnYodGltZV90b19kZWNlcyxkZWNlcykgfiBkYXRhMlssdmFyXSwgZGF0YSA9IGRhdGEyKSkkdGltZSksbG9nKC1sb2coc3VydmZpdChjb3hwaChTdXJ2KHRpbWVfdG9fZGVjZXMsZGVjZXMpIH4gZGF0YTJbLHZhcl0sIGRhdGEgPSBkYXRhMikpJHN1cnYpKSkNCiMgIH0NCiMgYGBgDQoNCg0KIyAyLiBWw6lyaWZpY2F0aW9uIGRlcyBoeXBvdGjDqHNlcyBkZXMgbW9kw6hsZXMgZGUgY294IG11bHRpdmFyacOpcw0K</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgTm90ZWJvb2siDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQojIDEuIFbDqXJpZmljYXRpb24gZGVzIGh5cG90aMOoc2VzIGRlcyBtb2TDqGxlcyBkZSBjb3ggdW5pdmFyacOpcw0KDQojIyAxLjEgUmlzcXVlcyBwcm9wb3J0aW9ubmVscyANCg0KIyMjIDEuMS4xIEF2ZWMgbGUgZGVjZXMgY29tbWUgb3V0Y29tZQ0KDQojIyMjIDEuMS4xLjEgVGltZSBvbiBzdHVkeSBhcyB0aW1lIHNjYWxlDQoNClBsb3QgZGVzIHLDqXNpZHVzIGRlIHNjaG9uZmVsZCANCmBgYHtyfQ0KZyA9IGMoKQ0KZm9yKHZhciBpbiB0ZXN0X3VuaXZhcl9kZWNlcyl7DQogIGNveCA9IGNveHBoKFN1cnYodGltZV90b19kZWNlcyxkZWNlcyl+ZGF0YTJbLHZhcl0sIGRhdGEgPSBkYXRhMikNCiAgY294X3N0ZCA9IGNveHBoKFN1cnYodGltZV90b19kZWNlcyxkZWNlcyl+ZGF0YTJfc3RkWyx2YXJdLCBkYXRhID0gZGF0YTJfc3RkKQ0KICBzY2hvbi50ZXN0ID0gY294LnpwaChjb3gpDQogIHNjaG9uLnRlc3Rfc3RkID0gY294LnpwaChjb3hfc3RkKQ0KICBnID0gYyhnLGdnY294enBoKHNjaG9uLnRlc3QpICsgDQogICAgICAgICAgeWxhYigiICIpICsgDQogICAgICAgICAgeGxhYihwYXN0ZSgicD0iLCBzaWduaWYoc2Nob24udGVzdCR0YWJsZVsyLDNdLDIpKSkgKw0KICAgICAgICAgIGdndGl0bGUobmFtZXNfZWNob3RyYWNraW5nW3doaWNoKGVjaG90cmFja2luZyA9PSB2YXIpXSkNCiAgICAgICAgKQ0KICBnX3N0ZCA9IGMoZyxnZ2NveHpwaChzY2hvbi50ZXN0X3N0ZCkgKyANCiAgICAgICAgICB5bGFiKCIgIikgKyANCiAgICAgICAgICB4bGFiKHBhc3RlKCJwPSIsIHNpZ25pZihzY2hvbi50ZXN0X3N0ZCR0YWJsZVsyLDNdLDIpKSkgKw0KICAgICAgICAgIGdndGl0bGUobmFtZXNfZWNob3RyYWNraW5nW3doaWNoKGVjaG90cmFja2luZyA9PSB2YXIpXSkpDQp9DQpgYGANCg0KYGBge3J9DQpncmlkLmFycmFuZ2UoZ3JvYnMgPSBnLCBucm93ID0gNSwgbmNvbCA9IDQpDQpncmlkLmFycmFuZ2UoZ3JvYnMgPSBnX3N0ZCwgbnJvdyA9IDUsIG5jb2wgPSA0KQ0KYGBgDQoNCnBsb3QgZGVzIGR1IGxvZygtbG9nKFModCkpKSBwb3VyIGxhIHZhcmlhYmxlIGJpbmFpcmUgKHByw6lzZW5jZSBkZSBwbGFxdWVzKS4NCg0KYGBge3J9DQpwbG90IChzdXJ2Zml0KFN1cnYodGltZV90b19kZWNlcywgZGVjZXMpIH4gcGxhcXVlcywgZGF0YSA9IGRhdGEyKSwgZnVuID0gImNsb2dsb2ciKQ0KcGxvdCAoc3VydmZpdChTdXJ2KHRpbWVfdG9fZGVjZXMsIGRlY2VzKSB+IHBsYXF1ZXMsIGRhdGEgPSBkYXRhMl9zdGQpLCBmdW4gPSAiY2xvZ2xvZyIpDQpgYGANCg0KIyMjIyAxLjEuMS4yIEFnZSBhcyB0aW1lIHNjYWxlDQoNClBsb3QgZGVzIHLDqXNpZHVzIGRlIHNjaG9uZmVsZCANCmBgYHtyfQ0KZyA9IGMoKQ0KZm9yKHZhciBpbiB0ZXN0X3VuaXZhcl9kZWNlcyl7DQogIGNveCA9IGNveHBoKFN1cnYoYWdlX2F0X2RlY2VzLGRlY2VzKX5kYXRhMlssdmFyXSwgZGF0YSA9IGRhdGEyKQ0KICBjb3hfc3RkID0gY294cGgoU3VydihhZ2VfYXRfZGVjZXMsZGVjZXMpfmRhdGEyX3N0ZFssdmFyXSwgZGF0YSA9IGRhdGEyX3N0ZCkNCiAgc2Nob24udGVzdCA9IGNveC56cGgoY294KQ0KICBzY2hvbi50ZXN0X3N0ZCA9IGNveC56cGgoY294X3N0ZCkNCiAgZyA9IGMoZyxnZ2NveHpwaChzY2hvbi50ZXN0KSArIA0KICAgICAgICAgIHlsYWIoIiAiKSArIA0KICAgICAgICAgIHhsYWIocGFzdGUoInA9Iiwgc2lnbmlmKHNjaG9uLnRlc3QkdGFibGVbMiwzXSwyKSkpICsNCiAgICAgICAgICBnZ3RpdGxlKG5hbWVzX2VjaG90cmFja2luZ1t3aGljaChlY2hvdHJhY2tpbmcgPT0gdmFyKV0pDQogICAgICAgICkNCiAgZ19zdGQgPSBjKGcsZ2djb3h6cGgoc2Nob24udGVzdF9zdGQpICsgDQogICAgICAgICAgeWxhYigiICIpICsgDQogICAgICAgICAgeGxhYihwYXN0ZSgicD0iLCBzaWduaWYoc2Nob24udGVzdF9zdGQkdGFibGVbMiwzXSwyKSkpICsNCiAgICAgICAgICBnZ3RpdGxlKG5hbWVzX2VjaG90cmFja2luZ1t3aGljaChlY2hvdHJhY2tpbmcgPT0gdmFyKV0pDQogICAgICAgICkNCn0NCmBgYA0KDQpgYGB7cn0NCmdyaWQuYXJyYW5nZShncm9icyA9IGcsIG5yb3cgPSA1LCBuY29sID0gNCkNCmdyaWQuYXJyYW5nZShncm9icyA9IGdfc3RkLCBucm93ID0gNSwgbmNvbCA9IDQpDQpgYGANCg0KcGxvdCBkZXMgZHUgbG9nKC1sb2coUyh0KSkpIHBvdXIgbGEgdmFyaWFibGUgYmluYWlyZSAocHLDqXNlbmNlIGRlIHBsYXF1ZXMpLg0KDQpgYGB7cn0NCnBsb3QgKHN1cnZmaXQoU3VydihhZ2VfYXRfZGVjZXMsIGRlY2VzKSB+IHBsYXF1ZXMsIGRhdGEgPSBkYXRhMiksIGZ1biA9ICJjbG9nbG9nIikNCnBsb3QgKHN1cnZmaXQoU3VydihhZ2VfYXRfZGVjZXMsIGRlY2VzKSB+IHBsYXF1ZXMsIGRhdGEgPSBkYXRhMl9zdGQpLCBmdW4gPSAiY2xvZ2xvZyIpDQpgYGANCg0KIyMjIDEuMS4yIEF2ZWMgbGUgQ0hEIGNvbW1lIG91dGNvbWUNCg0KIyMjIyAxLjEuMi4xIFRpbWUgb24gc3R1ZHkgYXMgdGltZSBzY2FsZQ0KYGBge3J9DQpnID0gYygpDQpmb3IodmFyIGluIHRlc3RfdW5pdmFyX2NoZCl7DQogIGNveCA9IGNveHBoKFN1cnYodGltZV90b19jaGQsY2hkKX5kYXRhMlssdmFyXSwgZGF0YSA9IGRhdGEyKQ0KICBjb3hfc3RkID0gY294cGgoU3Vydih0aW1lX3RvX2NoZCxjaGQpfmRhdGEyX3N0ZFssdmFyXSwgZGF0YSA9IGRhdGEyX3N0ZCkNCiAgc2Nob24udGVzdCA9IGNveC56cGgoY294KQ0KICBzY2hvbi50ZXN0X3N0ZCA9IGNveC56cGgoY294X3N0ZCkNCiAgZyA9IGMoZyxnZ2NveHpwaChzY2hvbi50ZXN0KSArIA0KICAgICAgICAgIHlsYWIoIiAiKSArIA0KICAgICAgICAgIHhsYWIocGFzdGUoInA9Iiwgc2lnbmlmKHNjaG9uLnRlc3QkdGFibGVbMiwzXSwyKSkpICsNCiAgICAgICAgICBnZ3RpdGxlKG5hbWVzX2VjaG90cmFja2luZ1t3aGljaChlY2hvdHJhY2tpbmcgPT0gdmFyKV0pIA0KICAgICAgICApDQogIGdfc3RkID0gYyhnLGdnY294enBoKHNjaG9uLnRlc3Rfc3RkKSArIA0KICAgICAgICAgIHlsYWIoIiAiKSArIA0KICAgICAgICAgIHhsYWIocGFzdGUoInA9Iiwgc2lnbmlmKHNjaG9uLnRlc3Rfc3RkJHRhYmxlWzIsM10sMikpKSArDQogICAgICAgICAgZ2d0aXRsZShuYW1lc19lY2hvdHJhY2tpbmdbd2hpY2goZWNob3RyYWNraW5nID09IHZhcildKSANCiAgICAgICAgKQ0KfQ0KYGBgDQoNCmBgYHtyfQ0KZ3JpZC5hcnJhbmdlKGdyb2JzID0gZywgbnJvdyA9IDUsIG5jb2wgPSAzKQ0KZ3JpZC5hcnJhbmdlKGdyb2JzID0gZ19zdGQsIG5yb3cgPSA1LCBuY29sID0gMykNCmBgYA0KDQoNCmBgYHtyfQ0KcGxvdCAoc3VydmZpdChTdXJ2KHRpbWVfdG9fY2hkLCBjaGQpIH4gcGxhcXVlcywgZGF0YSA9IGRhdGEyKSwgZnVuID0gImNsb2dsb2ciKQ0KcGxvdCAoc3VydmZpdChTdXJ2KHRpbWVfdG9fY2hkLCBjaGQpIH4gcGxhcXVlcywgZGF0YSA9IGRhdGEyX3N0ZCksIGZ1biA9ICJjbG9nbG9nIikNCmBgYA0KIyMjIyAxLjEuMi4yIEFnZSBhcyB0aW1lIHNjYWxlDQpgYGB7cn0NCmcgPSBjKCkNCmZvcih2YXIgaW4gdGVzdF91bml2YXJfY2hkKXsNCiAgY294ID0gY294cGgoU3VydihhZ2VfYXRfY2hkLGNoZCl+ZGF0YTJbLHZhcl0sIGRhdGEgPSBkYXRhMikNCiAgY294X3N0ZCA9IGNveHBoKFN1cnYoYWdlX2F0X2NoZCxjaGQpfmRhdGEyX3N0ZFssdmFyXSwgZGF0YSA9IGRhdGEyX3N0ZCkNCiAgc2Nob24udGVzdCA9IGNveC56cGgoY294KQ0KICBzY2hvbi50ZXN0X3N0ZCA9IGNveC56cGgoY294X3N0ZCkNCiAgZyA9IGMoZyxnZ2NveHpwaChzY2hvbi50ZXN0KSArIA0KICAgICAgICAgIHlsYWIoIiAiKSArIA0KICAgICAgICAgIHhsYWIocGFzdGUoInA9Iiwgc2lnbmlmKHNjaG9uLnRlc3QkdGFibGVbMiwzXSwyKSkpICsNCiAgICAgICAgICBnZ3RpdGxlKG5hbWVzX2VjaG90cmFja2luZ1t3aGljaChlY2hvdHJhY2tpbmcgPT0gdmFyKV0pIA0KICAgICAgICApDQogIGdfc3RkID0gYyhnLGdnY294enBoKHNjaG9uLnRlc3Rfc3RkKSArIA0KICAgICAgICAgIHlsYWIoIiAiKSArIA0KICAgICAgICAgIHhsYWIocGFzdGUoInA9Iiwgc2lnbmlmKHNjaG9uLnRlc3Rfc3RkJHRhYmxlWzIsM10sMikpKSArDQogICAgICAgICAgZ2d0aXRsZShuYW1lc19lY2hvdHJhY2tpbmdbd2hpY2goZWNob3RyYWNraW5nID09IHZhcildKSANCiAgICAgICAgKQ0KfQ0KYGBgDQoNCmBgYHtyfQ0KZ3JpZC5hcnJhbmdlKGdyb2JzID0gZywgbnJvdyA9IDUsIG5jb2wgPSAzKQ0KZ3JpZC5hcnJhbmdlKGdyb2JzID0gZ19zdGQsIG5yb3cgPSA1LCBuY29sID0gMykNCmBgYA0KDQoNCmBgYHtyfQ0KcGxvdCAoc3VydmZpdChTdXJ2KGFnZV9hdF9jaGQsIGNoZCkgfiBwbGFxdWVzLCBkYXRhID0gZGF0YTIpLCBmdW4gPSAiY2xvZ2xvZyIpDQpwbG90IChzdXJ2Zml0KFN1cnYoYWdlX2F0X2NoZCwgY2hkKSB+IHBsYXF1ZXMsIGRhdGEgPSBkYXRhMl9zdGQpLCBmdW4gPSAiY2xvZ2xvZyIpDQpgYGANCg0KIyMgMS4yIExvZyBMaW7DqWFyaXTDqQ0KDQojIyMgMS4yLjEgQXZlYyBsZSBkZWNlcyBjb21tZSBvdXRjb21lDQoNCiMjIyMgTcOpdGhvZGUgZHUgbGl2cmUgZGUgYmlvc3RhdA0KYGBge3J9DQp0YWJsZV92ZXJpZl9kZWNlcyA9IGMoKQ0KZm9yKHZhciBpbiB0ZXN0X3VuaXZhcl9kZWNlcyl7DQogIGlmKGlzLm51bWVyaWMoZGF0YTJbLHZhcl0pKXsNCiAgICANCiAgICBvdXRfaWR4ID0gY3V0X291dGxpZXJfcXVhbnRpbGUodmFyLGRhdGEyLDAuMDAxKSRvdXRfaWR4DQoNCiAgICB0bXBfdGFiID0gdmVyaWZIeXBfbG9nbGluX2NveFVuaXZhcih2YXIsInRpbWVfdG9fZGVjZXMiLCJkZWNlcyIsZGF0YTIsbmIuY2xhc3MgPSA2LCBtZXRob2QgPSAiY2VudGVyIikNCiAgICANCiAgICB0bXBfdGFiX25vT3V0ID0gdmVyaWZIeXBfbG9nbGluX2NveFVuaXZhcih2YXIsInRpbWVfdG9fZGVjZXMiLCJkZWNlcyIsZGF0YTJbLW91dF9pZHgsXSxuYi5jbGFzcyA9IDYpDQogICAgDQogICAgIHRtcF9uYW1lID0gbWF0cml4KGMobmFtZXNfZWNob3RyYWNraW5nW3doaWNoKHZhciA9PSBlY2hvdHJhY2tpbmcpXSxyZXAoIiAiLDUpKSwgbmNvbCA9IDYpDQogICAgIGNvbG5hbWVzKHRtcF9uYW1lKSA9IGNvbG5hbWVzKHRtcF90YWIpDQogICAgIA0KICAgICB0bXBfbmFtZU5vT3V0ID0gbWF0cml4KGMocGFzdGUobmFtZXNfZWNob3RyYWNraW5nW3doaWNoKHZhciA9PSBlY2hvdHJhY2tpbmcpXSwiTk8gT1VUTElFUlMiKSxyZXAoIiAiLDUpKSwgbmNvbCA9IDYpDQogICAgIGNvbG5hbWVzKHRtcF9uYW1lTm9PdXQpID0gY29sbmFtZXModG1wX3RhYikNCiAgICAgDQogICAgIHRhYiA9IHJiaW5kKHRtcF9uYW1lLHRtcF90YWIsdG1wX25hbWVOb091dCx0bXBfdGFiX25vT3V0KQ0KICB9DQogIHRhYmxlX3ZlcmlmX2RlY2VzID0gcmJpbmQodGFibGVfdmVyaWZfZGVjZXMsdGFiKQ0KfQ0Kcm0odmFyKQ0KYGBgDQoNCg0KYGBge3J9DQprYWJsZSh0YWJsZV92ZXJpZl9kZWNlcywgbG9uZ3RhYmxlID0gVCkgJT4lIA0KICBrYWJsZV9zdHlsaW5nKGJvb3RzdHJhcF9vcHRpb25zID0gInN0cmlwZWQiLCBmdWxsX3dpZHRoID0gRikNCmBgYA0KDQojIyMjIFBsb3QgZGVzIHLDqXNpZHVzIG1hcnRpbmdhbGVzDQoNCmBgYHtyfQ0KZyA9IGMoKQ0KZm9yKHZhciBpbiB0ZXN0X3VuaXZhcl9kZWNlcyl7DQogIGlmKGlzLm51bWVyaWMoZGF0YTJbLHZhcl0pKXsNCiAgICBkYXRhX3RtcCA9IGRhdGEyW3doaWNoKCEoaXMubmEoZGF0YTJbLHZhcl0pKSksXQ0KICAgIGNveCA9IGNveHBoKFN1cnYodGltZV90b19kZWNlcywgZGVjZXMpIH4gZGF0YV90bXBbLHZhcl0sIGRhdGEgPSBkYXRhX3RtcCkNCiAgICBnID0gYyhnLGdnY294ZnVuY3Rpb25hbChjb3gsIGRhdGEgPSBkYXRhX3RtcCkreGxhYih2YXIpKQ0KICB9DQp9DQpgYGANCmBgYHtyfQ0KZ3JpZC5hcnJhbmdlKGdyb2JzID0gZywgbnJvdyA9IDYsIG5jb2wgPSAzKQ0KYGBgDQoNCg0KIyMjIDEuMi4xIEF2ZWMgbGUgQ0hEIGNvbW1lIG91dGNvbWUNCg0KIyMjIyBNw6l0aG9kZSBkdSBsaXZyZSBkZSBiaW9zdGF0DQpgYGB7cn0NCmZvcih2YXIgaW4gdGVzdF91bml2YXJfZGVjZXMpew0KICBpZihpcy5udW1lcmljKGRhdGEyWyx2YXJdKSl7DQogICAgcHJpbnQodmFyKQ0KICBwcmludCh2ZXJpZkh5cF9sb2dsaW5fY294VW5pdmFyKHZhciwidGltZV90b19jaGQiLCJjaGQiLGRhdGEyLG5iLmNsYXNzID0gMTApKX0NCn0NCmBgYA0KDQoNCiMjIyMgUGxvdCBkZXMgcsOpc2lkdXMgbWFydGluZ2FsZXMNCg0KYGBge3J9DQpnID0gYygpDQpmb3IodmFyIGluIHRlc3RfdW5pdmFyX2NoZCl7DQogIGlmKGlzLm51bWVyaWMoZGF0YTJbLHZhcl0pKXsNCiAgICBkYXRhX3RtcCA9IGRhdGEyW3doaWNoKCEoaXMubmEoZGF0YTJbLHZhcl0pKSksXQ0KICAgIGNveCA9IGNveHBoKFN1cnYodGltZV90b19jaGQsIGNoZCkgfiBkYXRhX3RtcFssdmFyXSwgZGF0YSA9IGRhdGFfdG1wKQ0KICAgIGcgPSBjKGcsZ2djb3hmdW5jdGlvbmFsKGNveCwgZGF0YSA9IGRhdGFfdG1wKSkNCiAgfQ0KfQ0KYGBgDQpgYGB7cn0NCmdyaWQuYXJyYW5nZShncm9icyA9IGcsIG5yb3cgPSA2LCBuY29sID0gMykNCmBgYA0KDQoNCiMgYGBge3J9DQojICBmb3IodmFyIGluIHRlc3RfdW5pdmFyX2RlY2VzKXsNCiMgICAgcGxvdChtYWluID12YXIsbG9nKHN1cnZmaXQoY294cGgoU3Vydih0aW1lX3RvX2RlY2VzLGRlY2VzKSB+IGRhdGEyWyx2YXJdLCBkYXRhID0gZGF0YTIpKSR0aW1lKSxsb2coLWxvZyhzdXJ2Zml0KGNveHBoKFN1cnYodGltZV90b19kZWNlcyxkZWNlcykgfiBkYXRhMlssdmFyXSwgZGF0YSA9IGRhdGEyKSkkc3VydikpKQ0KIyAgfQ0KIyBgYGANCg0KDQojIDIuIFbDqXJpZmljYXRpb24gZGVzIGh5cG90aMOoc2VzIGRlcyBtb2TDqGxlcyBkZSBjb3ggbXVsdGl2YXJpw6lzDQo=</div>
 
 
 
