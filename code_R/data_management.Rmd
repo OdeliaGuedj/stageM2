@@ -213,10 +213,11 @@ bio = c("trb17", "ldl","bio10","mbp","bio6", "pa_cat", "mbp_cat","pas","pad")
 
 echotracking =  c("fc_basale","diam_bm","imt","diam_fbm","distension","pwvloc", "dploc","debut","dist_rate_moy","dist_rate_var","rr_int_moy","rr_int_var","lf_dist_rate_t","hf_dist_rate_t","hf_dist_rate_c","lf_rrint_t","hf_rr_int_t","hf_rrint_c","freq_resp","lf_coh_max","lf_coh_moy","lf_gain_max","lf_gain_moy","lf_phase","sens_phase","hf_c_coh_max","hf_c_coh_moy","hf_c_gain_max","hf_c_gain_moy","hf_c_phase","sens_phase_hf_c","hf_t_coh_max","hf_t_coh_moy","hf_t_gain_max","hf_t_gain_moy","hf_t_phase","sens_hf_t_phase","dist_moy","dist_var","cws","coeffDist","compli","wcsa","young","plaques","logain","logyoung","dextdias","stiffness")
 
+
+echotracking_clean =  c("fc_basale","diam_bm","imt","distension","pwvloc", "dploc","dist_rate_moy","rr_int_moy","lf_dist_rate_t","hf_dist_rate_t","hf_dist_rate_c","lf_rrint_t","hf_rr_int_t","hf_rrint_c","freq_resp","lf_coh_moy","lf_gain_moy","hf_c_coh_moy","hf_c_gain_moy","hf_t_coh_moy","hf_t_gain_moy","dist_moy","cws","coeffDist","compli","wcsa","plaques","logain","logyoung","dextdias","stiffness")
+
 names_echotracking = c("Basale cardiac rate", "Diastolic outer diameter (bm)", "Itima Media Thickness","Diastolic Outer Diameter (fbm)","Distension", "Pulse Wave Velocity","Central Pulse Pressure",  "Beginning", "Distension Rate (Mean)", "Distension Rate (Variance)", "RR interval (Mean)","RR interval (Variance)", "Low frequency Distension Rate (t)","High frequency Distension rate (t)","High frequency Distension Rate (c)", "Low frequency RR interval (t)", "High frequency RR interval (t)","High frequency RR interval (c)", "Respiratory rate", "Low frequency COH (Max)","Low frequency COH (Mean)","Low frequency Gain (Max)","Low frequency Gain (Mean)","Low frequency phase","Sens phase","High frequency COH (Max) (c)","High frequency COH (Mean) (c)", "High frequency Gain (Max) (c)","High frequency Gain (Mean) (c)","High frequency phase (c)", "High frequency sens phase (c)","High frequency COH (Max) (t)","High frequency COH (Mean) (t)","High frequency Gain (Max) (t)","High frequency Gain (Mean) (t)", "High frequency phase (t)","High freqeuncy sens_phase (t)","Distension (Mean)","Distension (Variance)","Circumferential Wall Stress","Coefficient of distensibility","Cross Sectional Compliance", "Wall Cross Sectionnal Area", "Young Module","Presence of plaques","Gain (log)", "Young Module (log)","Diastolic outer diameter (bm*1000)","Stiffness")
 
-
-echotracking_clean =  c("fc_basale","diam_bm","imt","distension","pwvloc", "dploc","dist_rate_moy","rr_int_moy","lf_dist_rate_t","hf_dist_rate_t","hf_dist_rate_c","lf_rrint_t","hf_rr_int_t","hf_rrint_c","freq_resp","lf_coh_moy","lf_gain_moy","hf_c_coh_moy","hf_c_gain_moy","hf_t_coh_moy","hf_t_gain_moy","dist_moy","cws","coeffDist","compli","wcsa","young","plaques","logain","logyoung","dextdias","stiffness")
 
 var_et_jpe_tot = c("diam_bm", "imt", "distension", "dploc", "dist_rate_moy",  "rr_int_moy","lf_dist_rate_t","hf_dist_rate_t","lf_rrint_t","hf_rr_int_t","lf_coh_moy", "hf_c_coh_moy", "hf_c_gain_moy", "cws","coeffDist", "compli", "wcsa", "young","logain","stiffness")
 
@@ -252,45 +253,23 @@ data2_std = subset(data_std,data_std$atcdcv == "0")
 ```
 
 # 11. Création d'une base de donnée sans les NA dans les variables d'ajustement
-
 ```{r}
-data3 = data2[!(is.na(data2$qm10) | 
-             is.na(data2$mbp) |
-             is.na(data2$bio10) |
-             is.na(data2$diab) |
-             is.na(data2$qm16) ),]
-
-data3_std = data2_std[!(is.na(data2$qm10) | 
-             is.na(data2$mbp) |
-             is.na(data2$bio10) |
-             is.na(data2$diab) |
-             is.na(data2$qm16) ),]
+data3 = data2[complete.cases(data2[,var_ajust]),]
+data3_std = data2_std[complete.cases(data2_std[,var_ajust]),]
 ```
 
-# 12. Création d'une base de donnée sans les NA dans au moins une des variables d'echotracking
+
+# 12. Création d'une base de donnée sans les NA dans au moins une des variables d'echotracking_clean
 
 ```{r}
-data3 = subset_SubjectsNA(data2,echotracking,"nepp3")$data_no_na
-dim(data3)
+data4 = data2[complete.cases(data2[,echotracking_clean]),]
+data4_std = data2_std[complete.cases(data2_std[,echotracking_clean]),]
 ```
 
-# 13. Création d'una base de donnée sans les NA dans les variables d'ajustement.
+# 13. Création d'una base de donnée sans les NA dans les variables d'ajustement et dans les var d'et clean.
 
 ```{r}
-data4 = subset_SubjectsNA(data2,var_ajust,"nepp3")$data_no_na
-dim(data4)
-```
-
-# 13. Création d'una base de donnée sans les NA dans les variables d'ajustement et dans les variables d'et
-
-```{r}
-data5 = subset_SubjectsNA(data2,c(var_ajust,echotracking),"nepp3")$data_no_na
-dim(data5)
-```
-
-data4 et data5 sont équivalentes:
-
-```{r}
-sum(data4$nepp3 %in% data5$nepp3)
+data5 = data2[complete.cases(data2[,c(var_ajust,echotracking_clean)]),]
+data5_std = data2_std[complete.cases(data2_std[,c(var_ajust,echotracking_clean)]),]
 ```
 

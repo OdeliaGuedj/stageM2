@@ -1,0 +1,203 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+library(openxlsx)
+```
+
+```{r}
+event <- c("deces","time_to_deces","chd","time_to_chd")
+
+var <- var_ajust
+
+
+index <- echotracking_clean[1:5]
+
+wb <- createWorkbook()
+
+for ( i in seq(1,length(event),2)) {
+  
+  # création d'une page par evt
+  addWorksheet(wb, paste0(event[i],"_MULTIVARIATE"), gridLines = TRUE) 
+  # on transforme les evt en numérique
+  data5_std[,event[i]] <- as.numeric(as.character(data5_std[,event[i]]))
+  data5_std[,event[i+1]] <- as.numeric(as.character(data5_std[,event[i+1]]))
+  
+
+  
+  # Modèle de base
+  var_formula <- paste(var, collapse =" + ")
+  formula_base <- as.formula(paste("Surv(",event[i+1],",",event[i],")~",var_formula))
+  mod_base <- coxph(formula_base,data=data5_std)
+  
+
+  
+# HR et IC du modèle de base
+  HR_IC <- as.data.frame(round(exp(cbind(HR = coef(mod_base),confint(mod_base))), digits = 3))
+
+# Taille population modèle de base
+  N = summary(mod_base)[4]$n
+# NB event modèle de base
+  Nevent = summary(mod_base)[6]$nevent
+# C-index modèle de base
+  harrell_c = concordance(mod_base)$concordance
+# variance c-index modèle de base
+  se_harrell_c = sqrt(concordance(mod_base)$var)
+# Construction IC pour C-index
+  IC_sup_harrell_c <- harrell_c + (1.96*se_harrell_c)
+  IC_inf_harrell_c <- harrell_c - (1.96*se_harrell_c)
+# On rassemble tout ce qui concerne le C_index 
+  harrell <-  cbind(harrell_c = round(harrell_c, digits = 2),
+                    IC_sup_harrell_c = round(IC_sup_harrell_c, digits=2),
+                    IC_inf_harrell_c = round(IC_inf_harrell_c, digits=2)
+                    )
+
+# coeff beta et pvaleur des var du modèle de base
+  beta_pval <- cbind(beta = summary(mod_base)[7]$coefficients[,1],pvalue = round(summary(mod_base)[7]$coefficients[,5], digits=4))
+
+# ????? vecteur vide de taille = nb de variables d'ajustement
+  p_val_dev <- rep("", times=length(var))
+  
+  # Pour chaque variable d'ajustement j : 
+  for (j in 1 : length(var)) {
+    # on stock dans reste toutes les var d'ajustement sauf j
+    reste <- var[-j]  
+    # Modèle avec toutes las variables d'ajustement sauf j 
+    var_formula_dev <- paste(reste, collapse =" + ") 
+    formula_dev <- as.formula(paste("Surv(",event[i+1],",",event[i],")~",var_formula_dev))
+    mod_dev <- coxph(formula_dev,data=data5_std)
+    # ANOVA entre modèle de base et modèle de base moins variable j : récup p-valeurs du test 
+    p_val_dev[j] <- round(anova(mod_base, mod_dev, test = "Chisq")$'P(>|Chi|)'[2], digits = 4)
+  }
+  # Vérification hypothèse des risques proroportionels du modèle de base
+  assumption <- as.data.frame(cox.zph(mod_base)$table)
+  p_assumption <- round(assumption[-dim(assumption)[1],3], digits = 4)
+  
+  # concaténation et mise au propre des résultats du modèle de base
+  res_base <- cbind(HR_IC,beta_pval)
+  res_base <- cbind(N, Nevent, res_base)
+  res_base <- cbind(res_base, p_val_dev)
+}
+```
+
+
+
+
+```{r}
+  
+  
+  
+  res_base <- cbind(res_base, harrell)
+  res_base <- cbind(res_base, p_assumption)
+  res_base$tab <- paste0(round(res_base$HR, digits = 2)," ", "(", round(res_base$`2.5 %`, digits = 2), "-", round(res_base$`97.5 %`, digits = 2), ")")
+  res_base$c_harrell <- paste0(res_base$harrell_c," ", "(", res_base$IC_inf_harrell_c, "-", res_base$IC_sup_harrell_c, ")")
+  res_base <- res_base[, c("N", "Nevent", "tab", "pvalue", "p_val_dev","c_harrell", "p_assumption")]
+  
+
+  # Ecriture du tableau de res du modèle de base dans l'excel 
+  writeData(wb, sheet = paste0(event[i],"_MULTIVARIATE"), res_base, xy = c("A", 1), rowNames = TRUE)
+  #print(ggforest(mod_base, data = base_multi, fontsize = 0.7))
+  #insertPlot(wb, sheet = paste0(event[i],"_MULTIVARIATE"), xy = c("R", 1), width = 7, height = 5, fileType = "png", units = "in")
+  
+  
+  #Modèle de base + index
+  var_formula <- paste(var, collapse =" + ")
+  univ_formulas <- sapply(index, function (x) as.formula(paste("Surv(",event[i+1],",",event[i],")~",var_formula, "+",x)))
+  univ_models <- lapply(univ_formulas, function(x){coxph(x,data=base_multi)})
+  
+  list <- lapply(univ_models,
+                 function(x){ 
+                   HR_IC <- as.data.frame(round(exp(cbind(HR = coef(x),confint(x))), digits = 3))
+                   N = summary(x)[4]$n
+                   Nevent = summary(x)[6]$nevent
+                   harrell_c = concordance(x)$concordance
+                   se_harrell_c = sqrt(concordance(x)$var)
+                   IC_sup_harrell_c <- harrell_c + (1.96*se_harrell_c)
+                   IC_inf_harrell_c <- harrell_c - (1.96*se_harrell_c)
+                   harrell <-  cbind(harrell_c = round(harrell_c, digits = 2),IC_sup_harrell_c = round(IC_sup_harrell_c, digits=2),IC_inf_harrell_c = round(IC_inf_harrell_c, digits=2) )
+                   beta_pval <- cbind(beta = summary(x)[7]$coefficients[,1],pvalue = round(summary(x)[7]$coefficients[,5], digits=4))
+                   variable <- attr(x$terms, "term.labels")
+                   p_val_dev <- rep("", times=length(variable))
+                   for (j in 1 : length(variable)) {
+                     reste <- variable[-j]
+                     var_formula_dev <- paste(reste, collapse =" + ")
+                     formula_dev <- as.formula(paste("Surv(",event[i+1],",",event[i],")~",var_formula_dev))
+                     mod_dev <- coxph(formula_dev,data=base_multi)
+                     p_val_dev[j] <- round(anova(x, mod_dev, test = "Chisq")$'P(>|Chi|)'[2], digits = 4)}
+                   assumption <- as.data.frame(cox.zph(x)$table)
+                   p_assumption <- round(assumption[-dim(assumption)[1],3], digits = 4)
+                   
+                   base_nri <- data5_std
+                   
+                   # base_nri[,event[i]] <- as.numeric(as.character(base_nri[,event[i]]))
+                   # base_nri[,event[i+1]] <- as.numeric(as.character(base_nri[,event[i+1]]))
+                   # base_nri$gender1 <- ifelse(base_nri$gender1 == "0", 0, 1)
+                   # base_nri$race_bin <- ifelse(base_nri$race_bin == "0_NB", 0, 1)
+                   # base_nri$cig1_2 <- ifelse(base_nri$cig1_2 == "0_NorFS", 0, 1)
+                   # base_nri$htnmed1 <- ifelse(base_nri$htnmed1 == " 0", 0, 1)
+                   # base_nri$diabete_bin <- ifelse(base_nri$diabete_bin == "0_NO_DIABETE", 0, 1)
+                   # base_nri$lipid1c <- ifelse(base_nri$lipid1c == " 0", 0, 1)
+                   
+                   #t0=max(base_nri[,event[i+1]], na.rm = TRUE)
+                   #t0=max(base_nri[,"fatt"], na.rm = TRUE)
+                   
+                   t0=10*365
+                   indata1=base_nri[, c(event[i+1], event[i])]
+                   covs0<-as.matrix(base_nri[,var])
+                   var_sup <- unique(variable[! variable %in% var])
+                   covs1<-as.matrix(base_nri[,c(var, var_sup)]) 
+                   
+                   res_IDI_NRI <-IDI.INF(indata1, covs0, covs1, t0, npert=200) 
+                   
+                   res_IDI <- res_IDI_NRI$m1
+                   IDI <- paste0(round(res_IDI[[1]], digits = 3)," ", "(", round(res_IDI[[2]], digits = 3), " - ", round(res_IDI[[3]], digits = 3), ")")
+                   IDI_p_value <- round(res_IDI[[4]], digits = 4)
+                   IDI_1 <- res_IDI_NRI$m1.est[[2]]
+                   IDI_2 <- res_IDI_NRI$m1.est[[3]]
+                   
+                   res_NRI <- res_IDI_NRI$m2
+                   DEMI_NRI <- paste0(round(res_NRI[[1]], digits = 3)," ", "(", round(res_NRI[[2]], digits = 3), " - ", round(res_NRI[[3]], digits = 3), ")")
+                   DEMI_NRI_p_value <- round(res_NRI[[4]], digits = 4)
+                   NRI_1 <- res_IDI_NRI$m2.est[[2]]
+                   NRI_2 <- res_IDI_NRI$m2.est[[3]]
+                   NRI <- 2 * res_NRI[[1]]
+                   NRI_event <- NRI_1 - (1-NRI_1)
+                   NRI_non_event <- (1-NRI_2) - NRI_2
+                   
+                   res <- cbind(HR_IC,beta_pval)
+                   res <- cbind(N, Nevent, res)
+                   res <- cbind(res, p_val_dev)
+                   res <- cbind(res, harrell)
+                   res <- cbind(res, p_assumption)
+                   res <- cbind(res, IDI, IDI_p_value, IDI_1, IDI_2, 
+                                DEMI_NRI, DEMI_NRI_p_value,NRI_1, NRI_2, NRI, NRI_event, NRI_non_event)
+                   res$tab <- paste0(round(res$HR, digits = 2)," ", "(", round(res$`2.5 %`, digits = 2), "-", round(res$`97.5 %`, digits = 2), ")")
+                   res$c_harrell <- paste0(res$harrell_c," ", "(", res$IC_inf_harrell_c, "-", res$IC_sup_harrell_c, ")")
+                   res$pvalue <- round(res$pvalue, digits = 4)
+                   res <- res[, c("N", "Nevent", "tab", "pvalue", "p_val_dev", "c_harrell", "p_assumption",
+                                  "IDI","IDI_p_value", "IDI_1","IDI_2", 
+                                  "DEMI_NRI", "DEMI_NRI_p_value", "NRI_1", "NRI_2", "NRI", "NRI_event","NRI_non_event" )]
+                   return(res)
+                 }) 
+  
+  #list_plot <- lapply(univ_models,function(x){ggforest(x, data = base_multi, fontsize = 0.7)})
+  #list_plot_ass <- lapply(univ_models,function(x){ggcoxzph(cox.zph(x))})
+  
+  for (l in 1 : length(list)) {
+    if (l == 1) { 
+      writeData(wb, sheet = paste0(event[i],"_MULTIVARIATE"), list[[l]], xy = c("A", length(var) + 9), rowNames = TRUE)
+      #print(list_plot[[l]])
+      #insertPlot(wb, sheet = paste0(event[i],"_MULTIVARIATE"), xy = c("R", length(var) + 9), width = 7, height = 5, fileType = "png", units = "in")
+    }
+    
+    if (l != 1) { 
+      writeData(wb, sheet = paste0(event[i],"_MULTIVARIATE"), list[[l]], xy = c("A", length(var) + 9 + ((l-1)*24)), rowNames = TRUE)
+      #print(list_plot[[l]])
+      #insertPlot(wb, sheet = paste0(event[i],"_MULTIVARIATE"), xy = c("R", length(var) + 9 + ((l-1)*24)), width = 7, height = 5, fileType = "png", units = "in")
+    }
+  }
+}
+
+```
+

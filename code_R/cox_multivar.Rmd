@@ -13,38 +13,15 @@ editor_options:
 Necessaire que les evt soient numériques sinon pas pris en charge par la fonction coxph.
 
 ```{r}
- for(evt in var_evt){
-   data[,evt] = as.numeric(as.character(data[,evt]))
-   data2[,evt] = as.numeric(as.character(data2[,evt]))
-   data_std[,evt] = as.numeric(as.character(data_std[,evt]))
-   data2_std[,evt] = as.numeric(as.character(data2_std[,evt]))
+ for(evt in c(var_evt,time_to_evt)){
+   data5[,evt] = as.numeric(as.character(data5[,evt]))
+   data5_std[,evt] = as.numeric(as.character(data5_std[,evt]))
    }
 ```
 
 
+# 1. Modèles de Cox progressifs
 
-# 1. Modèles de Cox
-
-## 1.1 Modèle de base
-
-```{r}
-modele_base_deces_tos_std = coxph(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, data = data2_std) 
-```
-```{r}
-summary(modele_base_deces_tos_std)
-```
-```{r}
-data2_std$age_at_chd = as.numeric(as.character(data2_std$age_at_chd))
-coxph(Surv())
-```
-```{r}
-data2_std$age_at_chd = data2_std$age_at_chd + 0.01
-```
-
-```{r}
-summary(
-coxph(Surv(time = age0, time2 = age_at_chd, event = chd) ~   sexe + qm16 + qm10 + diab + bio10 + bmi + mbp+ year_naiss_cat, data = data2))
-```
 
 Les analyses déjà faites avaient la structure suivante
 1. Univarié
@@ -53,214 +30,101 @@ Les analyses déjà faites avaient la structure suivante
 4. Modèle 3: Modèle 2 + bmi
 5. Modèle 4: Modèle 3 + mean blood pressure
 
+## 1.1 Deces
 
-# 2. Modèles multivariés
 
+### 1.1.1 Données brutes
 
-### 2.1 Deces
-
-#### 2.1.1 Time scale = time on study
-
-##### 2.1.1.1 Données brutes
 ```{r}
-f1_deces_tos = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10, env = data3)
+f1_deces_tos = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10, env = data5)
 
-f2_deces_tos = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10 + diab + bio10, env = data3)
+f2_deces_tos = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10 + diab + bio10, env = data5)
 
-f3_deces_tos = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi, env = data3)
+f3_deces_tos = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi, env = data5)
 
-f4_deces_tos = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, env = data3)
+f4_deces_tos = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, env = data5)
 
-f5_deces_tos = formula(Surv(time_to_deces,deces) ~ sexe + qm16 + qm10 + diab + bio10 + bmi + mbp , env = data3)
+f5_deces_tos = formula(Surv(time_to_deces,deces) ~ sexe + qm16 + qm10 + diab + bio10 + bmi + mbp , env = data5)
 ```
 
 ```{r}
-m1_deces_tos = cox_multivar2(f1_deces_tos,cox_univar_all,data3, round = F)
-m2_deces_tos = cox_multivar2(f2_deces_tos,cox_univar_all,data3, round = F)
-m3_deces_tos = cox_multivar2(f3_deces_tos,cox_univar_all,data3, round = F)
-m4_deces_tos = cox_multivar2(f4_deces_tos,cox_univar_all,data3, round = F)
-m5_deces_tos = cox_multivar2(f5_deces_tos,cox_univar_all,data3, round = F)
+m1_deces_tos = cox_multivar2(f1_deces_tos,cox_univar_deces,data5, round = F)
+m2_deces_tos = cox_multivar2(f2_deces_tos,cox_univar_deces,data5, round = F)
+m3_deces_tos = cox_multivar2(f3_deces_tos,cox_univar_deces,data5, round = F)
+m4_deces_tos = cox_multivar2(f4_deces_tos,cox_univar_deces,data5, round = F)
+m5_deces_tos = cox_multivar2(f5_deces_tos,cox_univar_deces,data5, round = F)
 ```
 
-##### 2.1.1.2 Données scaled
+#### 1.1.2 Données scaled
 
 ```{r}
-f1_deces_tos_std = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10, env = data3_std)
+f1_deces_tos_std = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10, env = data5_std)
 
-f2_deces_tos_std = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10 + diab + bio10, env = data3_std)
+f2_deces_tos_std = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10 + diab + bio10, env = data5_std)
 
-f3_deces_tos_std = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi, env = data3_std)
+f3_deces_tos_std = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi, env = data5_std)
 
-f4_deces_tos_std = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, env = data3_std)
+f4_deces_tos_std = formula(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, env = data5_std)
 
-f5_deces_tos_std = formula(Surv(time_to_deces,deces) ~ sexe + qm16 + qm10 + diab + bio10 + bmi + mbp , env = data3_std)
-```
-
-
-
-
-```{r}
-m1_deces_tos_std = cox_multivar2(f1_deces_tos_std,cox_univar_all,data3_std, round = F)
-m2_deces_tos_std = cox_multivar2(f2_deces_tos_std,cox_univar_all,data3_std, round = F)
-m3_deces_tos_std = cox_multivar2(f3_deces_tos_std,cox_univar_all,data3_std, round = F)
-m4_deces_tos_std = cox_multivar2(f4_deces_tos_std,cox_univar_all,data3_std, round = F)
-m5_deces_tos_std = cox_multivar2(f5_deces_tos_std,cox_univar_all,data3_std, round = F)
-```
-
-```{r}
-plot_grid(
-plot_pv_HR3(m1_deces_tos_std, nice.names = F) + ggtitle("Modèle 1"),
-plot_pv_HR3(m2_deces_tos_std, nice.names = F) + ggtitle("Modèle 2"),
-plot_pv_HR3(m3_deces_tos_std, nice.names = F) + ggtitle("Modèle 3"),
-plot_pv_HR3(m4_deces_tos_std, nice.names = F) + ggtitle("Modèle 4"))
-```
-
-
-
-#### 2.1.2 Time scale = age scale
-
-##### 2.1.2.1 Données brutes
-```{r}
-f1_deces_as = formula(Surv(age_at_deces,deces) ~ year_naiss_cat + sexe + qm16 + qm10, env = data3)
-
-f2_deces_as = formula(Surv(age_at_deces,deces) ~ year_naiss_cat + sexe + qm16 + qm10 + diab + bio10, env = data3)
-
-f3_deces_as = formula(Surv(age_at_deces,deces) ~ year_naiss_cat + sexe + qm16 + qm10 + diab + bio10 + bmi, env = data3)
-
-f4_deces_as = formula(Surv(age_at_deces,deces) ~ year_naiss_cat + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, env = data3)
-
-f5_deces_as = formula(Surv(age_at_deces,deces) ~ sexe + qm16 + qm10 + diab + bio10 + bmi + mbp , env = data3)
+f5_deces_tos_std = formula(Surv(time_to_deces,deces) ~ sexe + qm16 + qm10 + diab + bio10 + bmi + mbp , env = data5_std)
 ```
 
 
 ```{r}
-m1_deces_as = cox_multivar2(f1_deces_as,cox_univar_all,data3, round = F)
-m2_deces_as = cox_multivar2(f2_deces_as,cox_univar_all,data3, round = F)
-m3_deces_as = cox_multivar2(f3_deces_as,cox_univar_all,data3, round = F)
-m4_deces_as = cox_multivar2(f4_deces_as,cox_univar_all,data3, round = F)
-m5_deces_as = cox_multivar2(f5_deces_as,cox_univar_all,data3, round = F)
-```
-
-##### 2.1.2.2 Données scaled
-```{r}
-f1_deces_as_std = formula(Surv(age_at_deces,deces) ~ year_naiss_cat + sexe + qm16 + qm10, env = data3_std)
-
-f2_deces_as_std = formula(Surv(age_at_deces,deces) ~ year_naiss_cat + sexe + qm16 + qm10 + diab + bio10, env = data3_std)
-
-f3_deces_as_std = formula(Surv(age_at_deces,deces) ~ year_naiss_cat + sexe + qm16 + qm10 + diab + bio10 + bmi, env = data3_std)
-
-f4_deces_as_std = formula(Surv(age_at_deces,deces) ~ year_naiss_cat + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, env = data3_std)
-
-f5_deces_as_std = formula(Surv(age_at_deces,deces) ~ sexe + qm16 + qm10 + diab + bio10 + bmi + mbp , env = data3_std)
+m1_deces_tos_std = cox_multivar2(f1_deces_tos_std,cox_univar_all,data5_std, round = F)
+m2_deces_tos_std = cox_multivar2(f2_deces_tos_std,cox_univar_all,data5_std, round = F)
+m3_deces_tos_std = cox_multivar2(f3_deces_tos_std,cox_univar_all,data5_std, round = F)
+m4_deces_tos_std = cox_multivar2(f4_deces_tos_std,cox_univar_all,data5_std, round = F)
+m5_deces_tos_std = cox_multivar2(f5_deces_tos_std,cox_univar_all,data5_std, round = F)
 ```
 
 
-```{r}
-m1_deces_as_std = cox_multivar2(f1_deces_as_std,cox_univar_all,data3_std, round = F)
-m2_deces_as_std = cox_multivar2(f2_deces_as_std,cox_univar_all,data3_std, round = F)
-m3_deces_as_std = cox_multivar2(f3_deces_as_std,cox_univar_all,data3_std, round = F)
-m4_deces_as_std = cox_multivar2(f4_deces_as_std,cox_univar_all,data3_std, round = F)
-m5_deces_as_std = cox_multivar2(f5_deces_as_std,cox_univar_all,data3_std, round = F)
-```
-```{r}
-plot_grid(
-plot_pv_HR3(m1_deces_as_std, nice.names = F) + ggtitle("Modèle 1"),
-plot_pv_HR3(m2_deces_as_std, nice.names = F) + ggtitle("Modèle 2"),
-plot_pv_HR3(m3_deces_as_std, nice.names = F) + ggtitle("Modèle 3"),
-plot_pv_HR3(m4_deces_as_std, nice.names = F) + ggtitle("Modèle 4"))
-```
-## 2.2 CHD
+## 1.2 CHD
 
-### 2.2.1 Time scale = time on study
-
-#### 2.2.1.1 Données brutes
+### 1.2.1 Données brutes
 ```{r}
-f1_chd_tos = formula(Surv(time_to_chd,chd) ~ age0 + sexe + qm16 + qm10, env = data3)
-f2_chd_tos = formula(Surv(time_to_chd,chd) ~ age0 + sexe + qm16 + qm10 + diab + bio10, env = data3)
-f3_chd_tos = formula(Surv(time_to_chd,chd) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi, env = data3)
-f4_chd_tos = formula(Surv(time_to_chd,chd) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, env = data3)
-f5_chd_tos = formula(Surv(time_to_chd,chd) ~ sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, env = data3)
+f1_chd_tos = formula(Surv(time_to_chd,chd) ~ age0 + sexe + qm16 + qm10, env = data5)
+f2_chd_tos = formula(Surv(time_to_chd,chd) ~ age0 + sexe + qm16 + qm10 + diab + bio10, env = data5)
+f3_chd_tos = formula(Surv(time_to_chd,chd) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi, env = data5)
+f4_chd_tos = formula(Surv(time_to_chd,chd) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, env = data5)
+f5_chd_tos = formula(Surv(time_to_chd,chd) ~ sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, env = data5)
 ```
 
 
 ```{r}
-m1_chd_tos = cox_multivar2(f1_chd_tos,cox_univar_all,data3, round = F)
-m2_chd_tos = cox_multivar2(f2_chd_tos,cox_univar_all,data3, round = F)
-m3_chd_tos = cox_multivar2(f3_chd_tos,cox_univar_all,data3, round = F)
-m4_chd_tos = cox_multivar2(f4_chd_tos,cox_univar_all,data3, round = F)
-m4_chd_tos = cox_multivar2(f4_chd_tos,cox_univar_all,data3, round = F)
-m5_chd_tos = cox_multivar2(f5_chd_tos,cox_univar_all,data3, round = F)
+m1_chd_tos = cox_multivar2(f1_chd_tos,cox_univar_all,data5, round = F)
+m2_chd_tos = cox_multivar2(f2_chd_tos,cox_univar_all,data5, round = F)
+m3_chd_tos = cox_multivar2(f3_chd_tos,cox_univar_all,data5, round = F)
+m4_chd_tos = cox_multivar2(f4_chd_tos,cox_univar_all,data5, round = F)
+m4_chd_tos = cox_multivar2(f4_chd_tos,cox_univar_all,data5, round = F)
+m5_chd_tos = cox_multivar2(f5_chd_tos,cox_univar_all,data5, round = F)
 ```
 
-#### 2.2.1.2 Données scaled
+### 1.2.2 Données scaled
 ```{r}
-f1_chd_tos_std = formula(Surv(time_to_chd,chd) ~ age0 + sexe + qm16 + qm10, env = data3_std)
-f2_chd_tos_std = formula(Surv(time_to_chd,chd) ~ age0 + sexe + qm16 + qm10 + diab + bio10, env = data3_std)
-f3_chd_tos_std = formula(Surv(time_to_chd,chd) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi, env = data3_std)
-f4_chd_tos_std = formula(Surv(time_to_chd,chd) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, env = data3_std)
+f1_chd_tos_std = formula(Surv(time_to_chd,chd) ~ age0 + sexe + qm16 + qm10, env = data5_std)
+f2_chd_tos_std = formula(Surv(time_to_chd,chd) ~ age0 + sexe + qm16 + qm10 + diab + bio10, env = data5_std)
+f3_chd_tos_std = formula(Surv(time_to_chd,chd) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi, env = data5_std)
+f4_chd_tos_std = formula(Surv(time_to_chd,chd) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, env = data5_std)
 f5_chd_tos_std = formula(Surv(time_to_chd,chd) ~ sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, env = data3_std)
 ```
 
 
 ```{r}
-m1_chd_tos_std = cox_multivar2(f1_chd_tos_std,cox_univar_all,data3_std, round = F)
-m2_chd_tos_std = cox_multivar2(f2_chd_tos_std,cox_univar_all,data3_std, round = F)
-m3_chd_tos_std = cox_multivar2(f3_chd_tos_std,cox_univar_all,data3_std, round = F)
-m4_chd_tos_std = cox_multivar2(f4_chd_tos_std,cox_univar_all,data3_std, round = F)
-m4_chd_tos_std = cox_multivar2(f4_chd_tos_std,cox_univar_all,data3_std, round = F)
-m5_chd_tos_std = cox_multivar2(f5_chd_tos_std,cox_univar_all,data3_std, round = F)
+m1_chd_tos_std = cox_multivar2(f1_chd_tos_std,cox_univar_all,data5_std, round = F)
+m2_chd_tos_std = cox_multivar2(f2_chd_tos_std,cox_univar_all,data5_std, round = F)
+m3_chd_tos_std = cox_multivar2(f3_chd_tos_std,cox_univar_all,data5_std, round = F)
+m4_chd_tos_std = cox_multivar2(f4_chd_tos_std,cox_univar_all,data5_std, round = F)
+m4_chd_tos_std = cox_multivar2(f4_chd_tos_std,cox_univar_all,data5_std, round = F)
+m5_chd_tos_std = cox_multivar2(f5_chd_tos_std,cox_univar_all,data5_std, round = F)
 ```
 
+# 2. Modèles de cox de comparaison
+
+## 2.1 Modèles de base
 ```{r}
-plot_grid(
-plot_pv_HR3(m1_chd_tos_std, nice.names = F) + ggtitle("Modèle 1"),
-plot_pv_HR3(m2_chd_tos_std, nice.names = F) + ggtitle("Modèle 2"),
-plot_pv_HR3(m3_chd_tos_std, nice.names = F) + ggtitle("Modèle 3"),
-plot_pv_HR3(m4_chd_tos_std, nice.names = F) + ggtitle("Modèle 4"))
-```
-### 2.2.2 Time scale = age scale
-
-#### 2.2.2.1 Données brutes
-```{r}
-f1_chd_as = formula(Surv(age_at_chd,chd) ~ year_naiss_cat + sexe + qm16 + qm10, env = data3)
-f2_chd_as = formula(Surv(age_at_chd,chd) ~ year_naiss_cat + sexe + qm16 + qm10 + diab + bio10, env = data3)
-f3_chd_as = formula(Surv(age_at_chd,chd) ~ year_naiss_cat + sexe + qm16 + qm10 + diab + bio10 + bmi, env = data3)
-f4_chd_as = formula(Surv(age_at_chd,chd) ~ year_naiss_cat + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, env = data3)
-f5_chd_as = formula(Surv(age_at_chd,chd) ~ sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, env = data3)
+modele_base_deces_tos_std = coxph(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, data = data5_std)
+modele_base_chd_tos_std = coxph(Surv(time_to_chd,chd) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, data = data5_std)
 ```
 
 
-```{r}
-m1_chd_as = cox_multivar2(f1_chd_as,cox_univar_all,data3, round = F)
-m2_chd_as = cox_multivar2(f2_chd_as,cox_univar_all,data3, round = F)
-m3_chd_as = cox_multivar2(f3_chd_as,cox_univar_all,data3, round = F)
-m4_chd_as = cox_multivar2(f4_chd_as,cox_univar_all,data3, round = F)
-m4_chd_as = cox_multivar2(f4_chd_as,cox_univar_all,data3, round = F)
-m5_chd_as = cox_multivar2(f5_chd_as,cox_univar_all,data3, round = F)
-```
-
-#### 2.2.2.2 Données scaled
-```{r}
-f1_chd_as_std = formula(Surv(age_at_chd,chd) ~ year_naiss_cat + sexe + qm16 + qm10, env = data3_std)
-f2_chd_as_std = formula(Surv(age_at_chd,chd) ~ year_naiss_cat + sexe + qm16 + qm10 + diab + bio10, env = data3_std)
-f3_chd_as_std = formula(Surv(age_at_chd,chd) ~ year_naiss_cat + sexe + qm16 + qm10 + diab + bio10 + bmi, env = data3_std)
-f4_chd_as_std = formula(Surv(age_at_chd,chd) ~ year_naiss_cat + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, env = data3_std)
-f5_chd_as_std = formula(Surv(age_at_chd,chd) ~ sexe + qm16 + qm10 + diab + bio10 + bmi + mbp, env = data3_std)
-```
-
-
-```{r}
-m1_chd_as_std = cox_multivar2(f1_chd_as_std,cox_univar_all,data3_std, round = F)
-m2_chd_as_std = cox_multivar2(f2_chd_as_std,cox_univar_all,data3_std, round = F)
-m3_chd_as_std = cox_multivar2(f3_chd_as_std,cox_univar_all,data3_std, round = F)
-m4_chd_as_std = cox_multivar2(f4_chd_as_std,cox_univar_all,data3_std, round = F)
-m4_chd_as_std = cox_multivar2(f4_chd_as_std,cox_univar_all,data3_std, round = F)
-m5_chd_as_std = cox_multivar2(f5_chd_as_std,cox_univar_all,data3_std, round = F)
-```
-```{r}
-plot_grid(
-plot_pv_HR3(m1_chd_as_std, nice.names = F) + ggtitle("Modèle 1"),
-plot_pv_HR3(m2_chd_as_std, nice.names = F) + ggtitle("Modèle 2"),
-plot_pv_HR3(m3_chd_as_std, nice.names = F) + ggtitle("Modèle 3"),
-plot_pv_HR3(m4_chd_as_std, nice.names = F) + ggtitle("Modèle 4"))
-```

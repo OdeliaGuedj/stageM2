@@ -28,7 +28,9 @@ which(echotracking == "pwvloc")
 
 
 ```{r}
-data2$na_et = ifelse(data2$nepp3 %in% subset_SubjectsNA(data2, echotracking,"nepp3")$na_id,1,0)
+data2$na_et = ifelse(data2
+                     
+                     $nepp3 %in% subset_SubjectsNA(data2, echotracking,"nepp3")$na_id,1,0)
 data2$na_et = as.factor(data2$na_et)
 table(data2$na_et, useNA = "always")
 ```
