@@ -28,6 +28,8 @@ library(questionr)
 library(naniar)
 library(corrplot)
 library(lsr)
+library(survIDINRI)
+library(RColorBrewer)
 ```
 
 # 1. Reading the data
@@ -157,10 +159,10 @@ Pour les evt == 1 time_to_event = nbr de jours entre inclusion et evenement
 Pour les evt == 0 time_to_event = nbr de jours total d'observation du sujet = nbr de jour entre inclusion et date de dernières nouvelles
 
 ```{r}
-data$time_to_deces = as.numeric(difftime(data$date_deces, data$datinclu, unit = "days"))
+data$time_to_deces = difftime(data$date_deces, data$datinclu, unit = "days")
 data$time_to_stroke = as.numeric(difftime(data$date_stroke, data$datinclu, unit = "days"))
 data$time_to_aomi = as.numeric(difftime(data$date_aomi, data$datinclu, unit = "days"))
-data$time_to_chd = as.numeric(difftime(data$date_chd, data$datinclu, unit = "days"))
+data$time_to_chd = difftime(data$date_chd, data$datinclu, unit = "days")
 data$time_to_tdr = as.numeric(difftime(data$date_tdr, data$datinclu, unit = "days"))
 ```
 
@@ -214,7 +216,9 @@ bio = c("trb17", "ldl","bio10","mbp","bio6", "pa_cat", "mbp_cat","pas","pad")
 echotracking =  c("fc_basale","diam_bm","imt","diam_fbm","distension","pwvloc", "dploc","debut","dist_rate_moy","dist_rate_var","rr_int_moy","rr_int_var","lf_dist_rate_t","hf_dist_rate_t","hf_dist_rate_c","lf_rrint_t","hf_rr_int_t","hf_rrint_c","freq_resp","lf_coh_max","lf_coh_moy","lf_gain_max","lf_gain_moy","lf_phase","sens_phase","hf_c_coh_max","hf_c_coh_moy","hf_c_gain_max","hf_c_gain_moy","hf_c_phase","sens_phase_hf_c","hf_t_coh_max","hf_t_coh_moy","hf_t_gain_max","hf_t_gain_moy","hf_t_phase","sens_hf_t_phase","dist_moy","dist_var","cws","coeffDist","compli","wcsa","young","plaques","logain","logyoung","dextdias","stiffness")
 
 
-echotracking_clean =  c("fc_basale","diam_bm","imt","distension","pwvloc", "dploc","dist_rate_moy","rr_int_moy","lf_dist_rate_t","hf_dist_rate_t","hf_dist_rate_c","lf_rrint_t","hf_rr_int_t","hf_rrint_c","freq_resp","lf_coh_moy","lf_gain_moy","hf_c_coh_moy","hf_c_gain_moy","hf_t_coh_moy","hf_t_gain_moy","dist_moy","cws","coeffDist","compli","wcsa","plaques","logain","logyoung","dextdias","stiffness")
+echotracking_clean =  c("fc_basale","diam_bm","imt","distension","pwvloc", "dploc","dist_rate_moy","rr_int_moy","lf_dist_rate_t","hf_dist_rate_t","hf_dist_rate_c","lf_rrint_t","hf_rr_int_t","hf_rrint_c","freq_resp","lf_coh_moy","lf_gain_moy","hf_c_coh_moy","hf_c_gain_moy","hf_t_coh_moy","hf_t_gain_moy","cws","coeffDist","compli","wcsa","plaques","logain","logyoung","stiffness")
+
+names_echotracking_clean = c("Basale cardiac rate", "Diastolic outer diameter (bm)", "Itima Media Thickness","Distension", "Pulse Wave Velocity","Central Pulse Pressure", "Distension Rate (Mean)",  "RR interval (Mean)", "Low frequency Distension Rate (t)","High frequency Distension rate (t)","High frequency Distension Rate (c)", "Low frequency RR interval (t)", "High frequency RR interval (t)","High frequency RR interval (c)", "Respiratory rate","Low frequency COH (Mean)","Low frequency Gain (Mean)","High frequency COH (Mean) (c)","High frequency Gain (Mean) (c)","High frequency COH (Mean) (t)","High frequency Gain (Mean) (t)","Circumferential Wall Stress","Coefficient of distensibility","Cross Sectional Compliance", "Wall Cross Sectionnal Area","Presence of plaques","Gain (log)", "Young Module (log)","Stiffness")
 
 names_echotracking = c("Basale cardiac rate", "Diastolic outer diameter (bm)", "Itima Media Thickness","Diastolic Outer Diameter (fbm)","Distension", "Pulse Wave Velocity","Central Pulse Pressure",  "Beginning", "Distension Rate (Mean)", "Distension Rate (Variance)", "RR interval (Mean)","RR interval (Variance)", "Low frequency Distension Rate (t)","High frequency Distension rate (t)","High frequency Distension Rate (c)", "Low frequency RR interval (t)", "High frequency RR interval (t)","High frequency RR interval (c)", "Respiratory rate", "Low frequency COH (Max)","Low frequency COH (Mean)","Low frequency Gain (Max)","Low frequency Gain (Mean)","Low frequency phase","Sens phase","High frequency COH (Max) (c)","High frequency COH (Mean) (c)", "High frequency Gain (Max) (c)","High frequency Gain (Mean) (c)","High frequency phase (c)", "High frequency sens phase (c)","High frequency COH (Max) (t)","High frequency COH (Mean) (t)","High frequency Gain (Max) (t)","High frequency Gain (Mean) (t)", "High frequency phase (t)","High freqeuncy sens_phase (t)","Distension (Mean)","Distension (Variance)","Circumferential Wall Stress","Coefficient of distensibility","Cross Sectional Compliance", "Wall Cross Sectionnal Area", "Young Module","Presence of plaques","Gain (log)", "Young Module (log)","Diastolic outer diameter (bm*1000)","Stiffness")
 
@@ -227,49 +231,141 @@ param_carotid = c("logain", "coeffDist","pwvloc", "dploc", "logyoung","imt", "de
 
 df_echo = data.frame("var" = echotracking,  "names" = names_echotracking)
 
-var_ajust = c("age0","sexe" , "qm16" , "qm10" , "diab" , "bio10" , "bmi" , "mbp", "year_naiss_cat")
+var_ajust = c("age0","sexe" , "qm16" , "qm10" , "diab" , "bio10" , "bmi" , "mbp", "ldl","trb17", "year_naiss_cat")
+
+
+```
+
+```{r}
+no_scale = c(id,var_evt,age_at_evt,time_to_evt,date,prev_cvd,"sexe","adm14","qm9","qm10","qm16","educ","antihta2","hypolip2","diab","deptot","sens_phase","sens_phase_hf_c","sens_hf_t_phase","plaques","mbp_cat","HTA_cat","age_cat","year_naiss","year_naiss_cat")
 ```
 
 
+```{r}
+colnames(data)[!(colnames(data) %in% no_scale)]
+```
 
 # 9. Création d'une base de données centrée réduite
 
 ```{r}
 data_std = data
 for(var in colnames(data)){
-  if(is.numeric(data[,var]) & !(is.integer(data[,var]))){
+  if(!(var%in%no_scale)){
     data_std[,var] = (data[,var]-mean(data[,var], na.rm = T))/sd(data[,var], na.rm = T)
   }
 }
 rm(var)
 ```
 
+```{r}
+data_std2 = data
+for(var in colnames(data)){
+  if(!(var%in%c(no_scale,"age0"))){
+    data_std2[,var] = (data[,var]-mean(data[,var], na.rm = T))/sd(data[,var], na.rm = T)
+  }
+}
+rm(var)
+```
+
+
+
+
 # 10. Création base de données sans les prévalents cvd
 
 On retire les patients ayant des antécédants de maladie cardiovasculaire.
 ```{r}
 data2 = subset(data,data$atcdcv == "0")
-data2_std = subset(data_std,data_std$atcdcv == "0")
+```
+```{r}
+data2_std = data2
+for(var in colnames(data2)){
+  if(!(var%in%no_scale)){
+    data2_std[,var] = (data2[,var]-mean(data2[,var], na.rm = T))/sd(data2[,var], na.rm = T)
+  }
+}
+rm(var)
+```
+
+```{r}
+data2_std2 = data2
+for(var in colnames(data2)){
+  if(!(var%in%c(no_scale,"age0"))){
+    data2_std2[,var] = (data2[,var]-mean(data2[,var], na.rm = T))/sd(data2[,var], na.rm = T)
+  }
+}
+rm(var)
 ```
 
 # 11. Création d'une base de donnée sans les NA dans les variables d'ajustement
 ```{r}
 data3 = data2[complete.cases(data2[,var_ajust]),]
-data3_std = data2_std[complete.cases(data2_std[,var_ajust]),]
+```
+```{r}
+data3_std = data3
+for(var in colnames(data3)){
+  if(!(var%in%no_scale)){
+    data3_std[,var] = (data3[,var]-mean(data3[,var], na.rm = T))/sd(data3[,var], na.rm = T)
+  }
+}
+rm(var)
 ```
 
+```{r}
+data3_std2 = data3
+for(var in colnames(data3)){
+  if(!(var%in%c(no_scale,"age0"))){
+    data3_std2[,var] = (data3[,var]-mean(data3[,var], na.rm = T))/sd(data3[,var], na.rm = T)
+  }
+}
+rm(var)
+```
 
 # 12. Création d'une base de donnée sans les NA dans au moins une des variables d'echotracking_clean
 
 ```{r}
 data4 = data2[complete.cases(data2[,echotracking_clean]),]
-data4_std = data2_std[complete.cases(data2_std[,echotracking_clean]),]
+```
+```{r}
+data4_std = data4
+for(var in colnames(data4)){
+  if(!(var%in%no_scale)){
+    data4_std[,var] = (data4[,var]-mean(data4[,var], na.rm = T))/sd(data4[,var], na.rm = T)
+  }
+}
+rm(var)
 ```
 
+```{r}
+data4_std2 = data4
+for(var in colnames(data4)){
+  if(!(var%in%c(no_scale,"age0"))){
+    data4_std2[,var] = (data4[,var]-mean(data4[,var], na.rm = T))/sd(data4[,var], na.rm = T)
+  }
+}
+rm(var)
+```
 # 13. Création d'una base de donnée sans les NA dans les variables d'ajustement et dans les var d'et clean.
 
 ```{r}
 data5 = data2[complete.cases(data2[,c(var_ajust,echotracking_clean)]),]
-data5_std = data2_std[complete.cases(data2_std[,c(var_ajust,echotracking_clean)]),]
+```
+```{r}
+data5_std = data5
+for(var in colnames(data5)){
+  if(!(var%in%no_scale)){
+    data5_std[,var] = (data5[,var]-mean(data5[,var], na.rm = T))/sd(data5[,var], na.rm = T)
+  }
+}
+rm(var)
+```
+
+```{r}
+data5_std2 = data5
+for(var in colnames(data5)){
+  if(!(var%in%c(no_scale,"age0"))){
+    data5_std2[,var] = (data5[,var]-mean(data5[,var], na.rm = T))/sd(data5[,var], na.rm = T)
+  }
+}
+rm(var)
 ```
 
