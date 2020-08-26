@@ -79,7 +79,7 @@ cox_univar = function(time, var, evt, dt, round = T, d.round = 2, alpha = 0.05, 
 
 cox univariés avec l'âge comme echelle de temps
 ```{r}
-cox_univar_as = function(t1, t2, var, evt, dt, round = T, d.round = 2, alpha = 0.05, interaction = F, var.inter){
+cox_univar_as = function(t1, t2, evt,var, dt, round = T, d.round = 2, alpha = 0.05, interaction = F, var.inter){
   
   # t1 : age à baseline
   # t2 : age à l'évenement
@@ -113,41 +113,41 @@ cox_univar_as = function(t1, t2, var, evt, dt, round = T, d.round = 2, alpha = 0
   c_index = concordance(model)$concordance
   
   # Construction du dataframe final arrondi ou non
-  if (round == T){
-    
-    df = data.frame("Name" = var,
-                    "HR" = round(summary$coefficient[length(summary$coefficient[,2]),2],d.round),
-                    "IC" = paste0("[", round(summary$conf.int[length(summary$conf.int[,3]),3],d.round +1), " ; ", ... = round(summary$conf.int[length(summary$conf.int[,4]),4],d.round+1), "]"),
-                    "p.value" = signif(summary$coefficient[length(summary$coefficient[,5]),5],3),
-                    "pv_signif" = ifelse(summary$coefficient[length(summary$coefficient[,5]),5] <= alpha, "*"," "),
-                    "p.shonfeld" = signif(test.shonfeld$table[dim(test.shonfeld$table)[1],dim(test.shonfeld$table)[2]],d.round+1),
-                    "n" = model$n,
-                    "n.events" = model$nevent,
-                    "c_index" = round(c_index,3)
-                    )
-    
-    
-   return(list("res_df"=df, "model" = model))
-  } 
-  
-  else if (round == F){
-    
-    df = data.frame("Name" = var,
-                    "HR" = summary$coefficient[length(summary$coefficient[,2]),2],
-                    "ICinf" = summary$conf.int[length(summary$conf.int[,3]),3],
-                    "ICsup" = summary$conf.int[length(summary$conf.int[,4]),4],
-                    "p.value" = summary$coefficient[length(summary$coefficient[,5]),5],
-                    "pv_signif" = ifelse(summary$coefficient[length(summary$coefficient[,5]),5] <= alpha, 1,0),
-                    "p.shonfeld" = signif(test.shonfeld$table[dim(test.shonfeld$table)[1],dim(test.shonfeld$table)[2]],d.round+1),
-                    "Hyp.Prop.verif" = ifelse(test.shonfeld$table[dim(test.shonfeld$table)[1],dim(test.shonfeld$table)[2]] <= alpha ,0,1),
-                    "n" = model$n,
-                    "n.events" = model$nevent,
-                    "c_index" = c_index
-                    )
-  
-    return(df)
-  
-  }
+   if (round == T){
+     
+     df = data.frame("Name" = var,
+                     "HR" = round(summary$coefficient[length(summary$coefficient[,2]),2],d.round),
+                     "IC" = paste0("[", round(summary$conf.int[length(summary$conf.int[,3]),3],d.round +1), " ; ", ... = round(summary$conf.int[length(summary$conf.int[,4]),4],d.round+1), "]"),
+                     "p.value" = signif(summary$coefficient[length(summary$coefficient[,5]),5],3),
+                     "pv_signif" = ifelse(summary$coefficient[length(summary$coefficient[,5]),5] <= alpha, "*"," "),
+                     "p.shonfeld" = signif(test.shonfeld$table[dim(test.shonfeld$table)[1],dim(test.shonfeld$table)[2]],d.round+1),
+                     "n" = model$n,
+                     "n.events" = model$nevent,
+                     "c_index" = round(c_index,3)
+                     )
+     
+     
+    return(list("res_df"=df, "model" = model))
+   } 
+   
+   else if (round == F){
+     
+     df = data.frame("Name" = var,
+                     "HR" = summary$coefficient[length(summary$coefficient[,2]),2],
+                     "ICinf" = summary$conf.int[length(summary$conf.int[,3]),3],
+                     "ICsup" = summary$conf.int[length(summary$conf.int[,4]),4],
+                     "p.value" = summary$coefficient[length(summary$coefficient[,5]),5],
+                     "pv_signif" = ifelse(summary$coefficient[length(summary$coefficient[,5]),5] <= alpha, 1,0),
+                     "p.shonfeld" = signif(test.shonfeld$table[dim(test.shonfeld$table)[1],dim(test.shonfeld$table)[2]],d.round+1),
+                     "Hyp.Prop.verif" = ifelse(test.shonfeld$table[dim(test.shonfeld$table)[1],dim(test.shonfeld$table)[2]] <= alpha ,0,1),
+                     "n" = model$n,
+                     "n.events" = model$nevent,
+                     "c_index" = c_index
+                     )
+   
+     return(df)
+   
+   }
 }
 ```
 
@@ -244,23 +244,24 @@ plot_pv_HR2  = function(cox_nice_info, hj = 0, vj = 0, main = " "){
 
   ggplot(cox_nice_info,aes(p.value, HR, color = col)) +
 
-  geom_point(size = 3) +
+  geom_point(size = .5) +
 
   scale_y_continuous(name="HR",limits=c(min(cox_nice_info$HR)-0.1 , max(cox_nice_info$HR)+0.1)) +
 
 
   theme_classic() +
   
-  scale_colour_manual(values = c("red", "black", "green")) +
+  scale_colour_manual(values = c("red", "black", "darkgreen")) +
 
-  geom_text_repel(aes(label = Name_nice),
+  geom_text_repel(aes(label = Name_nice)
+                  ,
                   #segment.colour = NA,
-                  box.padding   = 0.35,
+                  #box.padding   = 0.35,
                   point.padding = 0.5,
                   #segment.color = "black",
-                  force = 5,
-                  segment.size  = .7 ,#epaisseur segments
-                  size = 3 #taille label
+                  #force = 5,
+                  #segment.size  = .7 ,#epaisseur segments
+                  size = 2 #taille label
                      ) +
 
 
@@ -391,6 +392,11 @@ generate_str_var = function(list_var){
   return(str)
 }
 ```
+
+
+
+
+
 
 
 Vérification de la loglinéarité de cox univariés avec la méthode du livre de biostat
@@ -567,4 +573,168 @@ Permet de virer les sujets (identifiés par id, var devant être présente dans 
 #     }
 ```
 
+```{r}
+NRI_IDI_cox_tos = function(evt,v_ajust,v_, data){
+  # evt: vecteur de taille nb.event*2 evt = (evt1,ttevt1,evt2,ttevt2,...)
+  # v_ajust : vecteurs avec toutes les variables d'ajustement
+  # v_ : paramètres dont on veut calculer l'apport predictif
+  
+T1<-Sys.time()
 
+# Liste des résultats des modèles de base pour chaque evt
+list_base = list()
+# Liste des résultats des modèles enrichis pour chaque evt
+list_base_param = list()
+
+for ( i in seq(1,length(evt),2)) {
+# Gestion des types des evt et time_to_evt
+  data[,evt[i]] = as.numeric(as.character(data[,evt[i]]))
+  data[,evt[i+1]] = as.numeric(as.character(data[,evt[i+1]]))
+  
+# Fit du Modèle de base
+  var_formula = paste(v_ajust, collapse =" + ")
+  formula_base = as.formula(paste("Surv(",evt[i+1],",",evt[i],")~",var_formula))
+  mod_base = coxph(formula_base,data=data)
+  sum_base = summary(mod_base)
+  
+# Test du rapport de vraisemblance des coefficients du modèle de base
+  p_test = c()
+  for(j in 1:length(v_ajust)){
+    reste = v_ajust[-j]
+    var_formula_test = paste(reste, collapse = "+")
+    formula_test = as.formula(
+      paste("Surv(",
+            evt[i+1],",",
+            evt[i],")~",var_formula_test))
+    mod_test = coxph(formula_test, data = data)
+    p = anova(mod_base,mod_test, test = "Chisq")$'P(>|Chi|)'[2]
+    if(is.factor(data[,v_ajust[j]])){
+      nb.levels = length(levels(data[,v_ajust[j]]))
+      p = rep(p,nb.levels-1)
+    }
+    p_test = c(p_test,p)
+  }
+  p_test = ifelse(p_test<=0.001,"<0.001",signif(p_test,3))
+  
+
+# Liste avec les info du modèle de base
+  HR_base = round(sum_base$conf.int[,1],2)
+  IC_base = paste0("[", round(sum_base$conf.int[,3],2) , ";" , round(sum_base$conf.int[,4],2), "]" )
+  p_base = ifelse(sum_base$coefficients[,5]<=0.001,"<0.001",signif(sum_base$coefficients[,5],3))
+  cindex_base = signif(concordance(mod_base)$concordance,3)
+  IC_cindex_base = paste0("[", 
+                          round(concordance(mod_base)$concordance + 1.96*sqrt(concordance(mod_base)$var),2) ,
+                          ";" , 
+                          round(concordance(mod_base)$concordance - 1.96*sqrt(concordance(mod_base)$var),2),
+                          "]")
+  nevent_base = mod_base$nevent
+  N_base = mod_base$n
+  df_base = data.frame("Names" = row.names(sum_base$coefficients),
+                       "HR" = HR_base,
+                       "IC" = IC_base,
+                       "p" = p_base,
+                       "p.globale" = p_test
+                       )
+
+  list_base[[paste0(evt[i])]] = list("df" = df_base, "N" = N_base, "n.event" = nevent_base, "c.index" = cindex_base, "IC.c.index" = IC_cindex_base)
+  
+# Fit des modèles de base + 1 param d'echotracking
+  list_formulas_cox = sapply(v_, function(x)                  as.formula(paste("Surv(",evt[i+1],",",evt[i],")~",var_formula,"+",x)))
+  names(list_formulas_cox) = v_
+  
+  
+  list_models = lapply(list_formulas_cox,function(x){
+    # Modèle
+    m = coxph(x, data = data)
+    # Clacul NRI et IDI
+    v_base = attr(mod_base$terms,"term.labels")
+    v_param = attr(m$terms,"term.labels")
+    f_param = as.formula(paste0("~",paste(v_param, collapse = "+")))
+    f_base = as.formula(paste0("~",paste(v_base, collapse = "+")))
+    COVS0 = model.matrix(f_base, data)[,-1]
+    COVS1 = model.matrix(f_param, data)[,-1]
+    res = IDI.INF(indata = data[,c(evt[i+1],evt[i])],
+                covs0 = COVS0,
+                covs1 = COVS1,
+                t0 = 5*365)
+    # Test du rapport de vraisemblance des coefficients du modèle de base
+   p_test_param = c()
+   for(j in 1:length(v_param)){
+     reste = v_param[-j]
+     var_f_base = paste(v_param, collapse = "+")
+     var_f_param = paste(reste, collapse = "+")
+     f_base = as.formula(
+       paste("Surv(",
+             evt[i+1],",",
+             evt[i],")~",var_f_base))
+     f_param = as.formula(
+       paste("Surv(",
+             evt[i+1],",",
+             evt[i],")~",var_f_param))
+     mod_base = coxph(f_base, data = data)
+     mod_param = coxph(f_param, data = data)
+     p = anova(mod_base,mod_param, test = "Chisq")$'P(>|Chi|)'[2]
+     if(is.factor(data[,v_param[j]])){
+       nb.levels = length(levels(data[,v_param[j]]))
+       p = rep(p,nb.levels-1)
+     }
+     p_test_param = c(p_test_param,p)
+   }
+   p_test_param = ifelse(p_test_param<=0.001,"<0.001",signif(p_test_param,3))
+    return(list("model" = m, "nri_idi" = res, "p.globale" = p_test_param ))
+    
+  })
+                        
+  names(list_models) = v_
+  
+
+  
+  
+  
+# Liste des infos des modèles base + 1 paramètre d'echotracking
+  
+  list_models_nice = lapply(list_models,
+                            function(x){
+                              HR_param = round(summary(x$model)$conf.int[,1],2)
+                              IC_param = paste0("[", round(summary(x$model)$conf.int[,3],2) , ";" ,round(summary(x$model)$conf.int[,4],2),"]" )
+                              p_param = ifelse(summary(x$model)$coefficients[,5]<=0.001,"<0.001",signif(summary(x$model)$coefficients[,5],3))
+                              p.globale_param = x$p.globale
+                              cindex_param = signif(concordance(x$model)$concordance,3)
+                              IC_cindex_param = paste0("[",round(concordance(x$model)$concordance-1.96*sqrt(concordance(x$model)$var),2) ,";" ,round(concordance(x$model)$concordance + 1.96*sqrt(concordance(x$model)$var),2),"]")
+                              nevent_param = x$model$nevent
+                              N_param = x$model$n
+                              idi = signif(x$nri_idi$m1[1],3)
+                              IC_idi = paste0("[",round(x$nri_idi$m1[2],2),";",round(x$nri_idi$m1[3],2),"]")
+                              pv_idi = ifelse(x$nri_idi$m1[4] < 0.001, "<0.001",signif(x$nri_idi$m1[4],3))
+                              idi_e = signif(x$nri_idi$m1.est[2],3)
+                              idi_ne = signif(x$nri_idi$m1.est[3],3)
+                              demi_nri = signif(x$nri_idi$m2[1],3)
+                              IC_demi_nri = paste0("[",round(x$nri_idi$m2[2],2),";",round(x$nri_idi$m2[3],2),"]")
+                              pv_demi_nri = ifelse(x$nri_idi$m2[4] < 0.001, "<0.001",signif(x$nri_idi$m2[4],3))
+                              nri = signif(2*x$nri_idi$m2[1],3)
+                              
+                              nri_e = signif(x$nri_idi$m2.est[2],3)
+                              nri_ne = signif(x$nri_idi$m2.est[3],3)
+                              
+                              
+                              return(list("df" = data.frame("HR" = HR_param, "IC" = IC_param, "p" = p_param, "p.globale"=p.globale_param), 
+                                          "N" = N_param, 
+                                          "n.event" = nevent_param, 
+                                          "harell" = data.frame("c.index" = cindex_param, "IC.c.index" = IC_cindex_param), 
+                                          "IDI" = data.frame("IDI" = idi, "IC_IDI" = IC_idi, "p_IDI" = pv_idi,"IDI_e" = idi_e ,"IDI_ne" = idi_ne),
+                                          "NRI" = data.frame("NRI_0.5" = demi_nri,"IC_NRI_0.5" = IC_demi_nri, "p_NRI_0.5" = pv_demi_nri, "NRI" = nri, "NRI_evt" = nri_e, "NRI_n.evt" = nri_ne)
+                                          )
+                                     )
+                              }
+                            )
+
+                              
+
+  list_base_param[[paste0(evt[i])]] = list_models_nice
+}
+
+T2<-Sys.time()
+
+return(list("list_base" = list_base,"list_base_param" = list_base_param,"tps.exe" = difftime(T2,T1)))
+}
+```
