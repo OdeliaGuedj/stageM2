@@ -4,40 +4,55 @@ output: html_notebook
 editor_options: 
   chunk_output_type: inline
 ---
-
-# 0. Préliminaires
-
-Necessaire que les evt soient numériques sinon pas pris en charge par la fonction coxph.
+```{r}
+# data4$time_to_deces = as.numeric(as.character(data4$time_to_deces))
+# data4$time_to_chd = as.numeric(as.character(data4$time_to_chd))
+# data4$time_to_stroke = as.numeric(as.character(data4$time_to_stroke))
+# 
+#data4$deces = as.numeric(as.character(data4$deces))
+#data4$chd = as.numeric(as.character(data4$chd))
+#data4$stroke = as.numeric(as.character(data4$stroke))
+# 
+# data4_std$time_to_deces = as.numeric(as.character(data4_std$time_to_deces))
+# data4_std$time_to_chd = as.numeric(as.character(data4_std$time_to_chd))
+# data4_std$time_to_stroke = as.numeric(as.character(data4_std$time_to_stroke))
+# 
+#data4_std$deces = as.numeric(as.character(data4_std$deces))
+#data4_std$chd = as.numeric(as.character(data4_std$chd))
+#data4_std$stroke = as.numeric(as.character(data4_std$stroke))
+```
 
 ```{r}
- for(evt in var_evt){
-   data5[,evt] = as.numeric(as.character(data5[,evt]))
-   data5_std[,evt] = as.numeric(as.character(data5_std[,evt]))
-   }
+# data4$age_at_deces = as.numeric(as.character(data4$age_at_deces))
+# data4$age_at_chd = as.numeric(as.character(data4$age_at_chd))
+# data4$age_at_stroke = as.numeric(as.character(data4$age_at_stroke))
+# 
+# data4_std$age_at_deces = as.numeric(as.character(data4_std$age_at_deces))
+# data4_std$age_at_chd = as.numeric(as.character(data4_std$age_at_chd))
+# data4_std$age_at_stroke = as.numeric(as.character(data4_std$age_at_stroke))
 ```
 
 # 1. Modèls de Cox univariés pour toutes les variables d'échotracking (clean)
 
 Ici avec l'argument round = F pour pouvoir tracer le graph
 
-(Ici seulement pour death et chd, on peut étendre aux autres evt : modifier boucle for et les deux dernières lignes (names))
 
 ## 1.1 Time on study as time scale
 ```{r}
 i = 1
-list_univar = list()
-list_univar_std = list()
+list_univar_tos = list()
+list_univar_tos_std = list()
 
-for(evt in c("deces","chd")){
+for(evt in c("deces","chd", "stroke")){
 
   time = paste0("time_to_",evt)
   res_univar = data.frame()
   res_univar_std = data.frame()
 
-  for(var in echotracking_clean){
+  for(var in c(stiffness_anat,stiffness_dyna)){
 
-    cox = cox_univar(time, var, evt, data5_std, round = F)
-    cox_std = cox_univar(time, var, evt, data5_std, round = F)
+    cox = cox_univar(time = time, evt = evt, param = var, data4, round = F)
+    cox_std = cox_univar(time = time, evt = evt, param = var, data4_std, round = F)
 
     res_univar = rbind(res_univar, cox)
     res_univar_std = rbind(res_univar_std, cox_std)
@@ -46,8 +61,8 @@ for(evt in c("deces","chd")){
   res_univar$Evt = rep(evt,nrow(res_univar))
   res_univar_std$Evt = rep(evt,nrow(res_univar_std))
 
-  list_univar[[i]] = res_univar
-  list_univar_std[[i]] = res_univar_std
+  list_univar_tos[[i]] = res_univar
+  list_univar_tos_std[[i]] = res_univar_std
 
   i = i + 1
 }
@@ -55,157 +70,85 @@ rm(i);
 rm(res_univar); rm(res_univar_std);
 rm(cox);rm(cox_std)
 
-names(list_univar) = c("deces","chd")
-names(list_univar_std) = c("deces","chd")
+names(list_univar_tos) = c("deces","chd","stroke")
+names(list_univar_tos_std) = c("deces","chd", "stroke")
 ```
 
-```{r}
-kable(list_univar_std[["deces"]])
-kable(list_univar_std[["chd"]])
-```
+
 
 
 ## 1.2 Age as time scale 
 
 ```{r}
-# i = 1
-# list_univar_as = list()
-# list_univar_as_std = list()
-# 
-# for(evt in c("deces","chd")){
-# 
-#   time = paste0("age_at_",evt)
-#   res_univar = data.frame()
-#   res_univar_std = data.frame()
-# 
-#   for(var in echotracking_clean){
-# 
-#     cox = cox_univar_as("age0",time, var, evt, data5_std, round = F)
-#     cox_std = cox_univar_as("age0",time, var, evt, data5_std, round = F)
-# 
-#     res_univar = rbind(res_univar, cox)
-#     res_univar_std = rbind(res_univar_std, cox_std)
-#   }
-# 
-#   res_univar$Evt = rep(evt,nrow(res_univar))
-#   res_univar_std$Evt = rep(evt,nrow(res_univar_std))
-# 
-#   list_univar_as[[i]] = res_univar
-#   list_univar_as_std[[i]] = res_univar_std
-# 
-#   i = i + 1
-# }
-# rm(i);
-# rm(res_univar); rm(res_univar_std);
-# rm(cox);rm(cox_std)
-# 
-# names(list_univar_as) = c("deces","chd")
-# names(list_univar_as_std) = c("deces","chd")
-```
+i = 1
+list_univar_as = list()
+list_univar_as_std = list()
 
-```{r}
-# kable(list_univar_as_std[["deces"]])
-# kable(list_univar_as_std[["chd"]])
-```
+for(evt in c("deces","chd", "stroke")){
 
-# 2. Modèles de cox univariés pour param selectionnées par tests
+  time = paste0("age_at_",evt)
+  res_univar = data.frame()
+  res_univar_std = data.frame()
 
-## 2.1 Death
+  for(var in c(stiffness_anat,stiffness_dyna)){
 
-```{r}
-# list_univar_et_deces = list()
-# list_univar_et_deces_std = list()
-# evt = "deces"
-# time = paste0("time_to_",evt)
-# res_univar_et_deces = data.frame()
-# res_univar_et_deces_std = data.frame()
-#   
-# for(var in test_univar){
-#   cox = cox_univar(time, var, evt, data2, round = F)
-#   cox_std = cox_univar(time, var, evt, data2_std, round = F)
-#   res_univar_et_deces = rbind(res_univar_et_deces, cox)
-#   res_univar_et_deces_std = rbind(res_univar_et_deces_std, cox_std)
-#   }
-#   
-# res_univar_et_deces$Evt = rep(evt,nrow(res_univar_et_deces))
-# res_univar_et_deces_std$Evt = rep(evt,nrow(res_univar_et_deces_std))
-# 
-# list_univar_et_deces[[evt]] = res_univar_et_deces
-# list_univar_et_deces_std[[evt]] = res_univar_et_deces_std
-# 
-# rm(res_univar_et_deces);
-# rm(res_univar_et_deces_std);
-# rm(cox);
-# rm(cox_std);
-# rm(evt);
-# rm(time);
-# 
-# list_univar_et_deces = list_univar_et_deces$deces
-# list_univar_et_deces_std = list_univar_et_deces_std$deces
+    cox = cox_univar_as("age0",time, evt, var, data4, round = F)
+    cox_std = cox_univar_as("age0",time,evt, var, data4_std, round = F)
+
+    res_univar = rbind(res_univar, cox)
+    res_univar_std = rbind(res_univar_std, cox_std)
+  }
+
+   res_univar$Evt = rep(evt,nrow(res_univar))
+   res_univar_std$Evt = rep(evt,nrow(res_univar_std))
+ 
+   list_univar_as[[i]] = res_univar
+   list_univar_as_std[[i]] = res_univar_std
+ 
+   i = i + 1
+ }
+ rm(i);
+ rm(res_univar); rm(res_univar_std);
+ rm(cox); rm(cox_std)
+ 
+ names(list_univar_as) = c("deces","chd","stroke")
+ names(list_univar_as_std) = c("deces","chd","stroke")
 ```
 
 
 
 
 
-## 2.2 Coronary Heart disease
-
-```{r}
-# list_univar_et_chd = list()
-# list_univar_et_chd_std = list()
-# evt = "chd"
-# time = paste0("time_to_",evt)
-# res_univar_et_chd = data.frame()
-# res_univar_et_chd_std = data.frame()
-# 
-# for(var in test_univar){
-#   cox = cox_univar(time, var, evt, data2, round = F)
-#   cox_std = cox_univar(time, var, evt, data2_std, round = F)
-#   res_univar_et_chd = rbind(res_univar_et_chd, cox)
-#   res_univar_et_chd_std = rbind(res_univar_et_chd_std, cox_std)
-#   }
-#   
-# res_univar_et_chd$Evt = rep(evt,nrow(res_univar_et_chd))
-# res_univar_et_chd_std$Evt = rep(evt,nrow(res_univar_et_chd_std))
-# list_univar_et_chd[[evt]] = res_univar_et_chd
-# list_univar_et_chd_std[[evt]] = res_univar_et_chd_std
-# 
-# rm(res_univar_et_chd);
-# rm(res_univar_et_chd_std);
-# rm(cox);
-# rm(cox_std);
-# rm(evt);
-# rm(time);
-# 
-# list_univar_et_chd = list_univar_et_chd$chd
-# list_univar_et_chd_std = list_univar_et_chd_std$chd
-
-```
-
-
-
-# 4. Stockage des param signif
+# 2. Stockage des param signif
 
 On stock les param signif dans cox univarié 
 ```{r}
-cox_univar_deces = as.character(list_univar[["deces"]]$Name[list_univar[["deces"]]$pv_signif == 1 ])
+cox_univar_deces_tos = as.character(list_univar_tos[["deces"]]$Name[list_univar_tos[["deces"]]$pv_signif == 1 ])
 
-cox_univar_chd = as.character(list_univar[["chd"]]$Name[list_univar[["chd"]]$pv_signif == 1])
+cox_univar_chd_tos = as.character(list_univar_tos[["chd"]]$Name[list_univar_tos[["chd"]]$pv_signif == 1])
+
+cox_univar_stroke_tos = as.character(list_univar_tos[["stroke"]]$Name[list_univar_tos[["stroke"]]$pv_signif == 1])
 ```
 ```{r}
-length(cox_univar_deces)
-length(cox_univar_chd)
+cox_univar_deces_as = as.character(list_univar_as[["deces"]]$Name[list_univar_as[["deces"]]$pv_signif == 1 ])
+
+cox_univar_chd_as = as.character(list_univar_as[["chd"]]$Name[list_univar_as[["chd"]]$pv_signif == 1])
+
+cox_univar_stroke_as = as.character(list_univar_as[["stroke"]]$Name[list_univar_as[["stroke"]]$pv_signif == 1])
 ```
-
-On joint les deux vecteurs (deces et chd) en virant les doublons
-
 ```{r}
-cox_univar_all = unique(c(cox_univar_deces, cox_univar_chd))
+length(cox_univar_deces_tos)
+length(cox_univar_chd_tos)
+length(cox_univar_stroke_tos)
+
+length(cox_univar_deces_as)
+length(cox_univar_chd_as)
+length(cox_univar_stroke_as)
 ```
 
-```{r}
-length(cox_univar_all)
-```
+
+
+
 
 
 

@@ -3,138 +3,130 @@ title: "R Notebook"
 output: html_notebook
 ---
 
-# 1. Sur les paramètres d'échotracking
 
-## 1.1 Base de donnée
 
-Contient les var d'echotraking centrées et réduites.
+# 1 Base de donnée
 ```{r}
-list_var = param_et_select_univar[!(param_et_select_univar %in% c("pr_sence_de_plaque_s____l__cho"))]
+data_cl_sj = data4_std[,c(var_ajust[-11],stiffness_anat,stiffness_dyna)]
 ```
 
 ```{r}
-data_cl = scale(data_f[,list_var], center = T, scale = T)
-```
-```{r}
-sum(is.na(data_cl))
-```
-
-
-```{r}
-#head(data_cl)
-```
-```{r}
-dim(data_cl)
-```
-
-## 1.2. Kmeans
-```{r}
-km3 = kmeans(t(data_cl[,list_var]), centers = 3, nstart = 50)
-```
-
-```{r}
-km3$cluster
+data_cl_sj$plaquesOUI = ifelse(data_cl_sj$plaques == 1,1,0)
+mean_plaquesOUI = sum(data_cl_sj$plaquesOUI)/nrow(data_cl_sj)
+sd_plaquesOUI = sqrt(mean_plaquesOUI*(1-mean_plaquesOUI))
+data_cl_sj$plaques_OUI = (data_cl_sj$plaquesOUI - mean_plaquesOUI)/sd_plaquesOUI
+data_cl_sj$plaquesNON = ifelse(data_cl_sj$plaques == 0,1,0)
+mean_plaquesNON = sum(data_cl_sj$plaquesNON)/nrow(data_cl_sj)
+sd_plaquesNON = sqrt(mean_plaquesNON*(1-mean_plaquesNON))
+data_cl_sj$plaques_NON = (data_cl_sj$plaquesNON - mean_plaquesNON)/sd_plaquesNON
 ```
 
 
-## 1.3 Algo EM 
-
-
+# 2 Kmeans 
+## 2.1 avec plaques en factor
 ```{r}
-mclust1 = Mclust(t(data_cl[,list_var]), G = 3)
-```
-```{r}
-summary(mclust1)
-mclust1$classification
-```
-
-## 1.4 Classification Ascendante Hiérarchique avec distance de ward 2
-
-```{r}
-cah.wardD2 = hclust(dist(t(data_cl[,list_var])),method="ward.D2")
-```
-```{r}
-#liste des groupes
-groupes.cah = cutree(cah.wardD2, 3)
-groupes.cah
-```
-## 1.5 Algo PAM 
-
-```{r}
-library(cluster)
-pam = pam(t(data_cl[,list_var]), k = 3)
+d_cl1 = data_cl_sj[,c(stiffness_anat,stiffness_dyna)]
 ```
 
 ```{r}
-pam$clustering
-```
-
-
-## 1.6 Visualisation
-
-```{r}
-fviz_cluster(km3, data = t(data_cl), main = "Kmeans")
-fviz_cluster(mclust1, data = t(data_cl), main = "Algo EM - (Mclust)")
-fviz_cluster(pam, main = "PAM (K-methoids")
-plot(cah.wardD2, main = "CAH - critère de WARD2")
-#dendrogramme avec matérialisation des groupes
-rect.hclust(cah.wardD2,k=3)
-```
-
-# 2. Sur les sujets
-
-## 2.1 Données
-
-```{r}
-data_cl_sj = as.data.frame(scale(data_f[,c(list_var,"mbp")],center = T, scale = T))
-#data_cl_sj$plaques = data_f$pr_sence_de_plaque_s____l__cho 
-```
-
-
-## 2.2 Kmeans
-
-```{r}
-km3_sj = kmeans(data_cl_sj, centers = 3, nstart = 30)
+km_sj = kmeans(d_cl1, centers = 5, nstart = 20, iter.max = 10)
 ```
 ```{r}
+plot(km_sj$withinss, ylab=  "Within-cluster sum of squares", xlab = "Number of clusters", type = 'b')
+```
+```{r}
+km3_sj = kmeans(d_cl1, centers = 3, nstart = 20, iter.max = 20)
 table(km3_sj$cluster)
+``` 
+
+```{r}
+data4_std$km3_sj = as.factor(km3_sj$cluster)
+```
+## 2.2 avec plaques en dummy variables centrées réduites (loi de bernouilli)
+
+```{r}
+d_cl2 = data_cl_sj[,c(stiffness_anat,stiffness_dyna,"plaquesOUI","plaquesNON")]
+d_cl2$plaques = NULL
+```
+
+```{r}
+km3_sj_dummy = kmeans(d_cl2, centers = 3, nstart = 20, iter.max = 10)
+table(km3_sj_dummy$cluster)
+```
+```{r}
+data_cl_sj$km3 = km3_sj_dummy$cluster
+data4$km3 = km3_sj_dummy$cluster
+data4_std$km3 = km3_sj_dummy$cluster
+data4_std$km3 =factor(data4_std$km3)
+```
+```{r}
+paste0(c(stiffness_anat,stiffness_dyna), collapse = "+")
+```
+
+```{r}
+desc_var_ajust = compareGroups(km3 ~ age0+sexe+qm16+qm10+diab+bio10+bmi+ldl+trb17+mbp, data = data4)
+createTable(desc_var_ajust, type = 1)
+```
+
+```{r}
+export2latex(createTable(desc_var_ajust, type = 1))
+```
+
+```{r}
+desc_param = compareGroups(km3 ~ imt+diam_bm+plaques+compli+wcsa+cws+stiffness+logyoung+coeffDist+distension+dist_rate_moy+pwvloc2+dploc, data = data4)
+createTable(desc_param, type = 1)
+```
+
+```{r}
+export2latex(createTable(desc_param, type = 1))
+```
+```{r}
+test_deces = coxph(Surv(time_to_deces,deces) ~age0+sexe+qm16+qm10+diab+bio10+bmi+ldl+trb17+mbp+km3,data=data4_std)
+```
+
+```{r}
+summary(test_deces)
+```
+```{r}
+test_chd = coxph(Surv(time_to_chd,chd) ~age0+sexe+qm16+qm10+diab+bio10+bmi+ldl+trb17+mbp+km3,data=data4_std)
+```
+
+```{r}
+summary(test_chd)
+```
+
+```{r}
+test_stroke = coxph(Surv(time_to_stroke,stroke) ~age0+sexe+qm16+qm10+diab+bio10+bmi+ldl+trb17+mbp+km3,data=data4_std)
+```
+
+```{r}
+summary(test_stroke)
+```
+
+# 3 EM
+
+```{r}
+em = Mclust(d_cl2, G = 3)
 ```
 
 
 ```{r}
-fviz_cluster(km3_sj, data = data_cl_sj, main = "Kmeans",ellipse = F)
+table(em$classification)
 ```
-
 ```{r}
-data_f$km3_sj = km3_sj$cluster
-data_f$km3_sj = as.factor(data_f$km3_sj)
+data4_std$em3 = em$classification
 ```
 
 
 ```{r}
-CG_km3_sj = compareGroups( km3_sj~ .- nepp3 - time_to_deces - time_to_chd -deces- chd, data = data_f)
-
-
-export_table = createTable(CG_km3_sj)
-export_table
-```
-
-```{r}
-data_f$km3_sj = relevel(data_f$km3_sj, ref = "2")
-```
-
-```{r}
-summary(coxph(Surv(time_to_chd, chd) ~ age0 +  sexe + qm9 + qm16 + bmi + diab + bio10 + km3_sj, data = data_f))
+chisq.test(data4_std$km3_sj,data4_std$em3)
 ```
 
 
 
+# 4 CAH 
 
 
-
-## 2.1 CAH 
-
-### 2.1.3 Avec HCPC
 ```{r}
 res.pca = PCA(data_cl_sj, graph = F)
 ```

@@ -1,0 +1,993 @@
+---
+title: "R Notebook"
+output: html_notebook
+editor_options: 
+  chunk_output_type: console
+---
+
+# 1. Desc pop
+
+## 1. Table 1
+```{r}
+IncrementalTable_all = c() 
+for(i in c(stiffness_anat,stiffness_dyna)) {
+  
+  # Variables numériques
+  
+  if(is.numeric(data4[,i]))
+    
+  {
+    
+    ## Calcul des moyennes et des écarts types
+    mean_ov = data4[,i] %>% (function(x) round(mean(x,na.rm = T),digits = 2)) 
+    sd_ov = data4[,i] %>% (function(x) round(sd(x,na.rm = T),digits = 2))
+    
+    mean_deces0 = data4[data4$deces == 0,i] %>% (function(x) round(mean(x,na.rm = T),digits = 2)) 
+    sd_deces0 = data4[data4$deces == 0,i] %>% (function(x) round(sd(x,na.rm = T),digits = 2))
+    
+    mean_deces1 = data4[data4$deces == 1,i] %>% (function(x) round(mean(x,na.rm = T),digits = 2)) 
+    sd_deces1 = data4[data4$deces == 1,i] %>% (function(x) round(sd(x,na.rm = T),digits = 2))
+    
+    mean_chd0 = data4[data4$chd == 0,i] %>% (function(x) round(mean(x,na.rm = T),digits = 2)) 
+    sd_chd0 = data4[data4$chd == 0,i] %>% (function(x) round(sd(x,na.rm = T),digits = 2))
+    
+    mean_chd1 = data4[data4$chd == 1,i] %>% (function(x) round(mean(x,na.rm = T),digits = 2)) 
+    sd_chd1 = data4[data4$chd == 1,i] %>% (function(x) round(sd(x,na.rm = T),digits = 2))
+    
+    mean_stroke0 = data4[data4$stroke == 0,i] %>% (function(x) round(mean(x,na.rm = T),digits = 2)) 
+    sd_stroke0 = data4[data4$stroke == 0,i] %>% (function(x) round(sd(x,na.rm = T),digits = 2))
+    
+    mean_stroke1 = data4[data4$stroke == 1,i] %>% (function(x) round(mean(x,na.rm = T),digits = 2)) 
+    sd_stroke1 = data4[data4$stroke == 1,i] %>% (function(x) round(sd(x,na.rm = T),digits = 2))
+    
+    ## Construction des noms
+    name = paste0(i) 
+    
+    ## Tests de Student
+    test_deces = t.test(data4[,i]~data4$deces)
+    test_chd = t.test(data4[,i]~data4$chd)
+    test_stroke = t.test(data4[,i]~data4$stroke)
+
+    
+    increment = matrix(c(name,
+                         unlist(mean_ov),
+                         paste0("(+/-",unlist(sd_ov),")"),
+                         unlist(mean_deces0),
+                         paste0("(+/-",unlist(sd_deces0),")"),
+                         unlist(mean_deces1), 
+                         paste0("(+/-",unlist(sd_deces1),")"),
+                         unlist(mean_chd0),
+                         paste0("(+/-",unlist(sd_chd0),")"),
+                         unlist(mean_chd1), 
+                         paste0("(+/-",unlist(sd_chd1),")"),
+                         unlist(mean_stroke0), 
+                         paste0("(+/-",unlist(sd_stroke0),")"),
+                         unlist(mean_stroke1), 
+                         paste0("(+/-",unlist(sd_stroke1),")"),
+                         signif(test_deces$p.value,2),
+                         signif(test_chd$p.value,2),
+                         signif(test_stroke$p.value,2)),
+                       ncol = 18)
+  } 
+  
+#   # Variables catégorielles
+
+  else {
+
+    ## Calcul des moyennes et des écarts types
+    ## On stock dans mean le nb d'obs par classe et dans sd la prop d'obs de chaque classe
+    mean_ov = data4[,i] %>% (function(x) table(x, useNA = "n"))
+    sd_ov = data4[,i] %>% (function(x) round(prop.table(table(x,useNA = "n")),digits=2))
+
+    mean_deces0 = data4[data4$deces == 0,i] %>% (function(x) table(x, useNA = "n"))
+    sd_deces0 = data4[data4$deces == 0,i] %>% (function(x) round(prop.table(table(x,useNA = "n")),digits=2))
+
+    mean_deces1 = data4[data4$deces == 1,i] %>% (function(x) table(x, useNA = "n"))
+    sd_deces1 = data4[data4$deces == 1,i] %>% (function(x) round(prop.table(table(x,useNA = "n")),digits=2))
+
+    mean_chd0 = data4[data4$chd == 0,i] %>% (function(x) table(x, useNA = "n"))
+    sd_chd0 = data4[data4$chd == 0,i] %>% (function(x) round(prop.table(table(x,useNA = "n")),digits=2))
+
+    mean_chd1 = data4[data4$chd == 1,i] %>% (function(x) table(x, useNA = "n"))
+    sd_chd1 = data4[data4$chd == 1,i] %>% (function(x) round(prop.table(table(x,useNA = "n")),digits=2))
+
+    mean_stroke0 = data4[data4$stroke == 0,i] %>% (function(x) table(x, useNA = "n"))
+    sd_stroke0 = data4[data4$stroke == 0,i] %>% (function(x) round(prop.table(table(x,useNA = "n")),digits=2))
+
+    mean_stroke1 = data4[data4$stroke == 1,i] %>% (function(x) table(x, useNA = "n"))
+    sd_stroke1 = data4[data4$stroke == 1,i] %>% (function(x) round(prop.table(table(x,useNA = "n")),digits=2))
+
+
+    ## Tests du chi^2
+    test_deces = chisq.test(data4[,i], data4$deces)
+    test_chd = chisq.test(data4[,i], data4$chd)
+    test_stroke = chisq.test(data4[,i], data4$stroke)
+
+
+    # On transforme les obs par classe, stockées dans mean, en matrice : permet d'avoir les classes en lignes pluôt qu'en colonnes
+    mean_ov = as.matrix(mean_ov)
+    mean_deces0 = as.matrix(mean_deces0)
+    mean_deces1 = as.matrix(mean_deces1)
+    mean_chd0 = as.matrix(mean_chd0)
+    mean_chd1 = as.matrix(mean_chd1)
+    mean_stroke0 = as.matrix(mean_stroke0)
+    mean_stroke1 = as.matrix(mean_stroke1)
+
+
+    # on stock dans name le nom des classes (correspond aux noms des lignes de la matrice mean)
+    name = matrix(rownames(mean_ov),nrow = length(mean_ov))
+
+    # On stock le tout dans une matrice increment
+    increment = matrix(c(name,
+                         
+                         unlist(mean_ov),
+                         paste0("(",unlist(sd_ov)*100,"%)"),
+                       
+                         unlist(mean_deces0),
+                         paste0("(",unlist(sd_deces0)*100,"%)"),
+                       
+                         unlist(mean_deces1),
+                         paste0("(",unlist(sd_deces1)*100,"%)"),
+                          
+                         unlist(mean_chd0),
+                         paste0("(",unlist(sd_chd0)*100,"%)"),
+                                   
+                         unlist(mean_chd1),
+                         paste0("(",unlist(sd_chd1)*100,"%)"),
+                                   
+                         unlist(mean_stroke0),
+                         paste0("(",unlist(sd_stroke0)*100,"%)"),
+                         
+                         unlist(mean_stroke1),
+                         paste0("(",unlist(sd_stroke1)*100,"%)"),
+                       
+                         rep("",nrow(mean_chd1)),
+                         rep("",nrow(mean_chd1)),
+                         rep("",nrow(mean_chd1))
+                         )
+                       , ncol = 18)
+      increment = rbind(c(i,
+                          matrix("",nrow = 1,ncol = 14),
+                          signif(test_deces$p.value,2),
+                          signif(test_chd$p.value,2),
+                          signif(test_stroke$p.value,2))
+                        ,increment)
+
+  }
+
+IncrementalTable_all = rbind(IncrementalTable_all,increment)
+}
+
+rm(list = c("i","mean_ov","mean_deces0","mean_deces1","mean_chd0","mean_chd1","sd_ov","sd_deces0","sd_deces1","sd_chd0","sd_chd1"))
+```
+```{r}
+IncrementalTable_all[,1] = c(names_stiffness_anat,names_stiffness_dyna)
+
+colnames(IncrementalTable_all) = rep(" ",ncol(IncrementalTable_all))
+```
+
+```{r}
+  kable(IncrementalTable_all[,1:15], longtable = T, align = "lccccccccccccc") %>% 
+  kable_styling(full_width = F,font_size = 20) %>%
+  add_header_above(c(" " = 1, "N = 8520" = 2, "No : N = 8324" = 2, "Yes : N = 196" = 2, "No : N = 8320" = 2, "Yes : N = 200" = 2, "No : 8427" = 2, "Yes : 93" = 2)) %>%
+  add_header_above(c(" " = 1, "Overall" = 2, "Death" = 4, "CHD" = 4, "Stroke" = 4)) %>%
+  add_header_above(c(" " = 1, "Mean (+/- sd) or N (%)" = 14))  %>%
+  add_indent(c(4,5)) %>%
+  #pack_rows("Covariates", 1,21, label_row_css = "background-color: #BBC0C2; color: #fff;") %>%
+  #pack_rows("Covariates", 22,36, label_row_css = "background-color: #BBC0C2; color: #fff;") %>%
+kable_styling(latex_options = c("repeat_header"))
+```
+
+## 2. NA
+```{r}
+df_na_var_ajust = data2[,c(var_ajust[-11])]
+colnames(df_na_var_ajust) = c("Age at baseline", "Sex", "Smoking Status","Sport", "Diabetes","Creatinin", "Body Mass Index", "LDL","HDL","Mean Blood Pressure")
+df_na_var_stif = data2[,c(stiffness_anat,stiffness_dyna)]
+colnames(df_na_var_stif) = c("Itima Media Thickness","Diastolic Outer Diameter", "Presence of Plaques", "Compliance", "Wall Cross Sectional Area","Circumferential Wall Stress","Stiffness","Young's Modulus","Distension Coefficient", "Distension","Distension Rate","Carotid Pulse Wave Velocity", "Central Pulse Pressure")
+```
+
+```{r}
+gg_miss_var(df_na_var_ajust, show_pct = T)+ylab("") +xlab("")+
+    theme(text = element_text(size=30))
+```
+```{r}
+gg_miss_var(df_na_var_stif, show_pct = T)+ylab("") +xlab("")+
+    theme(text = element_text(size=30))
+```
+
+### Tableau comparaison data2 et data4
+
+#### Var ajust
+```{r}
+p_na = c()
+met_na = c()
+mean_2 = c()
+sd_2 = c()
+mean_4 = c()
+sd_4 = c()
+for(i in c(var_ajust[-11])){
+  if(is.numeric(data4[,i])){
+    p = ifelse(t.test(data2[,i], data4[,i])$p.value <= 0.001, 
+               "<0.001", round(t.test(data[,i], data4[,i])$p.value,3)
+              )
+    p_na= c(p_na,p)
+    met = t.test(data2[,i], data4[,i])$method
+    met_na = c(met_na,met)
+    
+    mean2 = data2[,i] %>% (function(x) round(mean(x,na.rm = T),digits = 2)) 
+    mean_2 = c(mean_2,mean2)
+    
+    sd2 = paste0("(+/- ",data2[,i] %>% (function(x) round(sd(x,na.rm = T),digits = 2)),")")
+    sd_2 = c(sd_2,sd2)
+    
+    mean4 = data4[,i] %>% (function(x) round(mean(x,na.rm = T),digits = 2)) 
+    mean_4 = c(mean_4,mean4)
+    
+    sd4 = paste0("(+/- ",data4[,i] %>% (function(x) round(sd(x,na.rm = T),digits = 2)),")")
+    sd_4 = c(sd_4,sd4)
+  }
+  else{
+    r = length(levels(data4[,i]))
+    
+    p = ifelse(chisq.test(data2[,i], data2$na_d4)$p.value<=0.001,"<0.001",round(chisq.test(data2[,i], data2$na_d4)$p.value,3))
+    p_na = c(p_na,c(p,rep("",r)))
+    met = chisq.test(data2[,i], data2$na_d4)$method
+    met_na = c(met_na,c(met,rep("",r)))
+     mean2 = data2[,i] %>% (function(x) table(x, useNA = "n"))
+     mean_2 = c(mean_2,"",mean2)
+     
+    sd2 = paste0("(",data2[,i] %>% (function(x) round(prop.table(table(x,useNA = "n"))*100,digits=2))," %)")
+    sd_2 = c(sd_2,"",sd2)
+    
+    mean4 = data4[,i] %>% (function(x) table(x, useNA = "n"))
+    mean_4 = c(mean_4,"",mean4)
+    
+    sd4 = paste0("(",data4[,i] %>% (function(x) round(prop.table(table(x,useNA = "n"))*100,digits=2))," %)")
+    sd_4 = c(sd_4,"",sd4)
+  }
+  for(x in 1:length(met_na)){
+    if(met_na[x] == "Welch Two Sample t-test")
+      {met_na[x] = "Welsh"}
+    else if(met_na[x] == "Pearson's Chi-squared test with Yates' continuity correction")
+     { met_na[x] = "Chi² with \n Yates correction"}
+    else if(met_na[x] == "Pearson's Chi-squared test")
+      {met_na[x] = "Chi²"}
+  }
+}
+```
+
+
+```{r}
+compar_d2_d4_var_ajust = cbind(names_var_ajust[-c(22:27)],unname(mean_2),unname(sd_2),unname(mean_4),unname(sd_4),unname(p_na),met_na)
+colnames(compar_d2_d4_var_ajust) = rep(" ",7)
+```
+```{r}
+  kable(compar_d2_d4_var_ajust, longtable = T, align = "lcccccc") %>% 
+  kable_styling(full_width = F) %>%
+  add_header_above(c(" " = 1, "N = 8520" = 2, "N= 1425" = 2, " "=2))%>%
+  add_header_above(c(" " = 1, "Complete case" = 2, "Missing values" = 2, "p" = 1,"Method" = 1)) %>%
+  add_header_above(c(" " = 1, "Mean (sd) or N (%)" = 4, "Test" = 2)) %>%
+  add_indent(c(3,4,6,7,8,9,11,12,13,15,16)) %>%
+  kable_styling(latex_options = c("repeat_header"))
+```
+#### Param stiff
+```{r}
+p_na = c()
+met_na = c()
+mean_2 = c()
+sd_2 = c()
+mean_4 = c()
+sd_4 = c()
+for(i in c(stiffness_anat,stiffness_dyna)){
+  if(is.numeric(data4[,i])){
+    p = ifelse(t.test(data2[,i], data4[,i])$p.value <= 0.001, 
+               "<0.001", round(t.test(data2[,i], data4[,i])$p.value,3)
+               )
+  
+    p_na= c(p_na,p)
+    met = t.test(data2[,i], data4[,i])$method
+    met_na = c(met_na,met)
+    mean2 = data2[,i] %>% (function(x) round(mean(x,na.rm = T),digits = 2)) 
+    mean_2 = c(mean_2,mean2)
+    
+    sd2 = paste0("(+/- ",data2[,i] %>% (function(x) round(sd(x,na.rm = T),digits = 2)),")")
+    sd_2 = c(sd_2,sd2)
+    
+    mean4 = data4[,i] %>% (function(x) round(mean(x,na.rm = T),digits = 2)) 
+    mean_4 = c(mean_4,mean4)
+    
+    sd4 = paste0("(+/- ",data4[,i] %>% (function(x) round(sd(x,na.rm = T),digits = 2)),")")
+    sd_4 = c(sd_4,sd4)
+  }
+  else{
+    r = length(levels(data4[,i]))
+    
+    p = ifelse(chisq.test(data2[,i], data2$na_d4)$p.value<=0.001,"<0.001",round(chisq.test(data2[,i], data2$na_d4)$p.value,3))
+    p_na = c(p_na,c(p,rep("",r)))
+    met = chisq.test(data2[,i], data2$na_d4)$method
+    met_na = c(met_na,c(met,rep("",r)))
+     mean2 = data2[,i] %>% (function(x) table(x, useNA = "n"))
+     mean_2 = c(mean_2,"",mean2)
+     
+    sd2 = paste0("(",data2[,i] %>% (function(x) round(prop.table(table(x,useNA = "n"))*100,digits=2))," %)")
+    sd_2 = c(sd_2,"",sd2)
+    
+    mean4 = data4[,i] %>% (function(x) table(x, useNA = "n"))
+    mean_4 = c(mean_4,"",mean4)
+    
+    
+    sd4 = paste0("(",data4[,i] %>% (function(x) round(prop.table(table(x,useNA = "n"))*100,digits=2))," %)")
+    sd_4 = c(sd_4,"",sd4)
+  }
+  for(x in 1:length(met_na)){
+    if(met_na[x] == "Welch Two Sample t-test")
+      {met_na[x] = "Welsh"}
+    else if(met_na[x] == "Pearson's Chi-squared test with Yates' continuity correction")
+     { met_na[x] = "Chi² with \n Yates correction"}
+    else if(met_na[x] == "Pearson's Chi-squared test")
+      {met_na[x] = "Chi²"}
+  }
+  
+}
+```
+```{r}
+compar_d2_d4_var_stiff = cbind(c(names_stiffness_anat,names_stiffness_dyna),unname(mean_2),unname(sd_2),unname(mean_4),unname(sd_4),unname(p_na),unname(met_na))
+colnames(compar_d2_d4_var_stiff) = rep(" ",7)
+```
+
+
+```{r}
+  kable(compar_d2_d4_var_stiff, longtable = T, align = "lcccccc") %>% 
+  kable_styling(full_width = F) %>%
+  add_header_above(c(" " = 1, "N = 8520" = 2, "N= 1425" = 2, " "=2))%>%
+  add_header_above(c(" " = 1, "Complete case" = 2, "Missing values" = 2, "p" = 1, "Method" = 1)) %>%
+  add_header_above(c(" " = 1, "Mean (sd) or N (%)" = 4, "Test" = 2)) %>%
+  add_indent(c(4,5)) %>%
+  kable_styling(latex_options = c("repeat_header"))
+```
+# 3. Apercu des données 
+```{r}
+ex = which(data$nepp3 %in% c("5582","2599","878","4769","1216"))
+ex1=data.frame(data$nepp3[ex],
+           data$datnaiss[ex],
+          data$datinclu[ex],
+          data$deces[ex],
+          data$date_deces[ex],
+          data$time_to_deces[ex],
+          data$age0[ex],
+         data$age_at_deces[ex])
+ex2=data.frame(data$nepp3[ex],
+           data$datnaiss[ex],
+          data$datinclu[ex],
+          data$chd[ex],
+          data$date_chd[ex],
+          data$time_to_chd[ex],
+          data$age0[ex],
+         data$age_at_chd[ex])
+ex3=data.frame(data$nepp3[ex],
+           data$datnaiss[ex],
+          data$datinclu[ex],
+          data$stroke[ex],
+          data$date_stroke[ex],
+          data$time_to_stroke[ex],
+          data$age0[ex],
+         data$age_at_stroke[ex])
+```
+
+
+```{r}
+kable(ex1, col.names = c("N EPP3","Date of Birth", "Inclusion Date", "Death Status","Date of Death", "Time to Death","Age at Baseline", "Age at Death" ), longtable = T, align = "cccccccc") %>% kable_styling(full_width = F, font_size = 20) %>%
+  kable_styling(latex_options = c("repeat_header"))
+```
+```{r}
+kable(ex2, col.names = c("N EPP3","Date of Birth", "Inclusion Date", "CHD Status","Date of CHD", "Time to CHD","Age at Baseline", "Age at CHD" ), longtable = T, align = "cccccccc") %>% 
+  kable_styling(full_width = F, font_size = 20) %>%
+  kable_styling(latex_options = c("repeat_header", font_size = 20))
+```
+```{r}
+kable(ex3, col.names = c("N EPP3","Date of Birth", "Inclusion Date", "Stroke Status","Date of Stroke", "Time to Stroke","Age at Baseline", "Age at Stroke" ), longtable = T, align = "cccccccc") %>% kable_styling(full_width = F, font_size = 20) %>%
+  kable_styling(latex_options = c("repeat_header"))
+```
+# 2. Cox univariés
+
+
+```{r}
+plot_pv_HR2(list_univar_tos_std[["deces"]])
+plot_pv_HR2(list_univar_tos_std[["chd"]])
+plot_pv_HR2(list_univar_tos_std[["stroke"]])
+```
+```{r}
+plot_pv_HR2(list_univar_as_std[["deces"]])
+plot_pv_HR2(list_univar_as_std[["chd"]])
+plot_pv_HR2(list_univar_as_std[["stroke"]])
+```
+
+
+# 3. Cox multivariés
+
+
+## 3.1 Deces
+
+### 3.1.1 Données brutes
+#### 3.1.1.1 Time on study
+
+```{r}
+# res_cox_all_tab_deces_tos = c()
+# model_names = c(" ", "Univariate", "Model 1", "Model 2", "Model 3", "Model 4")
+# for(var in cox_univar_deces){
+#   
+#   param = c(names_echotracking[which(echotracking== var)],rep(" ",5))
+#   
+#   ## HR
+#   HR_deces = c(" ", 
+#               round(list_univar_tos[["deces"]]$HR[list_univar_tos[["deces"]]$Name == var],2),
+#               round(m1_deces_tos$HR[m1_deces_tos$Name == var],2),
+#               round(m2_deces_tos$HR[m2_deces_tos$Name == var],2),
+#               round(m3_deces_tos$HR[m3_deces_tos$Name == var],2),
+#               round(m4_deces_tos$HR[m4_deces_tos$Name == var],2)
+#                )
+#   ## IC
+#   IC_deces = c(" ", 
+#               paste("[",round(list_univar_tos[["deces"]]$ICinf[list_univar_tos[["deces"]]$Name == var],2),
+#                     ";",round(list_univar_tos[["deces"]]$ICsup[list_univar_tos[["deces"]]$Name == var],2),"]"),
+#               
+#               paste("[",round(m1_deces_tos$ICinf[m1_deces_tos$Name == var],2),
+#                     ";",round(m1_deces_tos$ICsup[m1_deces_tos$Name == var],2),"]"),
+#               
+#               paste("[",round(m2_deces_tos$ICinf[m2_deces_tos$Name == var],2),
+#                     ";",round(m2_deces_tos$ICsup[m2_deces_tos$Name == var],2),"]"),
+#               
+#               paste("[",round(m3_deces_tos$ICinf[m3_deces_tos$Name == var],2),
+#                     ";",round(m3_deces_tos$ICsup[m3_deces_tos$Name == var],2),"]"),
+#               
+#               paste("[",round(m4_deces_tos$ICinf[m4_deces_tos$Name == var],2),
+#                     ";",round(m4_deces_tos$ICsup[m4_deces_tos$Name == var],2),"]")
+#                )
+#   ## p valeurs
+#   p_deces = c(" ", 
+#               paste(signif(list_univar_tos[["deces"]]$p.value[list_univar_tos[["deces"]]$Name == var],2),ifelse(list_univar_tos[["deces"]]$p.value[list_univar_tos[["deces"]]$Name == var] <= 0.05, "*"," ")),
+#               paste(signif(m1_deces_tos$p.value[m1_deces_tos$Name == var],2),ifelse(m1_deces_tos$p.value[m1_deces_tos$Name == var]<= 0.05, "*"," ")),
+#               paste(signif(m2_deces_tos$p.value[m2_deces_tos$Name == var],2),ifelse(m2_deces_tos$p.value[m2_deces_tos$Name == var]<=0.05,"*"," ")),
+#               paste(signif(m3_deces_tos$p.value[m3_deces_tos$Name == var],2),ifelse(m3_deces_tos$p.value[m3_deces_tos$Name == var]<=0.05,"*"," ")),
+#               paste(signif(m4_deces_tos$p.value[m4_deces_tos$Name == var],2),ifelse(m4_deces_tos$p.value[m4_deces_tos$Name == var]<=0.05,"*",""))
+#                )
+#   # c index 
+#   c_index_deces = c(" ",
+#               round(list_univar_tos[["deces"]]$c_index[list_univar_tos[["deces"]]$Name == var],3),
+#               round(m1_deces_tos$c_index[m1_deces_tos$Name == var],3),
+#               round(m2_deces_tos$c_index[m2_deces_tos$Name == var],3),
+#               round(m3_deces_tos$c_index[m3_deces_tos$Name == var],3),
+#               round(m4_deces_tos$c_index[m4_deces_tos$Name == var],3)
+#                )
+#   c_index_null = c(rep("",5), signif(c_harell_m4base_deces,4))
+#   c_index_deces2 = c(rep("",5),round(m4_deces_tos$c_index[m4_deces_tos$Name == var],3))
+# 
+#   tab = cbind(param,model_names,HR_deces,IC_deces,p_deces,c_index_null,c_index_deces2)
+#   res_cox_all_tab_deces_tos = rbind(res_cox_all_tab_deces_tos,tab)
+# }
+# rm(var);
+# rm(tab);
+```
+
+```{r}
+# kable(res_cox_all_tab_deces_tos, longtable = T,
+#       caption = "Cox multivariés paramètre par paramètre avec Death comme outcome", 
+#       col.names = c("","","HR","IC","p","C index Null Model"," C index"))%>% 
+#   kable_styling(bootstrap_options = "striped", full_width = F)
+```
+
+
+#### 3.1.1.2 Age scale
+```{r}
+# m1_deces_as$Name = as.character(m1_deces_as$Name)
+# m1_deces_as[m1_deces_as$Name == "plaques1","Name"] = "plaques"
+# m2_deces_as$Name = as.character(m2_deces_as$Name)
+# m2_deces_as$Name[m2_deces_as$Name == "plaques1"] = "plaques"
+# m3_deces_as$Name = as.character(m3_deces_as$Name)
+# m3_deces_as$Name[m3_deces_as$Name == "plaques1"] = "plaques"
+# m4_deces_as$Name = as.character(m4_deces_as$Name)
+# m4_deces_as$Name[m4_deces_as$Name == "plaques1"] = "plaques"
+```
+```{r}
+# res_cox_all_tab_deces_as = c()
+# model_names = c(" ", "Univariate", "Model 1", "Model 2", "Model 3", "Model 4")
+# for(var in echotracking_clean){
+#   
+#   param = c(names_echotracking[which(echotracking==var)],rep(" ",5))
+#   
+#   ## HR
+#   HR_deces = c(" ", 
+#               round(list_univar_as[["deces"]]$HR[list_univar_as[["deces"]]$Name == var],2),
+#               round(m1_deces_as$HR[m1_deces_as$Name == var],2),
+#               round(m2_deces_as$HR[m2_deces_as$Name == var],2),
+#               round(m3_deces_as$HR[m3_deces_as$Name == var],2),
+#               round(m4_deces_as$HR[m4_deces_as$Name == var],2)
+#                )
+#   ## IC
+#   IC_deces = c(" ", 
+#               paste("[",round(list_univar_as[["deces"]]$ICinf[list_univar_as[["deces"]]$Name == var],2),
+#                     ";",round(list_univar_as[["deces"]]$ICsup[list_univar_as[["deces"]]$Name == var],2),"]"),
+#               
+#               paste("[",round(m1_deces_as$ICinf[m1_deces_as$Name == var],2),
+#                     ";",round(m1_deces_as$ICsup[m1_deces_as$Name == var],2),"]"),
+#               
+#               paste("[",round(m2_deces_as$ICinf[m2_deces_as$Name == var],2),
+#                     ";",round(m2_deces_as$ICsup[m2_deces_as$Name == var],2),"]"),
+#               
+#               paste("[",round(m3_deces_as$ICinf[m3_deces_as$Name == var],2),
+#                     ";",round(m3_deces_as$ICsup[m3_deces_as$Name == var],2),"]"),
+#               
+#               paste("[",round(m4_deces_as$ICinf[m4_deces_as$Name == var],2),
+#                     ";",round(m4_deces_as$ICsup[m4_deces_as$Name == var],2),"]")
+#                )
+#   ## p valeurs
+#   p_deces = c(" ", 
+#               paste(signif(list_univar_as[["deces"]]$p.value[list_univar_as[["deces"]]$Name == var],2),ifelse(list_univar_as[["deces"]]$p.value[list_univar_as[["deces"]]$Name == var] <= 0.05, "*"," ")),
+#               paste(signif(m1_deces_as$p.value[m1_deces_as$Name == var],2),ifelse(m1_deces_as$p.value[m1_deces_as$Name == var]<= 0.05, "*"," ")),
+#               paste(signif(m2_deces_as$p.value[m2_deces_as$Name == var],2),ifelse(m2_deces_as$p.value[m2_deces_as$Name == var]<=0.05,"*"," ")),
+#               paste(signif(m3_deces_as$p.value[m3_deces_as$Name == var],2),ifelse(m3_deces_as$p.value[m3_deces_as$Name == var]<=0.05,"*"," ")),
+#               paste(signif(m4_deces_as$p.value[m4_deces_as$Name == var],2),ifelse(m4_deces_as$p.value[m4_deces_as$Name == var]<=0.05,"*",""))
+#                )
+#   # c index 
+#   c_index_deces = c(" ", 
+#               round(list_univar_as[["deces"]]$c_index[list_univar_as[["deces"]]$Name == var],3),
+#               round(m1_deces_as$c_index[m1_deces_as$Name == var],3),
+#               round(m2_deces_as$c_index[m2_deces_as$Name == var],3),
+#               round(m3_deces_as$c_index[m3_deces_as$Name == var],3),
+#               round(m4_deces_as$c_index[m4_deces_as$Name == var],3)
+#                )
+# 
+#   tab = cbind(param,model_names,HR_deces,IC_deces,p_deces,c_index_deces)
+#   res_cox_all_tab_deces_as = rbind(res_cox_all_tab_deces_as,tab)
+# }
+# rm(var);
+# rm(tab);
+# ```
+# ```{r}
+# kable(res_cox_all_tab_deces_as, longtable = T,
+#       caption = "Cox multivariés avec Death comme outcome sur données brutes, age scale", 
+#       col.names = c("","","HR","IC","p","C_index"))%>% 
+#   kable_styling(bootstrap_options = "striped", full_width = F)
+```
+### 3.1.2 Données scaled
+#### 3.1.2.1 Time on study
+
+```{r}
+# res_cox_all_tab_deces_tos_std = c()
+# model_names = c(" ", "Univariate", "Model 1", "Model 2", "Model 3", "Model 4")
+# for(var in cox_univar_deces){
+#   
+#   param = c(names_echotracking[which(echotracking==var)],rep(" ",5))
+#   
+#   ## HR
+#   HR_deces = c(" ", 
+#               round(list_univar_tos_std[["deces"]]$HR[list_univar_tos_std[["deces"]]$Name == var],2),
+#               round(m1_deces_tos_std$HR[m1_deces_tos_std$Name == var],2),
+#               round(m2_deces_tos_std$HR[m2_deces_tos_std$Name == var],2),
+#               round(m3_deces_tos_std$HR[m3_deces_tos_std$Name == var],2),
+#               round(m4_deces_tos_std$HR[m4_deces_tos_std$Name == var],2)
+#                )
+#   ## IC
+#   IC_deces = c(" ", 
+#               paste("[",round(list_univar_tos_std[["deces"]]$ICinf[list_univar_tos_std[["deces"]]$Name == var],2),
+#                     ";",round(list_univar_tos_std[["deces"]]$ICsup[list_univar_tos_std[["deces"]]$Name == var],2),"]"),
+#               
+#               paste("[",round(m1_deces_tos_std$ICinf[m1_deces_tos_std$Name == var],2),
+#                     ";",round(m1_deces_tos_std$ICsup[m1_deces_tos_std$Name == var],2),"]"),
+#               
+#               paste("[",round(m2_deces_tos_std$ICinf[m2_deces_tos_std$Name == var],2),
+#                     ";",round(m2_deces_tos_std$ICsup[m2_deces_tos_std$Name == var],2),"]"),
+#               
+#               paste("[",round(m3_deces_tos_std$ICinf[m3_deces_tos_std$Name == var],2),
+#                     ";",round(m3_deces_tos_std$ICsup[m3_deces_tos_std$Name == var],2),"]"),
+#               
+#               paste("[",round(m4_deces_tos_std$ICinf[m4_deces_tos_std$Name == var],2),
+#                     ";",round(m4_deces_tos_std$ICsup[m4_deces_tos_std$Name == var],2),"]")
+#                )
+#   ## p valeurs
+#   p_deces = c(" ", 
+#               paste(signif(list_univar_tos_std[["deces"]]$p.value[list_univar_tos_std[["deces"]]$Name == var],2),ifelse(list_univar_tos_std[["deces"]]$p.value[list_univar_tos_std[["deces"]]$Name == var] <= 0.05, "*"," ")),
+#               paste(signif(m1_deces_tos_std$p.value[m1_deces_tos_std$Name == var],2),ifelse(m1_deces_tos_std$p.value[m1_deces_tos_std$Name == var]<= 0.05,"*"," ")),
+#               paste(signif(m2_deces_tos_std$p.value[m2_deces_tos_std$Name == var],2),ifelse(m2_deces_tos_std$p.value[m2_deces_tos_std$Name == var]<=0.05,"*"," ")),
+#               paste(signif(m3_deces_tos_std$p.value[m3_deces_tos_std$Name == var],2),ifelse(m3_deces_tos_std$p.value[m3_deces_tos_std$Name == var]<=0.05,"*"," ")),
+#               paste(signif(m4_deces_tos_std$p.value[m4_deces_tos_std$Name == var],2),ifelse(m4_deces_tos_std$p.value[m4_deces_tos_std$Name == var]<=0.05,"*",""))
+#                )
+#   # c index 
+#   c_index_deces = c(" ", 
+#               round(list_univar_tos_std[["deces"]]$c_index[list_univar_tos_std[["deces"]]$Name == var],3),
+#               round(m1_deces_tos_std$c_index[m1_deces_tos_std$Name == var],3),
+#               round(m2_deces_tos_std$c_index[m2_deces_tos_std$Name == var],3),
+#               round(m3_deces_tos_std$c_index[m3_deces_tos_std$Name == var],3),
+#               round(m4_deces_tos_std$c_index[m4_deces_tos_std$Name == var],3)
+#               )
+# 
+#   tab = cbind(param,model_names,HR_deces,IC_deces,p_deces,c_index_deces)
+#   res_cox_all_tab_deces_tos_std = rbind(res_cox_all_tab_deces_tos_std,tab)
+# }
+# rm(var);
+# rm(tab);
+# ```
+# ```{r}
+# kable(res_cox_all_tab_deces_tos_std, longtable = T,
+#       caption = "Cox multivariés avec Death comme outcome sur données scaled, time on study", 
+#       col.names = c("","","HR","IC","p","C_index"))%>% 
+#   kable_styling(bootstrap_options = "striped", full_width = F) 
+```
+```{r}
+# plot_grid(
+# plot_pv_HR2(m1_deces_tos_std)+theme(legend.position = "none"),
+# plot_pv_HR2(m2_deces_tos_std) +theme(legend.position = "none"),
+# plot_pv_HR2(m3_deces_tos_std) +theme(legend.position = "none"),
+# plot_pv_HR2(m4_deces_tos_std) +theme(legend.position = "none"))
+```
+#### 3.1.2.2 Age scale
+```{r}
+# m1_deces_as_std$Name = as.character(m1_deces_as_std$Name)
+# m1_deces_as_std[m1_deces_as_std$Name == "plaques1","Name"] = "plaques"
+# m2_deces_as_std$Name = as.character(m2_deces_as_std$Name)
+# m2_deces_as_std$Name[m2_deces_as_std$Name == "plaques1"] = "plaques"
+# m3_deces_as_std$Name = as.character(m3_deces_as_std$Name)
+# m3_deces_as_std$Name[m3_deces_as_std$Name == "plaques1"] = "plaques"
+# m4_deces_as_std$Name = as.character(m4_deces_as_std$Name)
+# m4_deces_as_std$Name[m4_deces_as_std$Name == "plaques1"] = "plaques"
+```
+
+```{r}
+# res_cox_all_tab_deces_as_std = c()
+# model_names = c(" ", "Univariate", "Model 1", "Model 2", "Model 3", "Model 4")
+# for(var in echotracking_clean){
+#   
+#   param = c(names_echotracking[which(echotracking==var)],rep(" ",5))
+#   
+#   ## HR
+#   HR_deces = c(" ", 
+#               round(list_univar_as_std[["deces"]]$HR[list_univar_as_std[["deces"]]$Name == var],2),
+#               round(m1_deces_as_std$HR[m1_deces_as_std$Name == var],2),
+#               round(m2_deces_as_std$HR[m2_deces_as_std$Name == var],2),
+#               round(m3_deces_as_std$HR[m3_deces_as_std$Name == var],2),
+#               round(m4_deces_as_std$HR[m4_deces_as_std$Name == var],2)
+#                )
+#   ## IC
+#   IC_deces = c(" ", 
+#               paste("[",round(list_univar_as_std[["deces"]]$ICinf[list_univar_as_std[["deces"]]$Name == var],2),
+#                     ";",round(list_univar_as_std[["deces"]]$ICsup[list_univar_as_std[["deces"]]$Name == var],2),"]"),
+#               
+#               paste("[",round(m1_deces_as_std$ICinf[m1_deces_as_std$Name == var],2),
+#                     ";",round(m1_deces_as_std$ICsup[m1_deces_as_std$Name == var],2),"]"),
+#               
+#               paste("[",round(m2_deces_as_std$ICinf[m2_deces_as_std$Name == var],2),
+#                     ";",round(m2_deces_as_std$ICsup[m2_deces_as_std$Name == var],2),"]"),
+#               
+#               paste("[",round(m3_deces_as_std$ICinf[m3_deces_as_std$Name == var],2),
+#                     ";",round(m3_deces_as_std$ICsup[m3_deces_as_std$Name == var],2),"]"),
+#               
+#               paste("[",round(m4_deces_as_std$ICinf[m4_deces_as_std$Name == var],2),
+#                     ";",round(m4_deces_as_std$ICsup[m4_deces_as_std$Name == var],2),"]")
+#                )
+#   ## p valeurs
+#   p_deces = c(" ", 
+#               paste(signif(list_univar_as_std[["deces"]]$p.value[list_univar_as_std[["deces"]]$Name == var],2),ifelse(list_univar_as_std[["deces"]]$p.value[list_univar_as_std[["deces"]]$Name == var] <= 0.05, "*"," ")),
+#               paste(signif(m1_deces_as_std$p.value[m1_deces_as_std$Name == var],2),ifelse(m1_deces_as_std$p.value[m1_deces_as_std$Name == var]<= 0.05,"*"," ")),
+#               paste(signif(m2_deces_as_std$p.value[m2_deces_as_std$Name == var],2),ifelse(m2_deces_as_std$p.value[m2_deces_as_std$Name == var]<=0.05,"*"," ")),
+#               paste(signif(m3_deces_as_std$p.value[m3_deces_as_std$Name == var],2),ifelse(m3_deces_as_std$p.value[m3_deces_as_std$Name == var]<=0.05,"*"," ")),
+#               paste(signif(m4_deces_as_std$p.value[m4_deces_as_std$Name == var],2),ifelse(m4_deces_as_std$p.value[m4_deces_as_std$Name == var]<=0.05,"*",""))
+#                )
+#   # c index 
+#   c_index_deces = c(" ", 
+#               round(list_univar_as_std[["deces"]]$c_index[list_univar_as_std[["deces"]]$Name == var],3),
+#               round(m1_deces_as_std$c_index[m1_deces_as_std$Name == var],3),
+#               round(m2_deces_as_std$c_index[m2_deces_as_std$Name == var],3),
+#               round(m3_deces_as_std$c_index[m3_deces_as_std$Name == var],3),
+#               round(m4_deces_as_std$c_index[m4_deces_as_std$Name == var],3)
+#               )
+# 
+#   tab = cbind(param,model_names,HR_deces,IC_deces,p_deces,c_index_deces)
+#   res_cox_all_tab_deces_as_std = rbind(res_cox_all_tab_deces_as_std,tab)
+# }
+# rm(var);
+# rm(tab);
+```
+```{r}
+# kable(res_cox_all_tab_deces_as_std, longtable = T,
+#       caption = "Cox multivariés avec Death comme outcome sur données scaled, age scale", 
+#       col.names = c("","","HR","IC","p","C_index"))%>% 
+#   kable_styling(bootstrap_options = "striped", full_width = F)
+```
+```{r}
+# plot_grid(
+# plot_pv_HR2(m1_deces_as_std) + ggtitle("Modèle 1"),
+# plot_pv_HR2(m2_deces_as_std) + ggtitle("Modèle 2"),
+# plot_pv_HR2(m3_deces_as_std) + ggtitle("Modèle 3"),
+# plot_pv_HR2(m4_deces_as_std) + ggtitle("Modèle 4"))
+```
+## 3.2 CHD
+
+### 3.2.1 Données brutes
+
+#### 3.2.1.1 Time on study
+
+
+```{r}
+# res_cox_all_tab_chd_tos = c()
+# model_names = c(" ", "Univariate", "Model 1", "Model 2", "Model 3", "Model 4")
+# for(var in cox_univar_stiff_chd){
+#   
+#   param = c(names_echotracking[which(echotracking == var)],rep(" ",5))
+#   
+#   ## HR
+#   HR_chd = c(" ", 
+#               round(list_univar_tos[["chd"]]$HR[list_univar_tos[["chd"]]$Name == var],2),
+#               round(m1_chd_tos$HR[m1_chd_tos$Name == var],2),
+#               round(m2_chd_tos$HR[m2_chd_tos$Name == var],2),
+#               round(m3_chd_tos$HR[m3_chd_tos$Name == var],2),
+#               round(m4_chd_tos$HR[m4_chd_tos$Name == var],2)
+#                )
+#   ## IC
+#   IC_chd = c(" ", 
+#               paste("[",round(list_univar_tos[["chd"]]$ICinf[list_univar_tos[["chd"]]$Name == var],2),
+#                     ";",round(list_univar_tos[["chd"]]$ICsup[list_univar_tos[["chd"]]$Name == var],2),"]"),
+#               
+#               paste("[",round(m1_chd_tos$ICinf[m1_chd_tos$Name == var],2),
+#                     ";",round(m1_chd_tos$ICsup[m1_chd_tos$Name == var],2),"]"),
+#               
+#               paste("[",round(m2_chd_tos$ICinf[m2_chd_tos$Name == var],2),
+#                     ";",round(m2_chd_tos$ICsup[m2_chd_tos$Name == var],2),"]"),
+#               
+#               paste("[",round(m3_chd_tos$ICinf[m3_chd_tos$Name == var],2),
+#                     ";",round(m3_chd_tos$ICsup[m3_chd_tos$Name == var],2),"]"),
+#               
+#               paste("[",round(m4_chd_tos$ICinf[m4_chd_tos$Name == var],2),
+#                     ";",round(m4_chd_tos$ICsup[m4_chd_tos$Name == var],2),"]")
+#                )
+#   ## p valeurs
+#   p_chd = c(" ", 
+#               paste(signif(list_univar_tos[["chd"]]$p.value[list_univar_tos[["chd"]]$Name == var],2),ifelse(list_univar_tos[["chd"]]$p.value[list_univar_tos[["chd"]]$Name == var] <= 0.05, "*"," ")),
+#               paste(signif(m1_chd_tos$p.value[m1_chd_tos$Name == var],2),ifelse(m1_chd_tos$p.value[m1_chd_tos$Name == var]<= 0.05, "*"," ")),
+#               paste(signif(m2_chd_tos$p.value[m2_chd_tos$Name == var],2),ifelse(m2_chd_tos$p.value[m2_chd_tos$Name == var]<=0.05,"*"," ")),
+#               paste(signif(m3_chd_tos$p.value[m3_chd_tos$Name == var],2),ifelse(m3_chd_tos$p.value[m3_chd_tos$Name == var]<=0.05,"*"," ")),
+#               paste(signif(m4_chd_tos$p.value[m4_chd_tos$Name == var],2),ifelse(m4_chd_tos$p.value[m4_chd_tos$Name == var]<=0.05,"*",""))
+#                )
+#   # c index 
+#   c_index_chd = c(" ", 
+#               round(list_univar_tos[["chd"]]$c_index[list_univar_tos[["chd"]]$Name == var],3),
+#               round(m1_chd_tos$c_index[m1_chd_tos$Name == var],3),
+#               round(m2_chd_tos$c_index[m2_chd_tos$Name == var],3),
+#               round(m3_chd_tos$c_index[m3_chd_tos$Name == var],3),
+#               round(m4_chd_tos$c_index[m4_chd_tos$Name == var],3)
+#                )
+#   c_index_null_chd = c(rep("",5), signif(c_harell_m4base_chd,3))
+#   c_index_chd2 = c(rep("",5),round(m4_chd_tos$c_index[m4_chd_tos$Name == var],3))
+#   tab = cbind(param,model_names,HR_chd,IC_chd,p_chd,c_index_null_chd,c_index_chd2)
+#   res_cox_all_tab_chd_tos = rbind(res_cox_all_tab_chd_tos,tab)
+# }
+# rm(var);
+# rm(tab);
+```
+```{r}
+# kable(res_cox_all_tab_chd_tos, longtable = T,
+#       caption = "Cox multivariés paramètres par paramètres avec CHD comme outcome", 
+#       col.names = c("","","HR","IC","p","C index Nul Model","C index"))%>% 
+#   kable_styling(bootstrap_options = "striped", full_width = F)
+```
+#### 3.2.1.2 Age scale
+```{r}
+# m1_chd_as$Name = as.character(m1_chd_as$Name)
+# m1_chd_as[m1_chd_as$Name == "plaques1","Name"] = "plaques"
+# m2_chd_as$Name = as.character(m2_chd_as$Name)
+# m2_chd_as$Name[m2_chd_as$Name == "plaques1"] = "plaques"
+# m3_chd_as$Name = as.character(m3_chd_as$Name)
+# m3_chd_as$Name[m3_chd_as$Name == "plaques1"] = "plaques"
+# m4_chd_as$Name = as.character(m4_chd_as$Name)
+# m4_chd_as$Name[m4_chd_as$Name == "plaques1"] = "plaques"
+# ```
+# ```{r}
+# res_cox_all_tab_chd_as = c()
+# model_names = c(" ", "Univariate", "Model 1", "Model 2", "Model 3", "Model 4")
+# for(var in echotracking_clean){
+#   
+#   param = c(names_echotracking[which(echotracking==var)],rep(" ",5))
+#   
+#   ## HR
+#   HR_chd = c(" ", 
+#               round(list_univar_as[["chd"]]$HR[list_univar_as[["chd"]]$Name == var],2),
+#               round(m1_chd_as$HR[m1_chd_as$Name == var],2),
+#               round(m2_chd_as$HR[m2_chd_as$Name == var],2),
+#               round(m3_chd_as$HR[m3_chd_as$Name == var],2),
+#               round(m4_chd_as$HR[m4_chd_as$Name == var],2)
+#                )
+#   ## IC
+#   IC_chd = c(" ", 
+#               paste("[",round(list_univar_as[["chd"]]$ICinf[list_univar_as[["chd"]]$Name == var],2),
+#                     ";",round(list_univar_as[["chd"]]$ICsup[list_univar_as[["chd"]]$Name == var],2),"]"),
+#               
+#               paste("[",round(m1_chd_as$ICinf[m1_chd_as$Name == var],2),
+#                     ";",round(m1_chd_as$ICsup[m1_chd_as$Name == var],2),"]"),
+#               
+#               paste("[",round(m2_chd_as$ICinf[m2_chd_as$Name == var],2),
+#                     ";",round(m2_chd_as$ICsup[m2_chd_as$Name == var],2),"]"),
+#               
+#               paste("[",round(m3_chd_as$ICinf[m3_chd_as$Name == var],2),
+#                     ";",round(m3_chd_as$ICsup[m3_chd_as$Name == var],2),"]"),
+#               
+#               paste("[",round(m4_chd_as$ICinf[m4_chd_as$Name == var],2),
+#                     ";",round(m4_chd_as$ICsup[m4_chd_as$Name == var],2),"]")
+#                )
+#   ## p valeurs
+#   p_chd = c(" ", 
+#               paste(signif(list_univar_as[["chd"]]$p.value[list_univar_as[["chd"]]$Name == var],2),ifelse(list_univar_as[["chd"]]$p.value[list_univar_as[["chd"]]$Name == var] <= 0.05, "*"," ")),
+#               paste(signif(m1_chd_as$p.value[m1_chd_as$Name == var],2),ifelse(m1_chd_as$p.value[m1_chd_as$Name == var]<= 0.05, "*"," ")),
+#               paste(signif(m2_chd_as$p.value[m2_chd_as$Name == var],2),ifelse(m2_chd_as$p.value[m2_chd_as$Name == var]<=0.05,"*"," ")),
+#               paste(signif(m3_chd_as$p.value[m3_chd_as$Name == var],2),ifelse(m3_chd_as$p.value[m3_chd_as$Name == var]<=0.05,"*"," ")),
+#               paste(signif(m4_chd_as$p.value[m4_chd_as$Name == var],2),ifelse(m4_chd_as$p.value[m4_chd_as$Name == var]<=0.05,"*",""))
+#                )
+#   # c index 
+#   c_index_chd = c(" ", 
+#               round(list_univar_as[["chd"]]$c_index[list_univar_as[["chd"]]$Name == var],3),
+#               round(m1_chd_as$c_index[m1_chd_as$Name == var],3),
+#               round(m2_chd_as$c_index[m2_chd_as$Name == var],3),
+#               round(m3_chd_as$c_index[m3_chd_as$Name == var],3),
+#               round(m4_chd_as$c_index[m4_chd_as$Name == var],3)
+#                )
+# 
+#   tab = cbind(param,model_names,HR_chd,IC_chd,p_chd,c_index_chd)
+#   res_cox_all_tab_chd_as = rbind(res_cox_all_tab_chd_as,tab)
+# }
+# rm(var);
+# rm(tab);
+```
+```{r}
+# kable(res_cox_all_tab_chd_as, longtable = T,
+#       caption = "Cox multivariés avec CHD comme outcome sur données brutes, age_scale", 
+#       col.names = c("","","HR","IC","p","C_index"))%>% 
+#   kable_styling(bootstrap_options = "striped", full_width = F)
+```
+### 3.2.1 Données scaled
+#### 3.2.1.1 Time on study
+
+
+```{r}
+# res_cox_all_tab_chd_tos_std = c()
+# model_names = c(" ", "Univariate", "Model 1", "Model 2", "Model 3", "Model 4")
+# for(var in cox_univar_chd){
+#   
+#   param = c(names_echotracking[which(echotracking==var)],rep(" ",5))
+#   
+#   ## HR
+#   HR_chd = c(" ", 
+#               round(list_univar_tos_std[["chd"]]$HR[list_univar_tos_std[["chd"]]$Name == var],2),
+#               round(m1_chd_tos_std$HR[m1_chd_tos_std$Name == var],2),
+#               round(m2_chd_tos_std$HR[m2_chd_tos_std$Name == var],2),
+#               round(m3_chd_tos_std$HR[m3_chd_tos_std$Name == var],2),
+#               round(m4_chd_tos_std$HR[m4_chd_tos_std$Name == var],2)
+#                )
+#   ## IC
+#   IC_chd = c(" ", 
+#               paste("[",round(list_univar_tos_std[["chd"]]$ICinf[list_univar_tos_std[["chd"]]$Name == var],2),
+#                     ";",round(list_univar_tos_std[["chd"]]$ICsup[list_univar_tos_std[["chd"]]$Name == var],2),"]"),
+#               
+#               paste("[",round(m1_chd_tos_std$ICinf[m1_chd_tos_std$Name == var],2),
+#                     ";",round(m1_chd_tos_std$ICsup[m1_chd_tos_std$Name == var],2),"]"),
+#               
+#               paste("[",round(m2_chd_tos_std$ICinf[m2_chd_tos_std$Name == var],2),
+#                     ";",round(m2_chd_tos_std$ICsup[m2_chd_tos_std$Name == var],2),"]"),
+#               
+#               paste("[",round(m3_chd_tos_std$ICinf[m3_chd_tos_std$Name == var],2),
+#                     ";",round(m3_chd_tos_std$ICsup[m3_chd_tos_std$Name == var],2),"]"),
+#               
+#               paste("[",round(m4_chd_tos_std$ICinf[m4_chd_tos_std$Name == var],2),
+#                     ";",round(m4_chd_tos_std$ICsup[m4_chd_tos_std$Name == var],2),"]")
+#                )
+#   ## p valeurs
+#   p_chd = c(" ", 
+#               paste(signif(list_univar_tos_std[["chd"]]$p.value[list_univar_tos_std[["chd"]]$Name == var],2),ifelse(list_univar_tos_std[["chd"]]$p.value[list_univar_tos_std[["chd"]]$Name == var] <= 0.05, "*"," ")),
+#               paste(signif(m1_chd_tos_std$p.value[m1_chd_tos_std$Name == var],2),ifelse(m1_chd_tos_std$p.value[m1_chd_tos_std$Name == var]<= 0.05,"*"," ")),
+#               paste(signif(m2_chd_tos_std$p.value[m2_chd_tos_std$Name == var],2),ifelse(m2_chd_tos_std$p.value[m2_chd_tos_std$Name == var]<=0.05,"*"," ")),
+#               paste(signif(m3_chd_tos_std$p.value[m3_chd_tos_std$Name == var],2),ifelse(m3_chd_tos_std$p.value[m3_chd_tos_std$Name == var]<=0.05,"*"," ")),
+#               paste(signif(m4_chd_tos_std$p.value[m4_chd_tos_std$Name == var],2),ifelse(m4_chd_tos_std$p.value[m4_chd_tos_std$Name == var]<=0.05,"*",""))
+#                )
+#   # c index 
+#   c_index_chd = c(" ", 
+#               round(list_univar_tos_std[["chd"]]$c_index[list_univar_tos_std[["chd"]]$Name == var],3),
+#               round(m1_chd_tos_std$c_index[m1_chd_tos_std$Name == var],3),
+#               round(m2_chd_tos_std$c_index[m2_chd_tos_std$Name == var],3),
+#               round(m3_chd_tos_std$c_index[m3_chd_tos_std$Name == var],3),
+#               round(m4_chd_tos_std$c_index[m4_chd_tos_std$Name == var],3)
+#                )
+# 
+#   tab = cbind(param,model_names,HR_chd,IC_chd,p_chd,c_index_chd)
+#   res_cox_all_tab_chd_tos_std = rbind(res_cox_all_tab_chd_tos_std,tab)
+# }
+# rm(var);
+# rm(tab);
+# ```
+# ```{r}
+# kable(res_cox_all_tab_chd_tos_std, longtable = T, 
+#       col.names = c("","","HR","IC","p","C_index"))%>% 
+#   kable_styling(bootstrap_options = "striped", full_width = F)
+```
+```{r}
+# plot_grid(
+# plot_pv_HR2(m1_chd_tos_std) + theme(legend.position = "none"),
+# plot_pv_HR2(m2_chd_tos_std) + theme(legend.position = "none"),
+# plot_pv_HR2(m3_chd_tos_std) + theme(legend.position = "none"),
+# plot_pv_HR2(m4_chd_tos_std) + theme(legend.position = "none"))
+```
+#### Age scale
+```{r}
+# m1_chd_as_std$Name = as.character(m1_chd_as_std$Name)
+# m1_chd_as_std[m1_chd_as_std$Name == "plaques1","Name"] = "plaques"
+# m2_chd_as_std$Name = as.character(m2_chd_as_std$Name)
+# m2_chd_as_std$Name[m2_chd_as_std$Name == "plaques1"] = "plaques"
+# m3_chd_as_std$Name = as.character(m3_chd_as_std$Name)
+# m3_chd_as_std$Name[m3_chd_as_std$Name == "plaques1"] = "plaques"
+# m4_chd_as_std$Name = as.character(m4_chd_as_std$Name)
+# m4_chd_as_std$Name[m4_chd_as_std$Name == "plaques1"] = "plaques"
+```
+```{r}
+# res_cox_all_tab_chd_as_std = c()
+# model_names = c(" ", "Univariate", "Model 1", "Model 2", "Model 3", "Model 4")
+# for(var in echotracking_clean){
+#   
+#   param = c(names_echotracking[which(echotracking==var)],rep(" ",5))
+#   
+#   ## HR
+#   HR_chd = c(" ", 
+#               round(list_univar_as_std[["chd"]]$HR[list_univar_as_std[["chd"]]$Name == var],2),
+#               round(m1_chd_as_std$HR[m1_chd_as_std$Name == var],2),
+#               round(m2_chd_as_std$HR[m2_chd_as_std$Name == var],2),
+#               round(m3_chd_as_std$HR[m3_chd_as_std$Name == var],2),
+#               round(m4_chd_as_std$HR[m4_chd_as_std$Name == var],2)
+#                )
+#   ## IC
+#   IC_chd = c(" ", 
+#               paste("[",round(list_univar_as_std[["chd"]]$ICinf[list_univar_as_std[["chd"]]$Name == var],2),
+#                     ";",round(list_univar_as_std[["chd"]]$ICsup[list_univar_as_std[["chd"]]$Name == var],2),"]"),
+#               
+#               paste("[",round(m1_chd_as_std$ICinf[m1_chd_as_std$Name == var],2),
+#                     ";",round(m1_chd_as_std$ICsup[m1_chd_as_std$Name == var],2),"]"),
+#               
+#               paste("[",round(m2_chd_as_std$ICinf[m2_chd_as_std$Name == var],2),
+#                     ";",round(m2_chd_as_std$ICsup[m2_chd_as_std$Name == var],2),"]"),
+#               
+#               paste("[",round(m3_chd_as_std$ICinf[m3_chd_as_std$Name == var],2),
+#                     ";",round(m3_chd_as_std$ICsup[m3_chd_as_std$Name == var],2),"]"),
+#               
+#               paste("[",round(m4_chd_as_std$ICinf[m4_chd_as_std$Name == var],2),
+#                     ";",round(m4_chd_as_std$ICsup[m4_chd_as_std$Name == var],2),"]")
+#                )
+#   ## p valeurs
+#   p_chd = c(" ", 
+#               paste(signif(list_univar_as_std[["chd"]]$p.value[list_univar_as_std[["chd"]]$Name == var],2),ifelse(list_univar_as_std[["chd"]]$p.value[list_univar_as_std[["chd"]]$Name == var] <= 0.05, "*"," ")),
+#               paste(signif(m1_chd_as_std$p.value[m1_chd_as_std$Name == var],2),ifelse(m1_chd_as_std$p.value[m1_chd_as_std$Name == var]<= 0.05, "*"," ")),
+#               paste(signif(m2_chd_as_std$p.value[m2_chd_as_std$Name == var],2),ifelse(m2_chd_as_std$p.value[m2_chd_as_std$Name == var]<=0.05,"*"," ")),
+#               paste(signif(m3_chd_as_std$p.value[m3_chd_as_std$Name == var],2),ifelse(m3_chd_as_std$p.value[m3_chd_as_std$Name == var]<=0.05,"*"," ")),
+#               paste(signif(m4_chd_as_std$p.value[m4_chd_as_std$Name == var],2),ifelse(m4_chd_as_std$p.value[m4_chd_as_std$Name == var]<=0.05,"*",""))
+#                )
+#   # c index 
+#   c_index_chd = c(" ", 
+#               round(list_univar_as_std[["chd"]]$c_index[list_univar_as_std[["chd"]]$Name == var],3),
+#               round(m1_chd_as_std$c_index[m1_chd_as_std$Name == var],3),
+#               round(m2_chd_as_std$c_index[m2_chd_as_std$Name == var],3),
+#               round(m3_chd_as_std$c_index[m3_chd_as_std$Name == var],3),
+#               round(m4_chd_as_std$c_index[m4_chd_as_std$Name == var],3)
+#                )
+# 
+#   tab = cbind(param,model_names,HR_chd,IC_chd,p_chd,c_index_chd)
+#   res_cox_all_tab_chd_as_std = rbind(res_cox_all_tab_chd_as_std,tab)
+# }
+# rm(var);
+# rm(tab);
+```
+```{r}
+# kable(res_cox_all_tab_chd_as_std, longtable = T, 
+#       col.names = c("","","HR","IC","p","C_index"))%>% 
+#   kable_styling(bootstrap_options = "striped", full_width = F)
+```
+
+```{r}
+# plot_grid(
+# plot_pv_HR2(m1_chd_as_std) + ggtitle("Modèle 1"),
+# plot_pv_HR2(m2_chd_as_std) + ggtitle("Modèle 2"),
+# plot_pv_HR2(m3_chd_as_std) + ggtitle("Modèle 3"),
+# plot_pv_HR2(m4_chd_as_std) + ggtitle("Modèle 4"))
+```

@@ -7,7 +7,7 @@ output: html_notebook
 Permet de faire des modeles de cox univariés et d'avoir les resultats sous la forme extract_coxReg (donc dataframe).
 
 ```{r}
-cox_univar = function(time, var, evt, dt, round = T, d.round = 2, alpha = 0.05, interaction = F, var.inter){
+cox_univar = function(time, evt, param, dt, round = T, d.round = 2, alpha = 0.05, interaction = F, var.inter){
   
   # time : time-to-event
   # evt : variable d'evenement (binaire)
@@ -26,9 +26,11 @@ cox_univar = function(time, var, evt, dt, round = T, d.round = 2, alpha = 0.05, 
   
   # On fit le modèle
   if(interaction == T){
-    model = coxph(Surv(time,evt) ~ dt[,var] + dt[,var]*dt[,var.inter], data = dt)}
+    model = coxph(Surv(time,evt) ~ dt[,param] + dt[,param]*dt[,var.inter], data = dt)
+    }
   else
-    model = coxph(Surv(time,evt) ~ dt[,var], data = dt)
+    model = coxph(Surv(time,evt) ~ dt[,param], data = dt)
+
   
   summary = summary(model)
   
@@ -40,25 +42,25 @@ cox_univar = function(time, var, evt, dt, round = T, d.round = 2, alpha = 0.05, 
   
   # Construction du dataframe final arrondi ou non
   if (round == T){
-    
-    df = data.frame("Name" = var,
-                    "HR" = round(summary$coefficient[length(summary$coefficient[,2]),2],d.round),
-                    "IC" = paste0("[", round(summary$conf.int[length(summary$conf.int[,3]),3],d.round +1), " ; ", ... = round(summary$conf.int[length(summary$conf.int[,4]),4],d.round+1), "]"),
-                    "p.value" = signif(summary$coefficient[length(summary$coefficient[,5]),5],3),
-                    "pv_signif" = ifelse(summary$coefficient[length(summary$coefficient[,5]),5] <= alpha, "*"," "),
-                    "p.shonfeld" = signif(test.shonfeld$table[dim(test.shonfeld$table)[1],dim(test.shonfeld$table)[2]],d.round+1),
-                    "n" = model$n,
-                    "n.events" = model$nevent,
-                    "c_index" = round(c_index,3)
-                    )
-    
-    
-   return(list("res_df"=df, "model" = model))
+
+     df = data.frame("Name" = param,
+                     "HR" = round(summary$coefficient[length(summary$coefficient[,2]),2],d.round),
+                     "IC" = paste0("[", round(summary$conf.int[length(summary$conf.int[,3]),3],d.round +1), " ; ", round(summary$conf.int[length(summary$conf.int[,4]),4],d.round+1), "]"),
+                     "p.value" = signif(summary$coefficient[length(summary$coefficient[,5]),5],3),
+                     "pv_signif" = ifelse(summary$coefficient[length(summary$coefficient[,5]),5] <= alpha, "*"," "),
+                     "p.shonfeld" = signif(test.shonfeld$table[dim(test.shonfeld$table)[1],dim(test.shonfeld$table)[2]],d.round+1),
+                     "n" = model$n,
+                     "n.events" = model$nevent,
+                     "c_index" = round(c_index,3)
+                     )
+   
+   
+    return(list("res_df"=df, "model" = model))
   } 
   
   else if (round == F){
     
-    df = data.frame("Name" = var,
+    df = data.frame("Name" = param,
                     "HR" = summary$coefficient[length(summary$coefficient[,2]),2],
                     "ICinf" = summary$conf.int[length(summary$conf.int[,3]),3],
                     "ICsup" = summary$conf.int[length(summary$conf.int[,4]),4],
@@ -211,7 +213,7 @@ plot_pv_HR  = function(cox_nice_info, hj = 0, vj = 0, main = " "){
 }
 ```
 
-Idem que plot_pv_HR mais sans la catégorie de verification de l'hypothèse des risques proportionnelsS.
+Idem que plot_pv_HR mais sans la catégorie de verification de l'hypothèse des risques proportionnels.
 
 ```{r}
 plot_pv_HR2  = function(cox_nice_info, hj = 0, vj = 0, main = " "){
@@ -234,10 +236,10 @@ plot_pv_HR2  = function(cox_nice_info, hj = 0, vj = 0, main = " "){
      {cox_nice_info[i,"col"] = "Non significant"}
      # effet protecteur
      else if ((cox_nice_info[i,"pv_signif"] == 1) & (cox_nice_info[i,"HR"] <= 1))
-     {cox_nice_info[i,"col"] = "Protective effect"}
+     {cox_nice_info[i,"col"] = "Reduction Risk"}
      # effet deletere
      else if((cox_nice_info[i,"pv_signif"] == 1) & (cox_nice_info[i,"HR"] > 1))
-     {cox_nice_info[i,"col"] = "Deleterious effect"}
+     {cox_nice_info[i,"col"] = "Increased Risk"}
    }
   cox_nice_info$col = as.factor(cox_nice_info$col)
 
@@ -246,22 +248,23 @@ plot_pv_HR2  = function(cox_nice_info, hj = 0, vj = 0, main = " "){
 
   geom_point(size = .5) +
 
-  scale_y_continuous(name="HR",limits=c(min(cox_nice_info$HR)-0.1 , max(cox_nice_info$HR)+0.1)) +
-
+  #scale_y_continuous(name="HR",limits=c(min(cox_nice_info$HR)-0.05 , max(cox_nice_info$HR)+0.05 )) +
+  ylim(0,4) +
 
   theme_classic() +
   
-  scale_colour_manual(values = c("red", "black", "darkgreen")) +
+  scale_color_manual(values = c("red", "black", "darkgreen ")) +
+    theme(legend.position = "bottom") +
 
   geom_text_repel(aes(label = Name_nice)
                   ,
                   #segment.colour = NA,
                   #box.padding   = 0.35,
-                  point.padding = 0.5,
+                  point.padding = 1.25,
                   #segment.color = "black",
                   #force = 5,
                   #segment.size  = .7 ,#epaisseur segments
-                  size = 2 #taille label
+                  size = 4 #taille label
                      ) +
 
 
@@ -274,68 +277,7 @@ plot_pv_HR2  = function(cox_nice_info, hj = 0, vj = 0, main = " "){
 
 Permet de fiter des régressions de cox multivariées et de récupérer les info du dernier coefficients qui correspond au paramètre d'échotracking que l'on étudie.
 
-```{r}
-cox_multivar = function(formula, list_param, dt, round = T, d.round = 2){
-  
-  df_res = data.frame()
-  
-    for(param in list_param){
-     
-      f = update(formula, as.formula( paste0(".~.+",param) ) )
-      
-      cox = coxph(f, data)
-      summary = summary(cox)
-      test.shonfeld = cox.zph(cox)
 
-      # Pour pouvoir acceder a dernier élément du tableau qui correspond au paramètre d'échotracking qu'on rajoute à la fin de chaque formula
-      
-      r = nrow(summary$coefficients)
-
-      if(round == T){
-          df_tmp = data.frame("Name" = rownames(summary$coefficients)[r],
-                    "HR" = round(summary$coefficient[r,2],d.round),
-                    "IC" = paste0("[", round(summary$conf.int[r,3],d.round), " ; ",round(summary$conf.int[r,4],d.round), "]"),
-                    "p.value" = signif(summary$coefficient[r,5],d.round+3),
-                    "Signif" = ifelse(summary$coefficient[r,5] <= 0.05, "*"," "),
-                    "p.shonfeld" = signif(test.shonfeld$table[dim(test.shonfeld$table)[1],3],d.round+1),
-                    "prop.hyp" = ifelse(test.shonfeld$table[dim(test.shonfeld$table)[1],3] < 0.05,"X"," "))
-
-      }
-
-
-      else if(round == F){
-        df_tmp = data.frame("Name" = rownames(summary$coefficients)[r],
-                    "HR" = summary$coefficient[r,2],
-                    "ICinf" = summary$conf.int[r,3],
-                    "ICsup" = summary$conf.int[r,4],
-                    "p.value" = signif(summary$coefficient[r,5],d.round+3),
-                    "p.shonfeld" = signif(test.shonfeld$table[dim(test.shonfeld$table)[1],3],d.round+1),
-                    "Hyp.Prop.verif" = ifelse(test.shonfeld$table[dim(test.shonfeld$table)[1],3] <= 0.05 ,0,1))
-        df_tmp$pv_signif = ifelse(df_tmp$p.value <= 0.05 , 1, 0)
-
-       }
-
-      df_res = rbind(df_res,df_tmp)
-       }
-   return(df_res)
-}
-```
-
-  Generer une châine de nom de variables séparés par un +.
-```{r}
-generate_str_var = function(list_var){
-  str = NULL
-  for(var in list_var){
-    tmp = paste("+",var)
-    str = paste0(str,tmp)
-  }
-  str = substr(str,2,nchar(str))
-  return(str)
-}
-```
-
-
-Idem à cox_multivar sans le test de schonfeld
 ```{r}
 cox_multivar2 = function(formula, list_param, dt, round = T, d.round = 2){
   
@@ -381,17 +323,7 @@ cox_multivar2 = function(formula, list_param, dt, round = T, d.round = 2){
    return(df_res)
 }
 ```
-```{r}
-generate_str_var = function(list_var){
-  str = NULL
-  for(var in list_var){
-    tmp = paste("+",var)
-    str = paste0(str,tmp)
-  }
-  str = substr(str,2,nchar(str))
-  return(str)
-}
-```
+
 
 
 
@@ -506,34 +438,35 @@ get_legend =function(myggplot){
 Modèles de cox multivariés avec plusieurs paramètres d'echotracking
 
 ```{r}
-cox_multivar_multi_param = function(evt, list_param, list_var_ajust, dt, round = T, d.round = 2){
+cox_multivar_multi_param = function(tt_evt, evt, list_param, list_var_ajust, dt, round = T, d.round = 2){
   
-  time = paste0("time_to_",evt)
-  evt = as.numeric(as.character(data2[,evt]))
-  time = as.numeric(as.character(data2[,time]))
-  param = generate_str_var(list_param)
-  var_ajust = generate_str_var(list_var_ajust)
-  f = formula(paste("Surv(time, evt)~", generate_str_var(list_param),"+" ,generate_str_var(list_var_ajust)))
+  dt[,evt] = as.numeric(as.character(dt[,evt]))
+  dt[,tt_evt] = as.numeric(as.character(dt[,tt_evt]))
   
-  cox = coxph(f,dt)
+  param = paste0(list_param, collapse = "+")
+  var_ajust = paste0(list_var_ajust, collapse = "+")
+  
+  f = formula(paste0("Surv(",tt_evt,",", evt,")~", param,"+" ,var_ajust))
+  
+  cox = coxph(f,data = dt)
   summary = summary(cox)
-  test.shonfeld = cox.zph(cox)
-  
-  df_res = data.frame()
+  c_harell = round(concordance(cox)$concordance,3)
 
-    
-  r = sum(sapply(dt[,list_param], is.numeric))
-  for(p in list_param){if(is.factor(dt[,p])){r = r + length(levels(dt[,p])) - 1 }}
+  r = 0
+  for(p in list_param){
+    if(is.numeric(dt[,p])){
+      r = r+1}
+    else if (is.factor(dt[,p]))
+      {r = r + length(levels(dt[,p])) - 1}
+  }
+
 
       if(round == T){
           df_tmp = data.frame("Name" = rownames(summary$coefficients)[1:r],
                     "HR" = round(summary$coefficient[1:r,2],d.round),
-                    "IC" = paste0("[", round(summary$conf.int[1:r,3],d.round), " ; ",round(summary$conf.int[r,4],d.round), "]"),
-                    "p.value" = signif(summary$coefficient[1:r,5],d.round+3),
-                    "Signif" = ifelse(summary$coefficient[1:r,5] <= 0.05, "*"," "),
-                    "p.shonfeld" = signif(test.shonfeld$table[1:r,3],d.round+1),
-                    
-                    "prop.hyp" = ifelse(test.shonfeld$table[1:r,3] < 0.05,"X"," ")
+                    "IC" = paste0("[", round(summary$conf.int[1:r,3],d.round), " ; ",round(summary$conf.int[1:r,4],d.round), "]"),
+                    "p.value" = signif(summary$coefficient[1:r,5],3),
+                    "Signif" = ifelse(summary$coefficient[1:r,5] <= 0.05, "*"," ")
                     )
 
       }
@@ -542,39 +475,22 @@ cox_multivar_multi_param = function(evt, list_param, list_var_ajust, dt, round =
                      "HR" = summary$coefficient[1:r,2],
                      "ICinf" = summary$conf.int[1:r,3],
                      "ICsup" = summary$conf.int[1:r,4],
-                     "p.value" = signif(summary$coefficient[1:r,5],d.round+3),
-                     "p.shonfeld" = signif(test.shonfeld$table[1:r,3],d.round+1),
-                     "Hyp.Prop.verif" = ifelse(test.shonfeld$table[1:r,3] <= 0.05 ,0,1))
+                     "p.value" = signif(summary$coefficient[1:r,5],d.round+3))
          df_tmp$pv_signif = ifelse(df_tmp$p.value <= 0.05 , 1, 0)
-       
-       
-       
-       df_res = rbind(df_res,df_tmp)
+
+
+
        }
 
 
-  return(df_res)
+  return(list("df" = df_tmp, "c_harell" = c_harell))
 }
 ```
 Permet de virer les sujets (identifiés par id, var devant être présente dans la base dt) ayant au moins une NA dans au moins une des variables de list_var.
 
 
 ```{r}
-# subset_SubjectsNA = function(dt, list_var,id){
-#   na_idx = c()
-#   for(v in list_var){
-#     tmp = which(is.na(dt[,v]))
-#     na_idx = c(na_idx,tmp)
-#   }
-#   if(sum(duplicated(na_idx)) != 0){na_idx = na_idx[-which(duplicated(na_idx))]}
-#   #print(length(na_idx))
-#   na_id = dt[na_idx,id]
-#   return(list("data_no_na" = dt[-na_id,], "na_id" = na_id))
-#     }
-```
-
-```{r}
-NRI_IDI_cox_tos = function(evt,v_ajust,v_, data){
+NRI_IDI_cox_tos = function(evt,v_ajust,v_, data, t=5){
   # evt: vecteur de taille nb.event*2 evt = (evt1,ttevt1,evt2,ttevt2,...)
   # v_ajust : vecteurs avec toutes les variables d'ajustement
   # v_ : paramètres dont on veut calculer l'apport predictif
@@ -623,9 +539,9 @@ for ( i in seq(1,length(evt),2)) {
   p_base = ifelse(sum_base$coefficients[,5]<=0.001,"<0.001",signif(sum_base$coefficients[,5],3))
   cindex_base = signif(concordance(mod_base)$concordance,3)
   IC_cindex_base = paste0("[", 
-                          round(concordance(mod_base)$concordance + 1.96*sqrt(concordance(mod_base)$var),2) ,
+                          round(concordance(mod_base)$concordance - 1.96*sqrt(concordance(mod_base)$var),2) ,
                           ";" , 
-                          round(concordance(mod_base)$concordance - 1.96*sqrt(concordance(mod_base)$var),2),
+                          round(concordance(mod_base)$concordance + 1.96*sqrt(concordance(mod_base)$var),2),
                           "]")
   nevent_base = mod_base$nevent
   N_base = mod_base$n
@@ -638,7 +554,7 @@ for ( i in seq(1,length(evt),2)) {
 
   list_base[[paste0(evt[i])]] = list("df" = df_base, "N" = N_base, "n.event" = nevent_base, "c.index" = cindex_base, "IC.c.index" = IC_cindex_base)
   
-# Fit des modèles de base + 1 param d'echotracking
+# Fit des modèles de base + 1 param 
   list_formulas_cox = sapply(v_, function(x)                  as.formula(paste("Surv(",evt[i+1],",",evt[i],")~",var_formula,"+",x)))
   names(list_formulas_cox) = v_
   
@@ -656,7 +572,7 @@ for ( i in seq(1,length(evt),2)) {
     res = IDI.INF(indata = data[,c(evt[i+1],evt[i])],
                 covs0 = COVS0,
                 covs1 = COVS1,
-                t0 = 5*365)
+                t0 = t*365)
     # Test du rapport de vraisemblance des coefficients du modèle de base
    p_test_param = c()
    for(j in 1:length(v_param)){
@@ -704,17 +620,18 @@ for ( i in seq(1,length(evt),2)) {
                               nevent_param = x$model$nevent
                               N_param = x$model$n
                               idi = signif(x$nri_idi$m1[1],3)
-                              IC_idi = paste0("[",round(x$nri_idi$m1[2],2),";",round(x$nri_idi$m1[3],2),"]")
+                              IC_idi = paste0("[",signif(x$nri_idi$m1[2],2),";",signif(x$nri_idi$m1[3],2),"]")
                               pv_idi = ifelse(x$nri_idi$m1[4] < 0.001, "<0.001",signif(x$nri_idi$m1[4],3))
-                              idi_e = signif(x$nri_idi$m1.est[2],3)
-                              idi_ne = signif(x$nri_idi$m1.est[3],3)
+                              idi_e =
+signif(x$nri_idi$m1.est[2]-(1-x$nri_idi$m1.est[2]),3)                               
+                              idi_ne = signif((1-x$nri_idi$m1.est[3])-x$nri_idi$m1.est[3],3)
                               demi_nri = signif(x$nri_idi$m2[1],3)
-                              IC_demi_nri = paste0("[",round(x$nri_idi$m2[2],2),";",round(x$nri_idi$m2[3],2),"]")
+                              IC_demi_nri = paste0("[",signif(x$nri_idi$m2[2],2),";",signif(x$nri_idi$m2[3],2),"]")
                               pv_demi_nri = ifelse(x$nri_idi$m2[4] < 0.001, "<0.001",signif(x$nri_idi$m2[4],3))
                               nri = signif(2*x$nri_idi$m2[1],3)
                               
-                              nri_e = signif(x$nri_idi$m2.est[2],3)
-                              nri_ne = signif(x$nri_idi$m2.est[3],3)
+                              nri_e = signif(x$nri_idi$m2.est[2]-(1-x$nri_idi$m2.est[2]),3)
+                              nri_ne = signif((1-x$nri_idi$m2.est[3])-x$nri_idi$m2.est[3],3)
                               
                               
                               return(list("df" = data.frame("HR" = HR_param, "IC" = IC_param, "p" = p_param, "p.globale"=p.globale_param), 
@@ -737,4 +654,111 @@ T2<-Sys.time()
 
 return(list("list_base" = list_base,"list_base_param" = list_base_param,"tps.exe" = difftime(T2,T1)))
 }
+```
+
+Likelihood ratio et Wald tests 
+
+```{r}
+global_test_cox = function(var_ajust, var_param, evt, tt_evt,dt ,test = "lr"){
+  res = matrix(ncol = 2, nrow = length(c(var_param,var_ajust)))
+  var_base = paste(c(var_param,var_ajust), collapse = "+")
+  f_base = as.formula(paste("Surv(",tt_evt,",",evt,")~",var_base))
+  for (j in 1:length(c(var_param,var_ajust))){
+    reste = c(var_param,var_ajust)[-j]
+    var_enrichi = paste(reste, collapse = "+")
+    f_enrichi = as.formula(paste("Surv(",tt_evt,",",evt,")~",var_enrichi))
+
+    
+    if (test == "wald"){
+      test_done = "Wald test"
+    p = waldtest(coxph(f_base, data = dt),coxph(f_enrichi,data=dt))$`Pr(>Chisq)`[2]
+    }
+      
+    
+    else{
+    test_done = "Likelihood ratio test"
+    p = lrtest(coxph(f_base, data = dt),coxph(f_enrichi,data=dt))$`Pr(>Chisq)`[2]
+    }
+
+    
+    
+    res[j,1] = c(var_param,var_ajust)[j]
+    res[j,2] = ifelse(p<=0.001,"<0.001",signif(p,3))
+  }
+  print(test_done)
+  return(res)
+}
+
+```
+
+```{r}
+clean_cox_model = function (model, data = NULL, main = "Hazard ratio", 
+                       cpositions = c(0.02, 0.22, 0.4), 
+                       fontsize = 0.7, refLabel = "reference", noDigits = 2,
+
+                       # new parameters with some default values; function's behaviour
+                       # does not differ from ggforest() unless arrow = TRUE
+                       arrow = FALSE, arrow.labels = c("left", "right"), 
+                       arrow.specification = arrow(), arrow.colour = "black") {
+
+  # this part is unchanged
+  conf.high <- conf.low <- estimate <- NULL
+  stopifnot(class(model) == "coxph")
+  data <- survminer:::.get_data(model, data = data)
+  terms <- attr(model$terms, "dataClasses")[-1]
+  terms <- terms[intersect(names(terms), 
+                           gsub(rownames(anova(model))[-1], pattern = "`", replacement = ""))]
+  allTerms <- lapply(seq_along(terms), function(i) {
+    var <- names(terms)[i]
+    if (terms[i] == "factor") {
+      adf <- as.data.frame(table(data[, var]))
+      cbind(var = var, adf, pos = 1:nrow(adf))
+    }
+    else {
+      data.frame(var = var, Var1 = "", Freq = nrow(data), pos = 1)
+    }
+  })
+  allTermsDF <- do.call(rbind, allTerms)
+  colnames(allTermsDF) <- c("var", "level", "N", "pos")
+  inds <- apply(allTermsDF[, 1:2], 1, paste0, collapse = "")
+  coef <- as.data.frame(broom::tidy(model))
+  gmodel <- broom::glance(model)
+  rownames(coef) <- gsub(coef$term, pattern = "`", replacement = "")
+  toShow <- cbind(allTermsDF, coef[inds, ])[, c("var", "level", "N", "p.value", "estimate", 
+                                                "conf.low", "conf.high", "pos")]
+  toShowExp <- toShow[, 5:7]
+  toShowExp[is.na(toShowExp)] <- 0
+  toShowExp <- format(exp(toShowExp), digits = noDigits)
+  toShowExpClean <- data.frame(toShow, pvalue = signif(toShow[, 4], noDigits + 1), toShowExp)
+  toShowExpClean$stars <- paste0(round(toShowExpClean$p.value, noDigits + 1), " ", 
+                                 ifelse(toShowExpClean$p.value < 0.05, "*", ""), 
+                                 ifelse(toShowExpClean$p.value < 0.01, "*", ""), 
+                                 ifelse(toShowExpClean$p.value < 0.001, "*", ""))
+  toShowExpClean$ci <- paste0("(", toShowExpClean[, "conf.low.1"], 
+                              " - ", toShowExpClean[, "conf.high.1"], ")")
+  toShowExpClean$estimate.1[is.na(toShowExpClean$estimate)] = refLabel
+  toShowExpClean$stars[which(toShowExpClean$p.value < 0.001)] = "<0.001 ***"
+  toShowExpClean$stars[is.na(toShowExpClean$estimate)] = ""
+  toShowExpClean$ci[is.na(toShowExpClean$estimate)] = ""
+  toShowExpClean$estimate[is.na(toShowExpClean$estimate)] = 0
+  toShowExpClean$var = as.character(toShowExpClean$var)
+  toShowExpClean$var[duplicated(toShowExpClean$var)] = ""
+  toShowExpClean$N <- paste0("(N=", toShowExpClean$N, ")")
+  toShowExpClean <- toShowExpClean[nrow(toShowExpClean):1, ]
+  rangeb <- range(toShowExpClean$conf.low, toShowExpClean$conf.high, 
+                  na.rm = TRUE)
+  breaks <- axisTicks(rangeb/2, log = TRUE, nint = 7)
+  rangeplot <- rangeb
+  rangeplot[1] <- rangeplot[1] - diff(rangeb)
+  rangeplot[2] <- rangeplot[2] + 0.15 * diff(rangeb)
+  width <- diff(rangeplot)
+  y_variable <- rangeplot[1] + cpositions[1] * width
+  y_nlevel <- rangeplot[1] + cpositions[2] * width
+  y_cistring <- rangeplot[1] + cpositions[3] * width
+  y_stars <- rangeb[2]
+  x_annotate <- seq_len(nrow(toShowExpClean))
+  annot_size_mm <- fontsize * as.numeric(grid::convertX(unit(theme_get()$text$size, "pt"), "mm"))
+  return(toShowExpClean)
+}
+
 ```

@@ -1,26 +1,430 @@
 ---
 title: "R Notebook"
 output: html_notebook
+editor_options: 
+  chunk_output_type: inline
 ---
 
-# Age
+
+
+# 1.sexe
 ```{r}
-p_age = ggplot(data, aes(age0)) + geom_histogram(fill = 'black', col = 'white') + geom_vline(xintercept = mean(data$age0), col = "blue") + 
-  ylab(" ") + xlab("Âge (en années)") + theme_minimal()
+# df_sexe <- data.frame(
+#   category = c("Hommes", "Femmes"),
+#   count = c(length(which(data4$sexe == 1)), length(which(data4$sexe == 0))))
+# df_sexe$prop = round(((df_sexe$count)/dim(data4)[1])*100,2)
+# df_sexe$ymax = cumsum(df_sexe$prop)
+# df_sexe$ymin = c(0, head(df_sexe$ymax, n=-1))
+# df_sexe$labelPosition = (df_sexe$ymax + df_sexe$ymin) / 2
+# df_sexe$label = paste0(df_sexe$category, "\n value: ", df_sexe$count)
+# 
+# # Make the plot
+# pie_sexe =  ggplot(df_sexe, aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, color=category, fill = category)) +
+#   geom_rect() +
+#   geom_label( x=3.5, aes(y=labelPosition, label=label), size=3) +
+#   scale_color_manual(values = alpha(c("orange", "steelblue"), 1)) + scale_fill_manual(values = c("white","white"))+
+#   coord_polar(theta="y") +
+#   xlim(c(2, 4)) +
+#   theme_void() +
+#   theme(legend.position = "none")
+# pie_sexe
+```
+```{r}
+df_sexe_evt =  rbind(f = c("tot" = length(which(data4$sexe == 0)), 
+                           "dc" = length(which(data4$sexe==0 & data4$deces == 1)), 
+                           "chd" = length(which(data4$sexe == 0 & data4$chd == 1)),
+                           "stroke" = length(which(data4$sexe == 0 & data4$stroke == 1))),
+                     h = c("tot" = length(which(data4$sexe == 1)), 
+                           "dc" = length(which(data4$sexe==1 & data4$deces == 1)), 
+                           "chd" = length(which(data4$sexe == 1 & data4$chd == 1)),
+                           "stroke" = length(which(data4$sexe == 1 & data4$stroke == 1))))
+
+row.names(df_sexe_evt) =c("F","H")
 ```
 
 ```{r}
-mean(data$age0)
+kable(df_sexe_evt, col.names = c("Total","Death","CHD",'Stroke')) %>% 
+  kable_styling(full_width = F)
+```
+Test de la différence de l'âge à l'évenement chez les hommes et chez les femmes: student et wilcoxon.
+
+```{r}
+t.test(data4$age_at_deces[data4$deces == 1]~data4$sexe[data4$deces == 1])$p.value
+wilcox.test(data4$age_at_deces[data4$deces == 1]~data4$sexe[data4$deces == 1])$p.value
+t.test(data4$age_at_chd[data4$chd == 1]~data4$sexe[data4$chd == 1])$p.value
+wilcox.test(data4$age_at_chd[data4$chd == 1]~data4$sexe[data4$chd == 1])$p.value
+t.test(data4$age_at_stroke[data4$stroke == 1]~data4$sexe[data4$stroke == 1])$p.value
+wilcox.test(data4$age_at_stroke[data4$stroke == 1]~data4$sexe[data4$stroke == 1])$p.value
+```
+âge moyen à l'inclusion des hommes et des femmes
+```{r}
+mean(data4$age0[data4$sexe == 0])
+mean(data4$age0[data4$sexe == 1])
+```
+## DECES
+```{r}
+par(mfrow = c(1,6))
+hist(data4$age_at_deces[data4$deces == 1], main = " ",xlab = "", ylab = "")
+qqnorm(data4$age_at_deces[data4$deces == 1], main = " ",xlab = "", ylab = "");qqline(data4$age_at_deces[data4$deces == 1], main = " ",xlab = "", ylab = "")
+hist(data4$age_at_deces[data4$sexe == 0&data4$deces == 1], main = " ",xlab = "", ylab = "")
+qqnorm(data4$age_at_deces[data4$sexe == 0&data4$deces == 1], main = " ",xlab = "", ylab = "");qqline(data4$age_at_deces[data4$sexe == 0&data4$deces == 1], main = " ",xlab = "", ylab = "")
+hist(data4$age_at_deces[data4$sexe == 1&data4$deces == 1], main = " ",xlab = "", ylab = "")
+qqnorm(data4$age_at_deces[data4$sexe == 1&data4$deces == 1], main = " ",xlab = "", ylab = "");qqline(data4$age_at_deces[data4$sexe == 1&data4$deces == 1], main = " ",xlab = "", ylab = "")
+```
+## CHD
+```{r}
+par(mfrow = c(1,6))
+hist(data4$age_at_chd[data4$chd == 1], main = " ",xlab = "", ylab = "")
+qqnorm(data4$age_at_chd[data4$chd == 1], main = " ",xlab = "", ylab = "");qqline(data4$age_at_chd[data4$chd == 1], main = " ",xlab = "", ylab = "")
+hist(data4$age_at_chd[data4$sexe == 0&data4$chd == 1], main = " ",xlab = "", ylab = "")
+qqnorm(data4$age_at_chd[data4$sexe == 0&data4$chd == 1], main = " ",xlab = "", ylab = "");qqline(data4$age_at_chd[data4$sexe == 0&data4$chd == 1], main = " ",xlab = "", ylab = "")
+hist(data4$age_at_chd[data4$sexe == 1&data4$chd == 1], main = " ",xlab = "", ylab = "")
+qqnorm(data4$age_at_chd[data4$sexe == 1&data4$chd == 1], main = " ",xlab = "", ylab = "");qqline(data4$age_at_chd[data4$sexe == 1&data4$chd == 1], main = " ",xlab = "", ylab = "")
+```
+## STROKE
+```{r}
+par(mfrow = c(1,6))
+hist(data4$age_at_stroke[data4$stroke == 1], main = " ",xlab = "", ylab = "")
+qqnorm(data4$age_at_stroke[data4$stroke == 1], main = " ",xlab = "", ylab = "");qqline(data4$age_at_stroke[data4$stroke == 1], main = " ",xlab = "", ylab = "")
+hist(data4$age_at_stroke[data4$sexe == 0&data4$stroke == 1], main = " ",xlab = "", ylab = "")
+qqnorm(data4$age_at_stroke[data4$sexe == 0&data4$stroke == 1], main = " ",xlab = "", ylab = "");qqline(data4$age_at_stroke[data4$sexe == 0&data4$stroke == 1], main = " ",xlab = "", ylab = "")
+hist(data4$age_at_stroke[data4$sexe == 1&data4$stroke == 1], main = " ",xlab = "", ylab = "")
+qqnorm(data4$age_at_stroke[data4$sexe == 1&data4$stroke == 1], main = " ",xlab = "", ylab = "");qqline(data4$age_at_stroke[data4$sexe == 1&data4$stroke == 1], main = " ",xlab = "", ylab = "")
+```
+# age 
+
+```{r}
+hist_age = plot_grid(
+  ggplot(data4,aes(age0)) + geom_density() + theme_minimal() + xlab("")
+  ,
+ ggplot(data4, aes(age0)) + geom_density(aes(col = deces))
+ + scale_color_manual("Death", c("Non","Oui"),values = c("darkgreen","red")) + theme_minimal() + xlab("")+ theme(legend.position="top")
+ ,
+ ggplot(data4, aes(age0)) + geom_density(aes(col = chd))
+ + scale_color_manual("CHD", c("Non","Oui"),values = c("darkgreen","red")) + theme_minimal() + xlab("")+ theme(legend.position="top")
+ ,
+ ggplot(data4, aes(age0)) + geom_density(aes(col = chd))
+ + scale_color_manual("Stroke", c("Non","Oui"),values = c("darkgreen","red")) + theme_minimal() + xlab("")+ theme(legend.position="top")
+ )
+hist_age
+```
+
+
+
+
+### Education
+```{r}
+levels(data4$adm14) = c("Illiterate","No Degree","CAP/Brevet des collèges","Bac","Bac+2",">Bac+2")
+df_adm14 <- data.frame(
+  category = c(levels(data4$adm14)),
+  count = c(length(which(data4$adm14 == "Illiterate")),
+                length(which(data4$adm14 == "Bac+2")),
+                length(which(data4$adm14 == "Bac")),
+                length(which(data4$adm14 == "CAP/Brevet des collèges")),
+                length(which(data4$adm14 == ">Bac+2")), 
+                length(which(data4$adm14 == "No Degree"))
+                ))
+df_adm14$prop = round((df_adm14$count/dim(data4)[1])*100,1)
+df_adm14$category = factor(df_adm14$category, c("Illiterate","No Degree","CAP/Brevet des collèges","Bac","Bac+2",">Bac+2"))
+df_adm14$prop = round(((df_adm14$count)/dim(data4)[1])*100,2)
+df_adm14$ymax = cumsum(df_adm14$prop)
+df_adm14$ymin = c(0, head(df_adm14$ymax, n=-1))
+df_adm14$labelPosition = (df_adm14$ymax + df_adm14$ymin) / 2
+df_adm14$label = paste0(df_adm14$category,"\n",df_adm14$prop,"%")
+
+
+pie_adm14 =  ggplot(df_adm14, aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3,fill = reorder(category,prop))) +
+  geom_rect() +
+  geom_label_repel( x=3.5, aes(y=labelPosition, label=label), size=10 , direction = "y") +
+  scale_fill_manual(values = alpha(brewer.pal(n = 7, name = "Blues"), .5)) +
+  coord_polar(theta="y") +
+  xlim(c(2, 4)) +
+  theme_void() +
+  theme(legend.position = "none") + labs(fill = "Education")
+pie_adm14
+```
+
+
+
+### bmi
+```{r}
+hist_bmi = plot_grid(
+  ggplot(data4,aes(bmi)) + geom_density() + theme_minimal() + xlab("")
+  ,
+ ggplot(data4, aes(bmi)) + geom_density(aes(col = deces))
+ + scale_color_manual("Death", c("Non","Oui"),values = c("darkgreen","red")) + theme_minimal() + xlab("")+ theme(legend.position="top")
+ ,
+ ggplot(data4, aes(bmi)) + geom_density(aes(col = chd))
+ + scale_color_manual("CHD", c("Non","Oui"),values = c("darkgreen","red")) + theme_minimal() + xlab("")+ theme(legend.position="top"),
+ 
+  ggplot(data4, aes(bmi)) + geom_density(aes(col = stroke))
+ + scale_color_manual("Stroke", c("Non","Oui"),values = c("darkgreen","red")) + theme_minimal() + xlab("")+ theme(legend.position="top")
+ 
+ )
+hist_bmi
+```
+
+
+### tabac
+```{r}
+levels(data4$qm16) = c("Non Smoker","Current Smoker","Former Smoker","Smoker quitting (<1 y.)")
+df_qm16 <- data.frame(
+  category = c(levels(data4$qm16)),
+  count = c(length(which(data4$qm16 == "Non Smoker")),
+                 length(which(data4$qm16 == "Current Smoker")),
+                 length(which(data4$qm16 == "Former Smoker")),
+                 length(which(data4$qm16 == "Smoker quitting (<1 y.)"))))
+df_qm16$prop = round(((df_qm16$count)/dim(data4)[1])*100,2)
+df_qm16$ymax = cumsum(df_qm16$prop)
+df_qm16$ymin = c(0, head(df_qm16$ymax, n=-1))
+df_qm16$labelPosition = (df_qm16$ymax + df_qm16$ymin) / 2
+df_qm16$label = paste0(df_qm16$category, "\n", df_qm16$prop,"%")
+
+# Make the plot
+pie_qm16 =  ggplot(df_qm16, aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=reorder(category,prop))) +
+  geom_rect() +
+  geom_label_repel( x=3.5, aes(y=labelPosition, label=label), size=10, direction = "y" ) +
+  scale_fill_manual(values = alpha(brewer.pal(n = 7, name = "Blues"), .5)) +
+  coord_polar(theta="y") +
+  xlim(c(2, 4)) +
+  theme_void() +
+  theme(legend.position = "none")
+pie_qm16
+```
+
+
+
+
+### Diabete
+```{r}
+df_diab <- data.frame(
+  category = c("Yes", "No"),
+  count = c(length(which(data4$diab == 1)), length(which(data4$diab == 0))))
+df_diab$prop = round(((df_diab$count)/dim(data4)[1])*100,2)
+df_diab$ymax = cumsum(df_diab$prop)
+df_diab$ymin = c(0, head(df_diab$ymax, n=-1))
+df_diab$labelPosition = (df_diab$ymax + df_diab$ymin) / 2
+df_diab$label = paste0(df_diab$category, "\n", df_diab$prop,"%")
+
+# Make the plot
+pie_diab =  ggplot(df_diab, aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=reorder(category,prop))) +
+  geom_rect() +
+  geom_label_repel( x=3.5, aes(y=labelPosition, label=label), size=10, direction = "y")+
+  scale_fill_manual(values = alpha(brewer.pal(n = 3, name = "Blues"), .5)) +
+  coord_polar(theta="y") +
+  xlim(c(2, 4)) +
+  theme_void() +
+  theme(legend.position = "none")
+pie_diab
+```
+
+
+
+
+  
+# sport
+```{r}
+df_qm10 <- data.frame(
+  category = c("Never", "1-2 times/week","+3 times/week"),
+  count = c(length(which(data4$qm10 == 1)), length(which(data4$qm10 == 2)),
+                length(which(data4$qm10== 3))))
+df_qm10$prop = round(((df_qm10$count)/dim(data4)[1])*100,2)
+df_qm10$ymax = cumsum(df_qm10$prop)
+df_qm10$ymin = c(0, head(df_qm10$ymax, n=-1))
+df_qm10$labelPosition = (df_qm10$ymax + df_qm10$ymin) / 2
+df_qm10$label = paste0(df_qm10$category, "\n", df_qm10$prop,"%")
+
+pie_qm10 =  ggplot(df_qm10, aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=reorder(category,prop))) +
+  geom_rect() +
+  geom_label_repel( x=3.5, aes(y=labelPosition, label=label), size=10, direction = "y")+
+  scale_fill_manual(values = alpha(brewer.pal(n = 4, name = "Blues"), .5)) +
+  coord_polar(theta="y") +
+  xlim(c(2, 4)) +
+  theme_void() +
+  theme(legend.position = "none")
+pie_qm10
+```
+
+
+### epice
+```{r}
+df_epice = data.frame( 
+  category = c("Situation précaire","Situation non précaire","NA"),
+  count = c(length(which(data4$epice > 30.17)),
+                length(which(data4$epice <= 30.17)),
+                length(which(is.na(data4$epice)))))
+df_epice$prop = round((df_epice$count/dim(data4)[1]*100),2)
+df_epice$ymax = cumsum(df_epice$prop)
+df_epice$ymin = c(0, head(df_epice$ymax, n=-1))
+df_epice$labelPosition = (df_epice$ymax + df_epice$ymin) / 2
+df_epice$label = paste0(df_epice$category, "\n ", df_epice$prop,"%")
+
+pie_epice =  ggplot(df_epice, aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=reorder(category,prop))) +
+  geom_rect() +
+  geom_label_repel( x=3.5, aes(y=labelPosition, label=label), size=3, direction = "y")+
+  scale_fill_manual(values = alpha(brewer.pal(n = 4, name = "Blues"), .5)) +
+  coord_polar(theta="y") +
+  xlim(c(2, 4)) +
+  theme_void() +
+  theme(legend.position = "none")
+pie_epice
+```
+
+
+
+### depression
+```{r}
+df_deptot <- data.frame(
+  category = c("Oui", "Non","NA"),
+  count = c(length(which(data4$deptot == 1)), length(which(data4$deptot == 0)),
+                length(which(is.na(data4$deptot)))))
+df_deptot$prop = round((df_deptot$count/dim(data4)[1]*100),2)
+df_deptot$ymax = cumsum(df_deptot$prop)
+df_deptot$ymin = c(0, head(df_deptot$ymax, n=-1))
+df_deptot$labelPosition = (df_deptot$ymax + df_deptot$ymin) / 2
+df_deptot$label = paste0(df_deptot$category, "\n", df_deptot$prop,"%")
+
+pie_deptot =  ggplot(df_deptot, aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=reorder(category,prop))) +
+  geom_rect() +
+  geom_label_repel( x=3.5, aes(y=labelPosition, label=label), size=3, direction = "y")+
+  scale_fill_manual(values = alpha(brewer.pal(n = 4, name = "Blues"), .5)) +
+  coord_polar(theta="y") +
+  xlim(c(2, 4)) +
+  theme_void() +
+  theme(legend.position = "none")
+pie_deptot
+```
+
+### Créatinine
+```{r}
+hist_creat = plot_grid(
+  ggplot(data4,aes(bio10)) + geom_density() + theme_minimal() + xlab("")
+  ,
+  ggplot(data4, aes(bio10)) + geom_density(aes(col = sexe)) + scale_color_manual("Sexe", c("Femmes","Hommes"),values = c("orange","steelblue")) + theme_minimal() + xlab("") + theme(legend.position="top")
+  ,
+ ggplot(data4, aes(bio10)) + geom_density(aes(col = deces))
+ + scale_color_manual("Décès", c("Non","Oui"),values = c("darkgreen","red")) + theme_minimal() + xlab("")+ theme(legend.position="top")
+ ,
+ ggplot(data4, aes(bio10)) + geom_density(aes(col = chd))
+ + scale_color_manual("CHD", c("Non","Oui"),values = c("darkgreen","red")) + theme_minimal() + xlab("")+ theme(legend.position="top")
+ )
+hist_creat
+```
+
+
+### MBP
+```{r}
+hist_mbp = plot_grid(
+  ggplot(data4,aes(mbp)) + geom_density() + theme_minimal() + xlab("")
+  ,
+ ggplot(data4, aes(mbp)) + geom_density(aes(col = deces))
+ + scale_color_manual("Death", c("Non","Oui"),values = c("darkgreen","red")) + theme_minimal() + xlab("")+ theme(legend.position="top")
+ ,
+ ggplot(data4, aes(mbp)) + geom_density(aes(col = chd))
+ + scale_color_manual("CHD", c("Non","Oui"),values = c("darkgreen","red")) + theme_minimal() + xlab("")+ theme(legend.position="top"), ggplot(data4, aes(mbp)) + geom_density(aes(col = stroke))
+ + scale_color_manual("Stroke", c("Non","Oui"),values = c("darkgreen","red")) + theme_minimal() + xlab("")+ theme(legend.position="top")
+ )
+hist_mbp
+```
+### HTA par groupe d'evt
+
+
+```{r}
+data4$evt = NA
+data4$evt = ifelse((data4$deces == 0 & data4$chd == 0),
+                   "rien",
+                   ifelse(((data4$deces == 1 & data4$chd == 0 )|(data4$deces == 1 & data4$chd == 1) ),
+                          "deces",
+                          ifelse(((data4$chd == 1 & data4$deces == 0)|(data4$chd == 1 & data4$deces == 1)),
+                                 "chd",
+                                 "test")))
+
+
+
+ggplot(data4, aes(HTA_cat, fill = evt, color = evt)) + geom_bar(position = position_dodge()) + theme_minimal() + scale_color_manual("",c("CHD","Death","No events"),values = c("red","brown", "black")) + scale_fill_manual("",c("CHD","Death","No events"),values = c("white","white","white")) + xlab("") + ylab("") 
 ```
 ```{r}
-prop.table(table(data$sexe))
+table(deces = data4$deces,chd = data4$chd)
+```
+```{r}
+hta_evt = rbind(
+  c(table(data4$deces,data4$HTA_cat)[2,]/length(data4$deces[data4$deces == 1])*100,length(data4$deces[data4$deces == 1])),
+  
+  c(table(data4$chd,data4$HTA_cat)[2,]/length(data4$chd[data4$chd == 1])*100,length(data4$chd[data4$chd == 1])),
+  
+  c(table(data4$stroke,data4$HTA_cat)[2,]/length(data4$stroke[data4$stroke == 1])*100,length(data4$stroke[data4$stroke == 1])))
+rownames(hta_evt) = c("Death","CHD","Stroke")
+hta_evt = round(hta_evt,2)
+```
+```{r}
+data4$HTA_cat = as.factor(data4$HTA_cat)
+kable(hta_evt, col.names = c(levels(data4$HTA_cat),"Total (N)")) %>% 
+  kable_styling(full_width = F)
+```
+
+
+### Cholesterol
+
+#### ldl mauvais cholesterol
+```{r}
+hist_ldl = plot_grid(
+  ggplot(data4,aes(ldl)) + geom_density() + theme_minimal() + xlab("") + theme(legend.position="top")
+  ,
+ ggplot(data4, aes(ldl)) + geom_density(aes(col = deces))
+ + scale_color_manual("Death", c("Non","Oui"),values = c("darkgreen","red")) + theme_minimal() + xlab("")+ theme(legend.position="top") 
+ ,
+ ggplot(data4, aes(ldl)) + geom_density(aes(col = chd))
+ + scale_color_manual("CHD", c("Non","Oui"),values = c("darkgreen","red")) + theme_minimal() + xlab("")+ theme(legend.position="top"),
+ 
+ ggplot(data4, aes(ldl)) + geom_density(aes(col = stroke))
+ + scale_color_manual("Stroke", c("Non","Oui"),values = c("darkgreen","red")) + theme_minimal() + xlab("")+ theme(legend.position="top") 
+ )
+hist_ldl
+```
+#### hdl bon cholesterol
+```{r}
+hist_trb17 = plot_grid(
+  ggplot(data4,aes(trb17)) + geom_density() + theme_minimal() + xlab("")
+  ,
+ ggplot(data4, aes(trb17)) + geom_density(aes(col = deces))
+ + scale_color_manual("Death", c("Oui","Non"),values = c("red","darkgreen")) + theme_minimal() + xlab("")+ theme(legend.position="top")
+ ,
+ ggplot(data4, aes(trb17)) + geom_density(aes(col = chd))
+ + scale_color_manual("CHD", c("Oui","Non"),values = c("red","darkgreen")) + theme_minimal() + xlab("")+ theme(legend.position="top"),
+ 
+  ggplot(data4, aes(trb17)) + geom_density(aes(col = stroke))
+ + scale_color_manual("Stroke", c("Oui","Non"),values = c("red","darkgreen")) + theme_minimal() + xlab("")+ theme(legend.position="top")
+ )
+hist_trb17
+```
+
+```{r}
+hist_ldl_trb17 = plot_grid( 
+  ggplot(data4, aes(ldl)) + geom_density(aes(col = chd))
+ + scale_color_manual("CHD", c("Non","Oui"),values = c("darkgreen","red")) + theme_minimal() + xlab("")+ theme(legend.position="top") + geom_vline(xintercept = mean(data4$ldl[data4$chd == 1], na.rm = T), color = "red", alpha = .3)+ geom_vline(xintercept = mean(data4$ldl[data4$chd == 0], na.rm = T), color = "darkgreen", alpha = .3),
+  ggplot(data4, aes(trb17)) + geom_density(aes(col = chd))
+ + scale_color_manual("CHD", c("Non","Oui"),values = c("darkgreen","red")) + theme_minimal() + xlab("")+ theme(legend.position="top") + geom_vline(xintercept = mean(data4$trb17[data4$chd == 1], na.rm = T), color = "red", alpha = .3)+ geom_vline(xintercept = mean(data4$trb17[data4$chd == 0], na.rm = T), color = "darkgreen", alpha = .3)
+ )
+```
+```{r}
+hist_ldl2 = ggplot(data4, aes(ldl)) + geom_density(aes(col = chd))+ scale_color_manual("CHD", c("Non","Oui"),values = c("darkgreen","red")) + theme_minimal() + xlab("")+ theme(legend.position="top") + geom_vline(xintercept = mean(data4$ldl[data4$chd == 1], na.rm = T), color = "red", alpha = .3)+ geom_vline(xintercept = mean(data4$ldl[data4$chd == 0], na.rm = T), color = "darkgreen", alpha = .3)
+
+hist_hdl2 =  ggplot(data4, aes(trb17)) + geom_density(aes(col = chd))+ scale_color_manual("CHD", c("Non","Oui"),values = c("darkgreen","red")) + theme_minimal() + xlab("")+ theme(legend.position="top") + geom_vline(xintercept = mean(data4$trb17[data4$chd == 1], na.rm = T), color = "red", alpha = .3)+ geom_vline(xintercept = mean(data4$trb17[data4$chd == 0], na.rm = T), color = "darkgreen", alpha = .3)
+```
+
+# Generation
+
+```{r}
+gene = rbind(#levels(data4$year_naiss_cat), 
+             table(data4$year_naiss_cat), 
+             round(prop.table(table(data4$year_naiss_cat))*100,2))
+colnames(gene) = NULL
+gene = cbind(rbind("N","%"),gene)
+gene
 ```
 
 
 ```{r}
-prop.table(table(data$qm10))*100
-```
-```{r}
-prop.table(table(data$deptot))*100
+kable(gene, col.names = c("Year of Birth",levels(data4$year_naiss_cat)))%>%kable_styling(full_width = F)
 ```
 

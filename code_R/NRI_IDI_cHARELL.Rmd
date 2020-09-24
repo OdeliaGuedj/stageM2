@@ -1,0 +1,262 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+name = c()
+for(var in c(stiffness_anat,stiffness_dyna)){
+  name = c(name, as.character(df_echotracking$Tidy[df_echotracking$Missy == var]))
+}
+name
+```
+
+```{r}
+c(stiffness_anat,stiffness_dyna)
+```
+
+
+```{r}
+pred_deces = NRI_IDI_cox_tos(evt = c("deces","time_to_deces"),v_ajust = var_ajust[-11],v_=c(stiffness_anat,stiffness_dyna),data= data4_std)
+```
+```{r}
+pred_deces$tps.exe
+```
+```{r}
+pred_chd = NRI_IDI_cox_tos(evt = c("chd","time_to_chd"),v_ajust = var_ajust[-11],v_=c(stiffness_anat,stiffness_dyna),data= data4_std)
+```
+```{r}
+pred_chd$tps.exe
+```
+```{r}
+pred_stroke = NRI_IDI_cox_tos(evt = c("stroke","time_to_stroke"),v_ajust = var_ajust[-11],v_=c(stiffness_anat,stiffness_dyna),data= data4_std)
+```
+
+```{r}
+pred_stroke$tps.exe
+```
+
+
+
+```{r}
+NRI_demi_deces = c()
+IC_NRI_demi_deces = c()
+p_NRI_demi_deces = c()
+NRI_e_deces = c()
+NRI_ne_deces = c()
+
+IDI_deces = c()
+IC_IDI_deces = c()
+p_IDI_deces = c()
+IDI_e_deces = c()
+IDI_ne_deces = c()
+
+
+Harell_deces = c()
+IC_harell_deces = c()
+
+p_lr = c()
+
+for(i in c(stiffness_anat,stiffness_dyna)){
+  
+  NRI_demi_deces = c(NRI_demi_deces, pred_deces$list_base_param$deces[[i]]$NRI$NRI)
+  IC_NRI_demi_deces = c(IC_NRI_demi_deces, paste(pred_deces$list_base_param$deces[[i]]$NRI$IC_NRI_0.5))
+  p_NRI_demi_deces = c(p_NRI_demi_deces, pred_deces$list_base_param$deces[[i]]$NRI$p_NRI_0.5)
+  NRI_e_deces = c(NRI_e_deces, pred_deces$list_base_param$deces[[i]]$NRI$NRI_evt)
+  NRI_ne_deces = c(NRI_ne_deces, pred_deces$list_base_param$deces[[i]]$NRI$NRI_n.evt)
+  
+  IDI_deces = c(IDI_deces, pred_deces$list_base_param$deces[[i]]$IDI$IDI)
+  IC_IDI_deces = c(IC_IDI_deces, paste(pred_deces$list_base_param$deces[[i]]$IDI$IC_IDI))
+  p_IDI_deces = c(p_IDI_deces, pred_deces$list_base_param$deces[[i]]$IDI$p_IDI)
+  IDI_e_deces = c(IDI_e_deces, pred_deces$list_base_param$deces[[i]]$IDI$IDI_e)
+  IDI_ne_deces = c(IDI_ne_deces, pred_deces$list_base_param$deces[[i]]$IDI$IDI_ne)
+   
+  Harell_deces = c(Harell_deces, pred_deces$list_base_param$deces[[i]]$harell$c.index)
+  IC_harell_deces = c(IC_harell_deces, paste(pred_deces$list_base_param$deces[[i]]$harell$IC.c.index))
+  
+  tmp_p_anova = anova(coxph(Surv(time_to_deces,deces)~age0+sexe+qm16+qm10+diab+bio10+bmi+ldl+trb17+mbp, data4_std),coxph(Surv(time_to_deces,deces)~age0+sexe+qm16+qm10+diab+bio10+bmi+ldl+trb17+mbp+data4_std[,i], data4_std))$'P(>|Chi|)'[2]
+  
+  p_lr = c(p_lr, ifelse(tmp_p_anova<0.001,"<0.001",signif(tmp_p_anova,3)))
+  
+}
+
+pred_deces_tab = cbind(
+NRI_demi_deces ,
+IC_NRI_demi_deces ,
+#p_NRI_demi_deces ,
+NRI_e_deces ,
+NRI_ne_deces ,
+
+#IDI_deces ,
+#IC_IDI_deces ,
+#p_IDI_deces ,
+#IDI_e_deces ,
+#IDI_ne_deces ,
+
+
+Harell_deces ,
+IC_harell_deces,
+
+p_lr
+)
+pred_deces_tab = cbind(name,pred_deces_tab)
+```
+```{r}
+pred_deces_tab
+```
+
+```{r}
+kable(pred_deces_tab, col.names = c("Parameters","NRI/2", "CI", "NRI Event", "NRI Non Event", "Harell C Index", "CI", "p"), align = "lccccccc") %>% kable_styling(full_width = F)%>% add_header_above(c(" " = 1,"NRI" = 4, "Concordance" = 2, "Likelihood Ratio Test" = 1))
+```
+
+```{r}
+NRI_demi_chd = c()
+IC_NRI_demi_chd = c()
+p_NRI_demi_chd = c()
+NRI_e_chd = c()
+NRI_ne_chd = c()
+
+IDI_chd = c()
+IC_IDI_chd = c()
+p_IDI_chd = c()
+IDI_e_chd = c()
+IDI_ne_chd = c()
+
+
+Harell_chd = c()
+IC_harell_chd = c()
+
+p_lr = c()
+
+for(i in c(stiffness_anat,stiffness_dyna)){
+  
+  NRI_demi_chd = c(NRI_demi_chd, pred_chd$list_base_param$chd[[i]]$NRI$NRI)
+  IC_NRI_demi_chd = c(IC_NRI_demi_chd, paste(pred_chd$list_base_param$chd[[i]]$NRI$IC_NRI_0.5))
+  p_NRI_demi_chd = c(p_NRI_demi_chd, pred_chd$list_base_param$chd[[i]]$NRI$p_NRI_0.5)
+  NRI_e_chd = c(NRI_e_chd, pred_chd$list_base_param$chd[[i]]$NRI$NRI_evt)
+  NRI_ne_chd = c(NRI_ne_chd, pred_chd$list_base_param$chd[[i]]$NRI$NRI_n.evt)
+  
+  IDI_chd = c(IDI_chd, pred_chd$list_base_param$chd[[i]]$IDI$IDI)
+  IC_IDI_chd = c(IC_IDI_chd, paste(pred_chd$list_base_param$chd[[i]]$IDI$IC_IDI))
+  p_IDI_chd = c(p_IDI_chd, pred_chd$list_base_param$chd[[i]]$IDI$p_IDI)
+  IDI_e_chd = c(IDI_e_chd, pred_chd$list_base_param$chd[[i]]$IDI$IDI_e)
+  IDI_ne_chd = c(IDI_ne_chd, pred_chd$list_base_param$chd[[i]]$IDI$IDI_ne)
+   
+  Harell_chd = c(Harell_chd, pred_chd$list_base_param$chd[[i]]$harell$c.index)
+  IC_harell_chd = c(IC_harell_chd, paste(pred_chd$list_base_param$chd[[i]]$harell$IC.c.index))
+  
+  tmp_p_anova = anova(coxph(Surv(time_to_chd,chd)~age0+sexe+qm16+qm10+diab+bio10+bmi+ldl+trb17+mbp, data4_std),coxph(Surv(time_to_chd,chd)~age0+sexe+qm16+qm10+diab+bio10+bmi+ldl+trb17+mbp+data4_std[,i], data4_std))$'P(>|Chi|)'[2]
+  
+  p_lr = c(p_lr, ifelse(tmp_p_anova<0.001,"<0.001",signif(tmp_p_anova,3)))
+  
+}
+
+pred_chd_tab = cbind(
+NRI_demi_chd ,
+IC_NRI_demi_chd ,
+#p_NRI_demi_chd ,
+NRI_e_chd ,
+NRI_ne_chd ,
+
+#IDI_chd ,
+#IC_IDI_chd ,
+#p_IDI_chd ,
+#IDI_e_chd ,
+#IDI_ne_chd ,
+
+
+Harell_chd ,
+IC_harell_chd,
+
+p_lr
+)
+pred_chd_tab = cbind(name, pred_chd_tab)
+```
+```{r}
+pred_chd_tab
+```
+
+
+```{r}
+kable(pred_chd_tab, col.names = c("Parameters","NRI/2", "CI", "NRI Event", "NRI Non Event", "Harell C Index", "CI", "p"), align = "lccccccc") %>% kable_styling(full_width = F)%>% add_header_above(c(" " = 1,"NRI" = 4, "Concordance" = 2, "Likelihood Ratio Test" = 1))
+```
+
+
+```{r}
+NRI_demi_stroke = c()
+IC_NRI_demi_stroke = c()
+p_NRI_demi_stroke = c()
+NRI_e_stroke = c()
+NRI_ne_stroke = c()
+
+IDI_stroke = c()
+IC_IDI_stroke = c()
+p_IDI_stroke = c()
+IDI_e_stroke = c()
+IDI_ne_stroke = c()
+
+
+Harell_stroke = c()
+IC_harell_stroke = c()
+
+p_lr = c()
+
+for(i in c(stiffness_anat,stiffness_dyna)){
+  
+  NRI_demi_stroke = c(NRI_demi_stroke, pred_stroke$list_base_param$stroke[[i]]$NRI$NRI)
+  IC_NRI_demi_stroke = c(IC_NRI_demi_stroke, paste(pred_stroke$list_base_param$stroke[[i]]$NRI$IC_NRI_0.5))
+  p_NRI_demi_stroke = c(p_NRI_demi_stroke, pred_stroke$list_base_param$stroke[[i]]$NRI$p_NRI_0.5)
+  NRI_e_stroke = c(NRI_e_stroke, pred_stroke$list_base_param$stroke[[i]]$NRI$NRI_evt)
+  NRI_ne_stroke = c(NRI_ne_stroke, pred_stroke$list_base_param$stroke[[i]]$NRI$NRI_n.evt)
+  
+  IDI_stroke = c(IDI_stroke, pred_stroke$list_base_param$stroke[[i]]$IDI$IDI)
+  IC_IDI_stroke = c(IC_IDI_stroke, paste(pred_stroke$list_base_param$stroke[[i]]$IDI$IC_IDI))
+  p_IDI_stroke = c(p_IDI_stroke, pred_stroke$list_base_param$stroke[[i]]$IDI$p_IDI)
+  IDI_e_stroke = c(IDI_e_stroke, pred_stroke$list_base_param$stroke[[i]]$IDI$IDI_e)
+  IDI_ne_stroke = c(IDI_ne_stroke, pred_stroke$list_base_param$stroke[[i]]$IDI$IDI_ne)
+   
+  Harell_stroke = c(Harell_stroke, pred_stroke$list_base_param$stroke[[i]]$harell$c.index)
+  IC_harell_stroke = c(IC_harell_stroke, paste(pred_stroke$list_base_param$stroke[[i]]$harell$IC.c.index))
+  
+  tmp_p_anova = anova(coxph(Surv(time_to_stroke,stroke)~age0+sexe+qm16+qm10+diab+bio10+bmi+ldl+trb17+mbp, data4_std),coxph(Surv(time_to_stroke,stroke)~age0+sexe+qm16+qm10+diab+bio10+bmi+ldl+trb17+mbp+data4_std[,i], data4_std))$'P(>|Chi|)'[2]
+  
+  p_lr = c(p_lr, ifelse(tmp_p_anova<0.001,"<0.001",signif(tmp_p_anova,3)))
+  
+}
+
+pred_stroke_tab = cbind(
+NRI_demi_stroke ,
+IC_NRI_demi_stroke ,
+#p_NRI_demi_stroke ,
+NRI_e_stroke ,
+NRI_ne_stroke ,
+
+#IDI_stroke ,
+#IC_IDI_stroke ,
+#p_IDI_stroke ,
+#IDI_e_stroke ,
+#IDI_ne_stroke ,
+
+
+Harell_stroke ,
+IC_harell_stroke,
+
+p_lr
+)
+pred_stroke_tab = cbind(name,pred_stroke_tab)
+```
+```{r}
+pred_stroke_tab
+```
+
+
+
+ 
+
+```{r}
+kable(pred_stroke_tab, col.names = c("Parameters","NRI/2", "CI", "NRI Event", "NRI Non Event", "Harell C Index", "CI", "p"), align = "lccccccc") %>% kable_styling(full_width = F)%>% add_header_above(c(" " = 1,"NRI" = 4, "Concordance" = 2, "Likelihood Ratio Test" = 1))
+```
+
+
+
+

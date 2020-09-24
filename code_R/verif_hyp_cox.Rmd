@@ -3,20 +3,19 @@ title: "R Notebook"
 output: html_notebook
 ---
 
-# 1. Vérification des hypothèses des modèles de cox univariés
 
-## 1.1 Risques proportionnels 
+# 1 Risques proportionnels 
 
-### 1.1.1 Avec le deces comme outcome
+## Deces
 
-#### 1.1.1.1 Time on study as time scale
+### Time on study as time scale
 
 Plot des résidus de schonfeld 
 ```{r}
 g = c()
-for(var in test_univar_deces){
-  cox = coxph(Surv(time_to_deces,deces)~data2[,var], data = data2)
-  cox_std = coxph(Surv(time_to_deces,deces)~data2_std[,var], data = data2_std)
+for(var in c(stiffness_anat,stiffness_dyna)){
+  cox = coxph(Surv(time_to_deces,deces)~data4_std[,var], data = data4_std)
+  cox_std = coxph(Surv(time_to_deces,deces)~data4_std[,var], data = data4_std)
   schon.test = cox.zph(cox)
   schon.test_std = cox.zph(cox_std)
   g = c(g,ggcoxzph(schon.test) + 
@@ -39,53 +38,53 @@ grid.arrange(grobs = g_std, nrow = 5, ncol = 4)
 plot des du log(-log(S(t))) pour la variable binaire (présence de plaques).
 
 ```{r}
-plot (survfit(Surv(time_to_deces, deces) ~ plaques, data = data2), fun = "cloglog")
-plot (survfit(Surv(time_to_deces, deces) ~ plaques, data = data2_std), fun = "cloglog")
+plot(survfit(Surv(time_to_deces, deces) ~ plaques, data = data4), fun = "cloglog")
+plot(survfit(Surv(time_to_deces, deces) ~ plaques, data = data4_std), fun = "cloglog")
 ```
 
-#### 1.1.1.2 Age as time scale
+### Age as time scale
 
 Plot des résidus de schonfeld 
 ```{r}
-g = c()
-for(var in test_univar_deces){
-  cox = coxph(Surv(age_at_deces,deces)~data2[,var], data = data2)
-  cox_std = coxph(Surv(age_at_deces,deces)~data2_std[,var], data = data2_std)
-  schon.test = cox.zph(cox)
-  schon.test_std = cox.zph(cox_std)
-  g = c(g,ggcoxzph(schon.test) + 
-          ylab(" ") + 
-          xlab(paste("p=", signif(schon.test$table[2,3],2))) +
-          ggtitle(names_echotracking[which(echotracking == var)])
-        )
-  g_std = c(g,ggcoxzph(schon.test_std) + 
-          ylab(" ") + 
-          xlab(paste("p=", signif(schon.test_std$table[2,3],2))) +
-          ggtitle(names_echotracking[which(echotracking == var)])
-        )
-}
+# g = c()
+# for(var in test_univar_deces){
+#   cox = coxph(Surv(age_at_deces,deces)~data4_std[,var], data = data4_std)
+#   cox_std = coxph(Surv(age_at_deces,deces)~data4_std_std[,var], data = data4_std_std)
+#   schon.test = cox.zph(cox)
+#   schon.test_std = cox.zph(cox_std)
+#   g = c(g,ggcoxzph(schon.test) + 
+#           ylab(" ") + 
+#           xlab(paste("p=", signif(schon.test$table[2,3],2))) +
+#           ggtitle(names_echotracking[which(echotracking == var)])
+#         )
+#   g_std = c(g,ggcoxzph(schon.test_std) + 
+#           ylab(" ") + 
+#           xlab(paste("p=", signif(schon.test_std$table[2,3],2))) +
+#           ggtitle(names_echotracking[which(echotracking == var)])
+#         )
+# }
 ```
 
 ```{r}
-grid.arrange(grobs = g, nrow = 5, ncol = 4)
-grid.arrange(grobs = g_std, nrow = 5, ncol = 4)
+# grid.arrange(grobs = g, nrow = 5, ncol = 4)
+# grid.arrange(grobs = g_std, nrow = 5, ncol = 4)
 ```
 
 plot des du log(-log(S(t))) pour la variable binaire (présence de plaques).
 
 ```{r}
-plot (survfit(Surv(age_at_deces, deces) ~ plaques, data = data2), fun = "cloglog")
-plot (survfit(Surv(age_at_deces, deces) ~ plaques, data = data2_std), fun = "cloglog")
+# plot (survfit(Surv(age_at_deces, deces) ~ plaques, data = data4_std), fun = "cloglog")
+# plot (survfit(Surv(age_at_deces, deces) ~ plaques, data = data4_std_std), fun = "cloglog")
 ```
 
-### 1.1.2 Avec le CHD comme outcome
+## CHD
 
-#### 1.1.2.1 Time on study as time scale
+### Time on study as time scale
 ```{r}
 g = c()
-for(var in test_univar_chd){
-  cox = coxph(Surv(time_to_chd,chd)~data2[,var], data = data2)
-  cox_std = coxph(Surv(time_to_chd,chd)~data2_std[,var], data = data2_std)
+for(var in c(stiffness_anat,stiffness_dyna)){
+  cox = coxph(Surv(time_to_chd,chd)~data4_std[,var], data = data4_std)
+  cox_std = coxph(Surv(time_to_chd,chd)~data4_std[,var], data = data4_std)
   schon.test = cox.zph(cox)
   schon.test_std = cox.zph(cox_std)
   g = c(g,ggcoxzph(schon.test) + 
@@ -108,15 +107,50 @@ grid.arrange(grobs = g_std, nrow = 5, ncol = 3)
 
 
 ```{r}
-plot (survfit(Surv(time_to_chd, chd) ~ plaques, data = data2), fun = "cloglog")
-plot (survfit(Surv(time_to_chd, chd) ~ plaques, data = data2_std), fun = "cloglog")
+plot (survfit(Surv(time_to_chd, chd) ~ plaques, data = data4_std), fun = "cloglog")
+plot (survfit(Surv(time_to_chd, chd) ~ plaques, data = data4_std), fun = "cloglog")
 ```
 #### 1.1.2.2 Age as time scale
 ```{r}
+# g = c()
+# for(var in test_univar_chd){
+#   cox = coxph(Surv(age_at_chd,chd)~data4_std[,var], data = data4_std)
+#   cox_std = coxph(Surv(age_at_chd,chd)~data4_std_std[,var], data = data4_std_std)
+#   schon.test = cox.zph(cox)
+#   schon.test_std = cox.zph(cox_std)
+#   g = c(g,ggcoxzph(schon.test) + 
+#           ylab(" ") + 
+#           xlab(paste("p=", signif(schon.test$table[2,3],2))) +
+#           ggtitle(names_echotracking[which(echotracking == var)]) 
+#         )
+#   g_std = c(g,ggcoxzph(schon.test_std) + 
+#           ylab(" ") + 
+#           xlab(paste("p=", signif(schon.test_std$table[2,3],2))) +
+#           ggtitle(names_echotracking[which(echotracking == var)]) 
+#         )
+# }
+```
+
+```{r}
+# grid.arrange(grobs = g, nrow = 5, ncol = 3)
+# grid.arrange(grobs = g_std, nrow = 5, ncol = 3)
+```
+
+
+```{r}
+# plot (survfit(Surv(age_at_chd, chd) ~ plaques, data = data4_std), fun = "cloglog")
+# plot (survfit(Surv(age_at_chd, chd) ~ plaques, data = data4_std_std), fun = "cloglog")
+```
+
+## Stroke
+
+### Time on study as time scale
+```{r}
+data4_std$stroke = as.numeric(as.character(data4_std$stroke))
 g = c()
-for(var in test_univar_chd){
-  cox = coxph(Surv(age_at_chd,chd)~data2[,var], data = data2)
-  cox_std = coxph(Surv(age_at_chd,chd)~data2_std[,var], data = data2_std)
+for(var in c(stiffness_anat,stiffness_dyna)){
+  cox = coxph(Surv(time_to_stroke,stroke)~data4_std[,var], data = data4_std)
+  cox_std = coxph(Surv(time_to_stroke,stroke)~data4_std[,var], data = data4_std)
   schon.test = cox.zph(cox)
   schon.test_std = cox.zph(cox_std)
   g = c(g,ggcoxzph(schon.test) + 
@@ -139,25 +173,26 @@ grid.arrange(grobs = g_std, nrow = 5, ncol = 3)
 
 
 ```{r}
-plot (survfit(Surv(age_at_chd, chd) ~ plaques, data = data2), fun = "cloglog")
-plot (survfit(Surv(age_at_chd, chd) ~ plaques, data = data2_std), fun = "cloglog")
+plot (survfit(Surv(time_to_stroke, stroke) ~ plaques, data = data4_std), fun = "cloglog")
+plot (survfit(Surv(time_to_stroke, stroke) ~ plaques, data = data4_std), fun = "cloglog")
 ```
 
-## 1.2 Log Linéarité
 
-### 1.2.1 Avec le deces comme outcome
+# 1. Log Linéarité
+
+## Avec le deces comme outcome
 
 #### Méthode du livre de biostat
 ```{r}
 table_verif_deces = c()
-for(var in test_univar_deces){
-  if(is.numeric(data2[,var])){
+for(var in c(stiffness_anat,stiffness_dyna)){
+  if(is.numeric(data4_std[,var])){
     
-    out_idx = cut_outlier_quantile(var,data2,0.001)$out_idx
+    out_idx = cut_outlier_quantile(var,data4_std,0.001)$out_idx
 
-    tmp_tab = verifHyp_loglin_coxUnivar(var,"time_to_deces","deces",data2,nb.class = 6, method = "center")
+    tmp_tab = verifHyp_loglin_coxUnivar(var,"time_to_deces","deces",data4_std,nb.class = 6, method = "center")
     
-    tmp_tab_noOut = verifHyp_loglin_coxUnivar(var,"time_to_deces","deces",data2[-out_idx,],nb.class = 6)
+    tmp_tab_noOut = verifHyp_loglin_coxUnivar(var,"time_to_deces","deces",data4_std[-out_idx,],nb.class = 6)
     
      tmp_name = matrix(c(names_echotracking[which(var == echotracking)],rep(" ",5)), ncol = 6)
      colnames(tmp_name) = colnames(tmp_tab)
@@ -183,8 +218,8 @@ kable(table_verif_deces, longtable = T) %>%
 ```{r}
 g = c()
 for(var in test_univar_deces){
-  if(is.numeric(data2[,var])){
-    data_tmp = data2[which(!(is.na(data2[,var]))),]
+  if(is.numeric(data4_std[,var])){
+    data_tmp = data4_std[which(!(is.na(data4_std[,var]))),]
     cox = coxph(Surv(time_to_deces, deces) ~ data_tmp[,var], data = data_tmp)
     g = c(g,ggcoxfunctional(cox, data = data_tmp)+xlab(var))
   }
@@ -200,9 +235,9 @@ grid.arrange(grobs = g, nrow = 6, ncol = 3)
 #### Méthode du livre de biostat
 ```{r}
 for(var in test_univar_deces){
-  if(is.numeric(data2[,var])){
+  if(is.numeric(data4_std[,var])){
     print(var)
-  print(verifHyp_loglin_coxUnivar(var,"time_to_chd","chd",data2,nb.class = 10))}
+  print(verifHyp_loglin_coxUnivar(var,"time_to_chd","chd",data4_std,nb.class = 10))}
 }
 ```
 
@@ -212,8 +247,8 @@ for(var in test_univar_deces){
 ```{r}
 g = c()
 for(var in test_univar_chd){
-  if(is.numeric(data2[,var])){
-    data_tmp = data2[which(!(is.na(data2[,var]))),]
+  if(is.numeric(data4_std[,var])){
+    data_tmp = data4_std[which(!(is.na(data4_std[,var]))),]
     cox = coxph(Surv(time_to_chd, chd) ~ data_tmp[,var], data = data_tmp)
     g = c(g,ggcoxfunctional(cox, data = data_tmp))
   }
@@ -224,11 +259,4 @@ grid.arrange(grobs = g, nrow = 6, ncol = 3)
 ```
 
 
-# ```{r}
-#  for(var in test_univar_deces){
-#    plot(main =var,log(survfit(coxph(Surv(time_to_deces,deces) ~ data2[,var], data = data2))$time),log(-log(survfit(coxph(Surv(time_to_deces,deces) ~ data2[,var], data = data2))$surv)))
-#  }
-# ```
 
-
-# 2. Vérification des hypothèses des modèles de cox multivariés

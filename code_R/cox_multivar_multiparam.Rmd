@@ -1,42 +1,321 @@
 ---
 title: "R Notebook"
-output: html_notebook
+output:
+  html_notebook: default
+  pdf_document: default
+  word_document: default
 ---
 
 ```{r}
-cox_univar_all
+vaj = paste0(var_ajust[-11], collapse = "+")
+vaj
 ```
 
 
+# 1. Deces
+
+```{r}
+cor_ = cor(data4_std[,cox_multivar_deces_tos[-2]])
+
+#pmat_ = cor_pmat(cor_)
 
 
+tmp = c()
+for(var_ in colnames(cor_))
+{tmp = c(tmp,which(echotracking == var_))}
+names = names_echotracking[tmp]
+
+colnames(cor_) = names
+rownames(cor_) = names
+
+corrplot(cor_, method = "number",diag = F, type = "upper", rect.col = "black",tl.cex = .8,tl.col = "black",tl.srt = 20,number.cex = .8)
+
+```
 
 
+```{r}
+rm(cor_)
+cor_ = cor(data4_std[,cox_multivar_deces_as[-2]])
+
+#pmat_ = cor_pmat(cor_)
+
+tmp = c()
+for(var_ in colnames(cor_))
+{tmp = c(tmp,which(echotracking == var_))}
+names = names_echotracking[tmp]
+
+colnames(cor_) = names
+rownames(cor_) = names
+
+corrplot(cor_, method = "number",diag = F, type = "upper", rect.col = "black",tl.cex = .8,tl.col = "black",tl.srt = 20, number.cex = .8)
+```
+
+```{r}
+m4_final_deces_tos = coxph(Surv(time_to_deces,deces) ~ plaques + diam_bm + pwvloc2 + dploc + age0+sexe+qm16+qm10+diab+bio10+bmi+ldl+trb17+mbp, data = data4_std)
+```
+
+```{r}
+nice_m4_final_deces_tos =  clean_cox_model(m4_final_deces_tos, data = data4_std, refLabel = "ref.")
+row.names(nice_m4_final_deces_tos) = NULL
+
+nice_m4_final_deces_tos = nice_m4_final_deces_tos[nrow(nice_m4_final_deces_tos):1,]
+
+nice_m4_final_deces_tos = cbind(nice_m4_final_deces_tos$var,
+                            nice_m4_final_deces_tos$estimate.1,
+paste0("[",nice_m4_final_deces_tos$conf.low.1,";"
+,nice_m4_final_deces_tos$conf.high.1,"]"),
+ifelse(is.na(nice_m4_final_deces_tos$p.value)," ",signif(nice_m4_final_deces_tos$p.value,3)
+       ))
+nice_m4_final_deces_tos[,4] = ifelse(nice_m4_final_deces_tos[,4]<0.001,"<0.001",nice_m4_final_deces_tos[,4])
+
+nice_m4_final_deces_tos[,1] = c("No","Yes","Outer Diastolic Diameter", "Carotid Pulse Wave Velocity","Central Pulse Pressure",names_var_ajust[-c(2,5,10,14,22:27)])
+```
 
 
+```{r}
+ kable(nice_m4_final_deces_tos, longtable = T, col.names = c("", "HR", "95 % CI","p")) %>% 
+  kable_styling(full_width = F) %>%
+   pack_rows("Stiffness Parameters", 1,5, label_row_css = "background-color: #666; color: #fff;") %>%
+  pack_rows("Covariables", 6,22, label_row_css = "background-color: #666; color: #fff;") %>%
+  pack_rows("Presence of Plaques", 1, 2) %>%
+  pack_rows("Sex", 7, 8) %>%
+  pack_rows("Smoking Status", 9, 12) %>%
+  pack_rows("Sport", 13, 15) %>%
+  pack_rows("Diabetes", 16, 17) %>%
+kable_styling(latex_options = c("repeat_header"))
+```
 
+```{r}
+m4_final_deces_as = coxph(Surv(age_at_deces,deces) ~ plaques + diam_bm + pwvloc2 + year_naiss_cat+sexe+qm16+qm10+diab+bio10+bmi+ldl+trb17+mbp, data = data4_std)
+```
 
+```{r}
+nice_m4_final_deces_as =  clean_cox_model(m4_final_deces_as, data = data4_std, refLabel = "ref.")
+row.names(nice_m4_final_deces_as) = NULL
 
+nice_m4_final_deces_as = nice_m4_final_deces_as[nrow(nice_m4_final_deces_as):1,]
+
+nice_m4_final_deces_as = cbind(nice_m4_final_deces_as$var,
+                            nice_m4_final_deces_as$estimate.1,
+paste0("[",nice_m4_final_deces_as$conf.low.1,";"
+,nice_m4_final_deces_as$conf.high.1,"]"),
+ifelse(is.na(nice_m4_final_deces_as$p.value)," ",signif(nice_m4_final_deces_as$p.value,3)
+       ))
+nice_m4_final_deces_as[,4] = ifelse(nice_m4_final_deces_as[,4]<0.001,"<0.001",nice_m4_final_deces_as[,4])
+
+nice_m4_final_deces_as[,1] =c("No","Yes","Outer Diastolic Diameter", "Carotid Pulse Wave Velocity",names_var_ajust[23:27],names_var_ajust[-c(23:27,1,2,5,10,14,22:27)])
+```
 
 
 
 ```{r}
-var_ajust_m4 = c("age0",  "sexe",  "qm16",  "qm10",  "diab",  "bio10", "bmi",   "mbp" )
-var_et_deces_m4 = as.character(m4_deces_brut_ss_prevcvd$Name[m4_deces_brut_ss_prevcvd$pv_signif == 1])
-var_et_deces_m4[4] = "pr_sence_de_plaque_s____l__cho"
-var_et_chd_m4 = as.character(m4_chd_brut_ss_prevcvd$Name[m4_chd_brut_ss_prevcvd$pv_signif == 1])
-var_et_chd_m4[6] = "pr_sence_de_plaque_s____l__cho"
+ kable(nice_m4_final_deces_as, longtable = T, col.names = c("", "HR", "95 % CI","p")) %>% 
+  kable_styling(full_width = F) %>%
+   pack_rows("Stiffness Parameters", 1,4, label_row_css = "background-color: #666; color: #fff;") %>%
+  pack_rows("Covariables", 5,25, label_row_css = "background-color: #666; color: #fff;") %>%
+  pack_rows("Year of Birth",5,9) %>%
+  pack_rows("Presence of Plaques", 1, 2) %>%
+  pack_rows("Sex", 10, 11) %>%
+  pack_rows("Smoking Status", 12, 15) %>%
+  pack_rows("Sport", 16, 18) %>%
+  pack_rows("Diabetes", 19, 20) %>%
+kable_styling(latex_options = c("repeat_header"))
+```
+# 2. chd
+
+```{r}
+cor_ = cor(data4_std[,cox_multivar_chd_tos[-2]])
+
+#pmat_ = cor_pmat(cor_)
+tmp = c()
+for(var_ in colnames(cor_))
+{tmp = c(tmp,which(echotracking == var_))}
+names = names_echotracking[tmp]
+
+colnames(cor_) = names
+rownames(cor_) = names
+
+corrplot(cor_, method = "number",diag = F, type = "upper", rect.col = "black",tl.cex = .8,tl.col = "black",tl.srt = 20, number.cex = .8)
+
+```
+
+```{r}
+rm(cor_)
+cor_ = cor(data4_std[,cox_multivar_chd_as[-2]])
+
+#pmat_ = cor_pmat(cor_)
+
+tmp = c()
+for(var_ in colnames(cor_))
+{tmp = c(tmp,which(echotracking == var_))}
+names = names_echotracking[tmp]
+
+colnames(cor_) = names
+rownames(cor_) = names
+
+corrplot(cor_, method = "number",diag = F, type = "upper", rect.col = "black",tl.cex = .8,tl.col = "black",tl.srt = 20,number.cex = .8)
 ```
 
 
 ```{r}
-m4_deces = cox_multivar_multi_param("deces",var_et_deces_m4,var_ajust_m4,data2, round = F)
-plot_pv_HR(m4_deces)
+m4_final_chd_tos = coxph(Surv(time_to_chd,chd) ~ plaques + imt+ dploc + age0+sexe+qm16+qm10+diab+bio10+bmi+ldl+trb17+mbp, data = data4_std)
+
+```
+
+
+```{r}
+nice_m4_final_chd_tos =  clean_cox_model(m4_final_chd_tos, data = data4_std, refLabel = "ref.")
+row.names(nice_m4_final_chd_tos) = NULL
+nice_m4_final_chd_tos = nice_m4_final_chd_tos[nrow(nice_m4_final_chd_tos):1,]
+nice_m4_final_chd_tos = cbind(nice_m4_final_chd_tos$var,
+                            nice_m4_final_chd_tos$estimate.1,
+paste0("[",nice_m4_final_chd_tos$conf.low.1,";"
+,nice_m4_final_chd_tos$conf.high.1,"]"),
+nice_m4_final_chd_tos$stars)
+nice_m4_final_chd_tos[,1] = c("No","Yes","Intima Media Thickness","Central Pulse Pressure",names_var_ajust[-c(2,5,10,14,22:27)])
+```
+
+
+```{r}
+ kable(nice_m4_final_chd_tos, longtable = T, col.names = c("", "HR", "95 % CI","p")) %>% 
+  kable_styling(full_width = F) %>%
+   pack_rows("Stiffness Parameters", 1,4, label_row_css = "background-color: #666; color: #fff;") %>%
+  pack_rows("Covariables", 5,21, label_row_css = "background-color: #666; color: #fff;") %>%
+  pack_rows("Presence of Plaques", 1, 2) %>%
+  pack_rows("Sex", 6, 7) %>%
+  pack_rows("Smoking Status", 8, 11) %>%
+  pack_rows("Sport", 12, 14) %>%
+  pack_rows("Diabetes", 15, 16) %>%
+kable_styling(latex_options = c("repeat_header"))
+```
+
+
+```{r}
+m4_final_chd_as = coxph(Surv(age_at_chd,chd) ~ plaques + imt  + year_naiss_cat+sexe+qm16+qm10+diab+bio10+bmi+ldl+trb17+mbp, data = data4_std)
+```
+
+
+```{r}
+nice_m4_final_chd_as =  clean_cox_model(m4_final_chd_as, data = data4_std, refLabel = "ref.")
+row.names(nice_m4_final_chd_as) = NULL
+nice_m4_final_chd_as = nice_m4_final_chd_as[nrow(nice_m4_final_chd_as):1,]
+nice_m4_final_chd_as = cbind(nice_m4_final_chd_as$var,
+                            nice_m4_final_chd_as$estimate.1,
+paste0("[",nice_m4_final_chd_as$conf.low.1,";"
+,nice_m4_final_chd_as$conf.high.1,"]"),
+nice_m4_final_chd_as$stars)
+nice_m4_final_chd_as[,1] = c("No","Yes","Itima Media Thickness",names_var_ajust[23:27],names_var_ajust[-c(23:27,1,2,5,10,14,22:27)])
+```
+
+
+```{r}
+ kable(nice_m4_final_chd_as, longtable = T, col.names = c("", "HR", "95 % CI","p")) %>% 
+  kable_styling(full_width = F) %>%
+   pack_rows("Stiffness Parameters", 1,3, label_row_css = "background-color: #666; color: #fff;") %>%
+  pack_rows("Covariables", 4,24, label_row_css = "background-color: #666; color: #fff;") %>%
+  pack_rows("Presence of Plaques", 1, 2) %>%
+  pack_rows("Year of Birth",4,8)%>%
+  pack_rows("Sex", 9, 10) %>%
+  pack_rows("Smoking Status", 11, 14) %>%
+  pack_rows("Sport", 15, 17) %>%
+  pack_rows("Diabetes", 18, 19) %>%
+kable_styling(latex_options = c("repeat_header"))
+```
+
+
+# Outcome stroke
+```{r}
+cox_multivar_stroke_tos
+```
+
+
+# Bootstrap
+
+## Deces base
+
+```{r}
+# f_boot_base_deces = function(dt,i){
+#   cox = coxph(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp + ldl +trb17, data = dt[i,])
+#   return(concordance(cox)$concordance)
+# }
+# boot_deces_base = boot(data = data5, statistic = f_boot_base_deces, R = 10000)
+# ci_deces_base=boot.ci(boot_deces_base, type="all")
 ```
 
 ```{r}
-m4_chd = cox_multivar_multi_param("chd",var_et_chd_m4,var_ajust_m4,data2, round = F)
-plot_pv_HR(m4_chd)
+# ci_deces_base$normal
+# ci_deces_base$basic
+# ci_deces_base$percent
+# ci_deces_base$bca
 ```
 
+```{r}
+#c_harell_m4base_deces
+```
+## Deces final
 
+```{r}
+# f_boot_final_deces = function(dt,i){
+#   cox = coxph(Surv(time_to_deces,deces) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp + ldl +trb17 + diam_bm + logyoung + dploc, data = dt[i,])
+#   return(concordance(cox)$concordance)
+# }
+```
+```{r}
+# T1<-Sys.time()
+# boot_deces_final = boot(data = data5, statistic = f_boot_final_deces, R = 10000)
+# ci_deces=boot.ci(boot_deces_final, type="all")
+# T2 = Sys.time()
+```
+```{r}
+difftime(T2,T1)
+```
+```{r}
+# ci_deces$normal
+# ci_deces$basic
+# ci_deces$percent
+# ci_deces$bca
+```
+## chd base
+```{r}
+# f_boot_base_chd = function(dt,i){
+#   cox = coxph(Surv(time_to_chd,chd) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp + ldl +trb17, data = dt[i,])
+#   return(concordance(cox)$concordance)
+# }
+# boot_chd_base = boot(data = data5, statistic = f_boot_base_chd, R = 10000)
+# ci_chd_base=boot.ci(boot_chd_base, type="all")
+```
+
+```{r}
+# ci_chd_base$normal
+# ci_chd_base$basic
+# ci_chd_base$percent
+# ci_chd_base$bca
+```
+```{r}
+# c_harell_m4base_chd
+```
+
+## chd final
+
+
+```{r}
+# f_boot_final_chd = function(dt,i){
+#   cox = coxph(Surv(time_to_chd,chd) ~ age0 + sexe + qm16 + qm10 + diab + bio10 + bmi + mbp + ldl +trb17 + plaques + dploc + wcsa, data = dt[i,])
+#   return(concordance(cox)$concordance)
+# }
+```
+```{r}
+# T1<-Sys.time()
+# boot_chd_final = boot(data = data5, statistic = f_boot_final_chd, R = 10000)
+# ci_chd=boot.ci(boot_chd_final, type="all")
+# T2 = Sys.time()
+```
+```{r}
+# difftime(T2,T1)
+```
+```{r}
+ci_chd$normal
+ci_chd$basic
+ci_chd$percent
+ci_chd$bca
+```

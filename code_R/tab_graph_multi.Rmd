@@ -1,0 +1,428 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Deces
+```{r}
+tab_multi_deces_tos_std = c()
+for(var in cox_univar_deces_tos){
+  if(is.numeric(data4[,var])){
+     tmp = c(paste0(names_echotracking[echotracking == var],
+         " (",round(sd(data4[,var]),2), ")"), 
+         
+         round(m1_deces_tos_std$HR[m1_deces_tos_std$Name == var],2),
+         paste0("[",round(m1_deces_tos_std$ICinf[m1_deces_tos_std$Name == var],2),";",round(m1_deces_tos_std$ICsup[m1_deces_tos_std$Name == var],2),"]"),
+         ifelse(m1_deces_tos_std$p.value[m1_deces_tos_std$Name == var]<0.001,"<0.001",signif(m1_deces_tos_std$p.value[m1_deces_tos_std$Name == var],1)),
+         
+         round(m2_deces_tos_std$HR[m2_deces_tos_std$Name == var],2),
+         paste0("[",round(m2_deces_tos_std$ICinf[m2_deces_tos_std$Name == var],2),";",round(m2_deces_tos_std$ICsup[m2_deces_tos_std$Name == var],2),"]"),
+         ifelse(m2_deces_tos_std$p.value[m2_deces_tos_std$Name == var]<0.001,"<0.001",signif(m2_deces_tos_std$p.value[m2_deces_tos_std$Name == var],1)),
+         
+         round(m3_deces_tos_std$HR[m3_deces_tos_std$Name == var],2),
+         paste0("[",round(m3_deces_tos_std$ICinf[m3_deces_tos_std$Name == var],2),";",round(m3_deces_tos_std$ICsup[m3_deces_tos_std$Name == var],2),"]"),
+         ifelse(m3_deces_tos_std$p.value[m3_deces_tos_std$Name == var]<0.001,"<0.001",signif(m3_deces_tos_std$p.value[m3_deces_tos_std$Name == var],1)),
+         
+         round(m4_deces_tos_std$HR[m4_deces_tos_std$Name == var],2),
+         paste0("[",round(m4_deces_tos_std$ICinf[m4_deces_tos_std$Name == var],2),";",round(m4_deces_tos_std$ICsup[m4_deces_tos_std$Name == var],2),"]"),
+         ifelse(m4_deces_tos_std$p.value[m4_deces_tos_std$Name == var]<0.001,"<0.001",signif(m4_deces_tos_std$p.value[m4_deces_tos_std$Name == var],1)))
+  }
+  
+  else if(var == "plaques"){
+    tmp = matrix(nrow = length(levels(data4[,var]))+1, ncol = 13)
+    tmp[1,] = c("Presence of Plaques",rep("",12))
+    tmp[2,] = c("No",rep("ref.",12))
+    tmp[3,] = c("Yes",
+                round(m1_deces_tos_std$HR[m1_deces_tos_std$Name == var],2),
+                paste0("[",round(m1_deces_tos_std$ICinf[m1_deces_tos_std$Name == var],2),
+                       ";",
+                       round(m1_deces_tos_std$ICsup[m1_deces_tos_std$Name == var],2),"]"),
+                ifelse(m1_deces_tos_std$p.value[m1_deces_tos_std$Name == var]<0.001,"<0.001",
+                       signif(m1_deces_tos_std$p.value[m1_deces_tos_std$Name == var],1)),
+                
+                round(m2_deces_tos_std$HR[m2_deces_tos_std$Name == var],2),
+                paste0("[",round(m2_deces_tos_std$ICinf[m2_deces_tos_std$Name == var],2),
+                       ";",
+                       round(m2_deces_tos_std$ICsup[m2_deces_tos_std$Name == var],2),"]"),
+                ifelse(m2_deces_tos_std$p.value[m2_deces_tos_std$Name == var]<0.001,"<0.001",
+                       signif(m2_deces_tos_std$p.value[m2_deces_tos_std$Name == var],1)),
+                
+                round(m3_deces_tos_std$HR[m3_deces_tos_std$Name == var],2),
+                paste0("[",round(m3_deces_tos_std$ICinf[m3_deces_tos_std$Name == var],2),
+                       ";",
+                       round(m3_deces_tos_std$ICsup[m3_deces_tos_std$Name == var],2),"]"),
+                ifelse(m3_deces_tos_std$p.value[m3_deces_tos_std$Name == var]<0.001,"<0.001",
+                       signif(m3_deces_tos_std$p.value[m3_deces_tos_std$Name == var],1)),
+    
+                round(m4_deces_tos_std$HR[m4_deces_tos_std$Name == var],2),
+                paste0("[",round(m4_deces_tos_std$ICinf[m4_deces_tos_std$Name == var],2),";",
+                       round(m4_deces_tos_std$ICsup[m4_deces_tos_std$Name == var],2),"]"),
+                ifelse(m4_deces_tos_std$p.value[m4_deces_tos_std$Name == var]<0.001,"<0.001",
+                       signif(m4_deces_tos_std$p.value[m4_deces_tos_std$Name == var],1))
+                )
+  }
+ tab_multi_deces_tos_std = rbind(tab_multi_deces_tos_std,unname(tmp))
+
+}
+colnames(tab_multi_deces_tos_std) = rep("",ncol(tab_multi_deces_tos_std))
+```
+```{r}
+  kable(tab_multi_deces_tos_std, longtable = T, align = "lcccccccccccc") %>% 
+  kable_styling(full_width = F) %>%
+  add_header_above(c("Parameters (sd)" = 1, "HR" = 1, "95 % CI" = 1, "p" = 1, "HR" = 1, "95 % CI" = 1, "p" = 1, "HR" = 1, "95 % CI" = 1, "p" = 1, "HR" = 1, "95 % CI" = 1, "p" = 1)) %>%
+  add_header_above(c(" " = 1, "Model 1" = 3, "Model 2" = 3, "Model 3" = 3, "Model 4" = 3)) %>%
+  add_indent(c(4,5)) %>%
+kable_styling(latex_options = c("repeat_header"))
+```
+```{r}
+tab_multi_deces_as_std = c()
+for(var in cox_univar_deces_as){
+  if(is.numeric(data4[,var])){
+     tmp = c(paste0(names_echotracking[echotracking == var],
+         " (",round(sd(data4[,var]),2), ")"), 
+         
+         round(m1_deces_as_std$HR[m1_deces_as_std$Name == var],2),
+         paste0("[",round(m1_deces_as_std$ICinf[m1_deces_as_std$Name == var],2),";",round(m1_deces_as_std$ICsup[m1_deces_as_std$Name == var],2),"]"),
+         ifelse(m1_deces_as_std$p.value[m1_deces_as_std$Name == var]<0.001,"<0.001",signif(m1_deces_as_std$p.value[m1_deces_as_std$Name == var],1)),
+         
+         round(m2_deces_as_std$HR[m2_deces_as_std$Name == var],2),
+         paste0("[",round(m2_deces_as_std$ICinf[m2_deces_as_std$Name == var],2),";",round(m2_deces_as_std$ICsup[m2_deces_as_std$Name == var],2),"]"),
+         ifelse(m2_deces_as_std$p.value[m2_deces_as_std$Name == var]<0.001,"<0.001",signif(m2_deces_as_std$p.value[m2_deces_as_std$Name == var],1)),
+         
+         round(m3_deces_as_std$HR[m3_deces_as_std$Name == var],2),
+         paste0("[",round(m3_deces_as_std$ICinf[m3_deces_as_std$Name == var],2),";",round(m3_deces_as_std$ICsup[m3_deces_as_std$Name == var],2),"]"),
+         ifelse(m3_deces_as_std$p.value[m3_deces_as_std$Name == var]<0.001,"<0.001",signif(m3_deces_as_std$p.value[m3_deces_as_std$Name == var],1)),
+         
+         round(m4_deces_as_std$HR[m4_deces_as_std$Name == var],2),
+         paste0("[",round(m4_deces_as_std$ICinf[m4_deces_as_std$Name == var],2),";",round(m4_deces_as_std$ICsup[m4_deces_as_std$Name == var],2),"]"),
+         ifelse(m4_deces_as_std$p.value[m4_deces_as_std$Name == var]<0.001,"<0.001",signif(m4_deces_as_std$p.value[m4_deces_as_std$Name == var],1)))
+  }
+  
+  else if(var == "plaques"){
+    tmp = matrix(nrow = length(levels(data4[,var]))+1, ncol = 13)
+    tmp[1,] = c("Presence of Plaques",rep("",12))
+    tmp[2,] = c("No",rep("ref.",12))
+    tmp[3,] = c("Yes",
+                round(m1_deces_as_std$HR[m1_deces_as_std$Name == var],2),
+                paste0("[",round(m1_deces_as_std$ICinf[m1_deces_as_std$Name == var],2),
+                       ";",
+                       round(m1_deces_as_std$ICsup[m1_deces_as_std$Name == var],2),"]"),
+                ifelse(m1_deces_as_std$p.value[m1_deces_as_std$Name == var]<0.001,"<0.001",
+                       signif(m1_deces_as_std$p.value[m1_deces_as_std$Name == var],1)),
+                
+                round(m2_deces_as_std$HR[m2_deces_as_std$Name == var],2),
+                paste0("[",round(m2_deces_as_std$ICinf[m2_deces_as_std$Name == var],2),
+                       ";",
+                       round(m2_deces_as_std$ICsup[m2_deces_as_std$Name == var],2),"]"),
+                ifelse(m2_deces_as_std$p.value[m2_deces_as_std$Name == var]<0.001,"<0.001",
+                       signif(m2_deces_as_std$p.value[m2_deces_as_std$Name == var],1)),
+                
+                round(m3_deces_as_std$HR[m3_deces_as_std$Name == var],2),
+                paste0("[",round(m3_deces_as_std$ICinf[m3_deces_as_std$Name == var],2),
+                       ";",
+                       round(m3_deces_as_std$ICsup[m3_deces_as_std$Name == var],2),"]"),
+                ifelse(m3_deces_as_std$p.value[m3_deces_as_std$Name == var]<0.001,"<0.001",
+                       signif(m3_deces_as_std$p.value[m3_deces_as_std$Name == var],1)),
+    
+                round(m4_deces_as_std$HR[m4_deces_as_std$Name == var],2),
+                paste0("[",round(m4_deces_as_std$ICinf[m4_deces_as_std$Name == var],2),";",
+                       round(m4_deces_as_std$ICsup[m4_deces_as_std$Name == var],2),"]"),
+                ifelse(m4_deces_as_std$p.value[m4_deces_as_std$Name == var]<0.001,"<0.001",
+                       signif(m4_deces_as_std$p.value[m4_deces_as_std$Name == var],1))
+                )
+  }
+ tab_multi_deces_as_std = rbind(tab_multi_deces_as_std,unname(tmp))
+
+}
+colnames(tab_multi_deces_as_std) = rep("",ncol(tab_multi_deces_as_std))
+```
+
+```{r}
+  kable(tab_multi_deces_as_std, longtable = T, align = "lcccccccccccc") %>% 
+  kable_styling(full_width = F) %>%
+  add_header_above(c("Parameters (sd)" = 1, "HR" = 1, "95 % CI" = 1, "p" = 1, "HR" = 1, "95 % CI" = 1, "p" = 1, "HR" = 1, "95 % CI" = 1, "p" = 1, "HR" = 1, "95 % CI" = 1, "p" = 1)) %>%
+  add_header_above(c(" " = 1, "Model 1" = 3, "Model 2" = 3, "Model 3" = 3, "Model 4" = 3)) %>%
+  add_indent(c(3,4)) %>%
+kable_styling(latex_options = c("repeat_header"))
+```
+
+# CHD
+```{r}
+tab_multi_chd_tos_std = c()
+for(var in cox_univar_chd_tos){
+  if(is.numeric(data4[,var])){
+     tmp = c(paste0(names_echotracking[echotracking == var],
+         " (",round(sd(data4[,var]),2), ")"), 
+         
+         round(m1_chd_tos_std$HR[m1_chd_tos_std$Name == var],2),
+         paste0("[",round(m1_chd_tos_std$ICinf[m1_chd_tos_std$Name == var],2),";",round(m1_chd_tos_std$ICsup[m1_chd_tos_std$Name == var],2),"]"),
+         ifelse(m1_chd_tos_std$p.value[m1_chd_tos_std$Name == var]<0.001,"<0.001",signif(m1_chd_tos_std$p.value[m1_chd_tos_std$Name == var],1)),
+         
+         round(m2_chd_tos_std$HR[m2_chd_tos_std$Name == var],2),
+         paste0("[",round(m2_chd_tos_std$ICinf[m2_chd_tos_std$Name == var],2),";",round(m2_chd_tos_std$ICsup[m2_chd_tos_std$Name == var],2),"]"),
+         ifelse(m2_chd_tos_std$p.value[m2_chd_tos_std$Name == var]<0.001,"<0.001",signif(m2_chd_tos_std$p.value[m2_chd_tos_std$Name == var],1)),
+         
+         round(m3_chd_tos_std$HR[m3_chd_tos_std$Name == var],2),
+         paste0("[",round(m3_chd_tos_std$ICinf[m3_chd_tos_std$Name == var],2),";",round(m3_chd_tos_std$ICsup[m3_chd_tos_std$Name == var],2),"]"),
+         ifelse(m3_chd_tos_std$p.value[m3_chd_tos_std$Name == var]<0.001,"<0.001",signif(m3_chd_tos_std$p.value[m3_chd_tos_std$Name == var],1)),
+         
+         round(m4_chd_tos_std$HR[m4_chd_tos_std$Name == var],2),
+         paste0("[",round(m4_chd_tos_std$ICinf[m4_chd_tos_std$Name == var],2),";",round(m4_chd_tos_std$ICsup[m4_chd_tos_std$Name == var],2),"]"),
+         ifelse(m4_chd_tos_std$p.value[m4_chd_tos_std$Name == var]<0.001,"<0.001",signif(m4_chd_tos_std$p.value[m4_chd_tos_std$Name == var],1)))
+  }
+  
+  else if(var == "plaques"){
+    tmp = matrix(nrow = length(levels(data4[,var]))+1, ncol = 13)
+    tmp[1,] = c("Presence of Plaques",rep("",12))
+    tmp[2,] = c("No",rep("ref.",12))
+    tmp[3,] = c("Yes",
+                round(m1_chd_tos_std$HR[m1_chd_tos_std$Name == var],2),
+                paste0("[",round(m1_chd_tos_std$ICinf[m1_chd_tos_std$Name == var],2),
+                       ";",
+                       round(m1_chd_tos_std$ICsup[m1_chd_tos_std$Name == var],2),"]"),
+                ifelse(m1_chd_tos_std$p.value[m1_chd_tos_std$Name == var]<0.001,"<0.001",
+                       signif(m1_chd_tos_std$p.value[m1_chd_tos_std$Name == var],1)),
+                
+                round(m2_chd_tos_std$HR[m2_chd_tos_std$Name == var],2),
+                paste0("[",round(m2_chd_tos_std$ICinf[m2_chd_tos_std$Name == var],2),
+                       ";",
+                       round(m2_chd_tos_std$ICsup[m2_chd_tos_std$Name == var],2),"]"),
+                ifelse(m2_chd_tos_std$p.value[m2_chd_tos_std$Name == var]<0.001,"<0.001",
+                       signif(m2_chd_tos_std$p.value[m2_chd_tos_std$Name == var],1)),
+                
+                round(m3_chd_tos_std$HR[m3_chd_tos_std$Name == var],2),
+                paste0("[",round(m3_chd_tos_std$ICinf[m3_chd_tos_std$Name == var],2),
+                       ";",
+                       round(m3_chd_tos_std$ICsup[m3_chd_tos_std$Name == var],2),"]"),
+                ifelse(m3_chd_tos_std$p.value[m3_chd_tos_std$Name == var]<0.001,"<0.001",
+                       signif(m3_chd_tos_std$p.value[m3_chd_tos_std$Name == var],1)),
+    
+                round(m4_chd_tos_std$HR[m4_chd_tos_std$Name == var],2),
+                paste0("[",round(m4_chd_tos_std$ICinf[m4_chd_tos_std$Name == var],2),";",
+                       round(m4_chd_tos_std$ICsup[m4_chd_tos_std$Name == var],2),"]"),
+                ifelse(m4_chd_tos_std$p.value[m4_chd_tos_std$Name == var]<0.001,"<0.001",
+                       signif(m4_chd_tos_std$p.value[m4_chd_tos_std$Name == var],1))
+                )
+  }
+ tab_multi_chd_tos_std = rbind(tab_multi_chd_tos_std,unname(tmp))
+}
+colnames(tab_multi_chd_tos_std) = rep(" ",ncol(tab_multi_chd_tos_std))
+```
+```{r}
+  kable(tab_multi_chd_tos_std, longtable = T, align = "lcccccccccccc") %>% 
+  kable_styling(full_width = F) %>%
+  add_header_above(c("Parameters (sd)" = 1, "HR" = 1, "95 % CI" = 1, "p" = 1, "HR" = 1, "95 % CI" = 1, "p" = 1, "HR" = 1, "95 % CI" = 1, "p" = 1, "HR" = 1, "95 % CI" = 1, "p" = 1)) %>%
+  add_header_above(c(" " = 1, "Model 1" = 3, "Model 2" = 3, "Model 3" = 3, "Model 4" = 3)) %>%
+  add_indent(c(4,5)) %>%
+kable_styling(latex_options = c("repeat_header"))
+```
+```{r}
+tab_multi_chd_as_std = c()
+for(var in cox_univar_chd_as){
+  if(is.numeric(data4[,var])){
+     tmp = c(paste0(names_echotracking[echotracking == var],
+         " (",round(sd(data4[,var]),2), ")"), 
+         
+         round(m1_chd_as_std$HR[m1_chd_as_std$Name == var],2),
+         paste0("[",round(m1_chd_as_std$ICinf[m1_chd_as_std$Name == var],2),";",round(m1_chd_as_std$ICsup[m1_chd_as_std$Name == var],2),"]"),
+         ifelse(m1_chd_as_std$p.value[m1_chd_as_std$Name == var]<0.001,"<0.001",signif(m1_chd_as_std$p.value[m1_chd_as_std$Name == var],1)),
+         
+         round(m2_chd_as_std$HR[m2_chd_as_std$Name == var],2),
+         paste0("[",round(m2_chd_as_std$ICinf[m2_chd_as_std$Name == var],2),";",round(m2_chd_as_std$ICsup[m2_chd_as_std$Name == var],2),"]"),
+         ifelse(m2_chd_as_std$p.value[m2_chd_as_std$Name == var]<0.001,"<0.001",signif(m2_chd_as_std$p.value[m2_chd_as_std$Name == var],1)),
+         
+         round(m3_chd_as_std$HR[m3_chd_as_std$Name == var],2),
+         paste0("[",round(m3_chd_as_std$ICinf[m3_chd_as_std$Name == var],2),";",round(m3_chd_as_std$ICsup[m3_chd_as_std$Name == var],2),"]"),
+         ifelse(m3_chd_as_std$p.value[m3_chd_as_std$Name == var]<0.001,"<0.001",signif(m3_chd_as_std$p.value[m3_chd_as_std$Name == var],1)),
+         
+         round(m4_chd_as_std$HR[m4_chd_as_std$Name == var],2),
+         paste0("[",round(m4_chd_as_std$ICinf[m4_chd_as_std$Name == var],2),";",round(m4_chd_as_std$ICsup[m4_chd_as_std$Name == var],2),"]"),
+         ifelse(m4_chd_as_std$p.value[m4_chd_as_std$Name == var]<0.001,"<0.001",signif(m4_chd_as_std$p.value[m4_chd_as_std$Name == var],1)))
+  }
+  
+  else if(var == "plaques"){
+    tmp = matrix(nrow = length(levels(data4[,var]))+1, ncol = 13)
+    tmp[1,] = c("Presence of Plaques",rep("",12))
+    tmp[2,] = c("No",rep("ref.",12))
+    tmp[3,] = c("Yes",
+                round(m1_chd_as_std$HR[m1_chd_as_std$Name == var],2),
+                paste0("[",round(m1_chd_as_std$ICinf[m1_chd_as_std$Name == var],2),
+                       ";",
+                       round(m1_chd_as_std$ICsup[m1_chd_as_std$Name == var],2),"]"),
+                ifelse(m1_chd_as_std$p.value[m1_chd_as_std$Name == var]<0.001,"<0.001",
+                       signif(m1_chd_as_std$p.value[m1_chd_as_std$Name == var],1)),
+                
+                round(m2_chd_as_std$HR[m2_chd_as_std$Name == var],2),
+                paste0("[",round(m2_chd_as_std$ICinf[m2_chd_as_std$Name == var],2),
+                       ";",
+                       round(m2_chd_as_std$ICsup[m2_chd_as_std$Name == var],2),"]"),
+                ifelse(m2_chd_as_std$p.value[m2_chd_as_std$Name == var]<0.001,"<0.001",
+                       signif(m2_chd_as_std$p.value[m2_chd_as_std$Name == var],1)),
+                
+                round(m3_chd_as_std$HR[m3_chd_as_std$Name == var],2),
+                paste0("[",round(m3_chd_as_std$ICinf[m3_chd_as_std$Name == var],2),
+                       ";",
+                       round(m3_chd_as_std$ICsup[m3_chd_as_std$Name == var],2),"]"),
+                ifelse(m3_chd_as_std$p.value[m3_chd_as_std$Name == var]<0.001,"<0.001",
+                       signif(m3_chd_as_std$p.value[m3_chd_as_std$Name == var],1)),
+    
+                round(m4_chd_as_std$HR[m4_chd_as_std$Name == var],2),
+                paste0("[",round(m4_chd_as_std$ICinf[m4_chd_as_std$Name == var],2),";",
+                       round(m4_chd_as_std$ICsup[m4_chd_as_std$Name == var],2),"]"),
+                ifelse(m4_chd_as_std$p.value[m4_chd_as_std$Name == var]<0.001,"<0.001",
+                       signif(m4_chd_as_std$p.value[m4_chd_as_std$Name == var],1))
+                )
+  }
+ tab_multi_chd_as_std = rbind(tab_multi_chd_as_std,unname(tmp))
+}
+colnames(tab_multi_chd_as_std) = rep(" ",ncol(tab_multi_chd_as_std))
+```
+```{r}
+  kable(tab_multi_chd_as_std, longtable = T, align = "lcccccccccccc") %>% 
+  kable_styling(full_width = F) %>%
+  add_header_above(c("Parameters (sd)" = 1, "HR" = 1, "95 % CI" = 1, "p" = 1, "HR" = 1, "95 % CI" = 1, "p" = 1, "HR" = 1, "95 % CI" = 1, "p" = 1, "HR" = 1, "95 % CI" = 1, "p" = 1)) %>%
+  add_header_above(c(" " = 1, "Model 1" = 3, "Model 2" = 3, "Model 3" = 3, "Model 4" = 3)) %>%
+  add_indent(c(4,5)) %>%
+kable_styling(latex_options = c("repeat_header"))
+```
+
+# Stroke
+
+```{r}
+tab_multi_stroke_tos_std = c()
+for(var in cox_univar_stroke_tos){
+  if(is.numeric(data4[,var])){
+     tmp = c(paste0(names_echotracking[echotracking == var],
+         " (",round(sd(data4[,var]),2), ")"), 
+         
+         round(m1_stroke_tos_std$HR[m1_stroke_tos_std$Name == var],2),
+         paste0("[",round(m1_stroke_tos_std$ICinf[m1_stroke_tos_std$Name == var],2),";",round(m1_stroke_tos_std$ICsup[m1_stroke_tos_std$Name == var],2),"]"),
+         ifelse(m1_stroke_tos_std$p.value[m1_stroke_tos_std$Name == var]<0.001,"<0.001",signif(m1_stroke_tos_std$p.value[m1_stroke_tos_std$Name == var],1)),
+         
+         round(m2_stroke_tos_std$HR[m2_stroke_tos_std$Name == var],2),
+         paste0("[",round(m2_stroke_tos_std$ICinf[m2_stroke_tos_std$Name == var],2),";",round(m2_stroke_tos_std$ICsup[m2_stroke_tos_std$Name == var],2),"]"),
+         ifelse(m2_stroke_tos_std$p.value[m2_stroke_tos_std$Name == var]<0.001,"<0.001",signif(m2_stroke_tos_std$p.value[m2_stroke_tos_std$Name == var],1)),
+         
+         round(m3_stroke_tos_std$HR[m3_stroke_tos_std$Name == var],2),
+         paste0("[",round(m3_stroke_tos_std$ICinf[m3_stroke_tos_std$Name == var],2),";",round(m3_stroke_tos_std$ICsup[m3_stroke_tos_std$Name == var],2),"]"),
+         ifelse(m3_stroke_tos_std$p.value[m3_stroke_tos_std$Name == var]<0.001,"<0.001",signif(m3_stroke_tos_std$p.value[m3_stroke_tos_std$Name == var],1)),
+         
+         round(m4_stroke_tos_std$HR[m4_stroke_tos_std$Name == var],2),
+         paste0("[",round(m4_stroke_tos_std$ICinf[m4_stroke_tos_std$Name == var],2),";",round(m4_stroke_tos_std$ICsup[m4_stroke_tos_std$Name == var],2),"]"),
+         ifelse(m4_stroke_tos_std$p.value[m4_stroke_tos_std$Name == var]<0.001,"<0.001",signif(m4_stroke_tos_std$p.value[m4_stroke_tos_std$Name == var],1)))
+  }
+  
+  else if(var == "plaques"){
+    tmp = matrix(nrow = length(levels(data4[,var]))+1, ncol = 13)
+    tmp[1,] = c("Presece of Plaques",rep("",12))
+    tmp[2,] = c("No",rep("ref.",12))
+    tmp[3,] = c("Yes",
+                round(m1_stroke_tos_std$HR[m1_stroke_tos_std$Name == var],2),
+                paste0("[",round(m1_stroke_tos_std$ICinf[m1_stroke_tos_std$Name == var],2),
+                       ";",
+                       round(m1_stroke_tos_std$ICsup[m1_stroke_tos_std$Name == var],2),"]"),
+                ifelse(m1_stroke_tos_std$p.value[m1_stroke_tos_std$Name == var]<0.001,"<0.001",
+                       signif(m1_stroke_tos_std$p.value[m1_stroke_tos_std$Name == var],1)),
+                
+                round(m2_stroke_tos_std$HR[m2_stroke_tos_std$Name == var],2),
+                paste0("[",round(m2_stroke_tos_std$ICinf[m2_stroke_tos_std$Name == var],2),
+                       ";",
+                       round(m2_stroke_tos_std$ICsup[m2_stroke_tos_std$Name == var],2),"]"),
+                ifelse(m2_stroke_tos_std$p.value[m2_stroke_tos_std$Name == var]<0.001,"<0.001",
+                       signif(m2_stroke_tos_std$p.value[m2_stroke_tos_std$Name == var],1)),
+                
+                round(m3_stroke_tos_std$HR[m3_stroke_tos_std$Name == var],2),
+                paste0("[",round(m3_stroke_tos_std$ICinf[m3_stroke_tos_std$Name == var],2),
+                       ";",
+                       round(m3_stroke_tos_std$ICsup[m3_stroke_tos_std$Name == var],2),"]"),
+                ifelse(m3_stroke_tos_std$p.value[m3_stroke_tos_std$Name == var]<0.001,"<0.001",
+                       signif(m3_stroke_tos_std$p.value[m3_stroke_tos_std$Name == var],1)),
+    
+                round(m4_stroke_tos_std$HR[m4_stroke_tos_std$Name == var],2),
+                paste0("[",round(m4_stroke_tos_std$ICinf[m4_stroke_tos_std$Name == var],2),";",
+                       round(m4_stroke_tos_std$ICsup[m4_stroke_tos_std$Name == var],2),"]"),
+                ifelse(m4_stroke_tos_std$p.value[m4_stroke_tos_std$Name == var]<0.001,"<0.001",
+                       signif(m4_stroke_tos_std$p.value[m4_stroke_tos_std$Name == var],1))
+                )
+  }
+ tab_multi_stroke_tos_std = rbind(tab_multi_stroke_tos_std,unname(tmp))
+
+}
+colnames(tab_multi_stroke_tos_std) = rep(" ",ncol(tab_multi_stroke_tos_std))
+```
+```{r}
+  kable(tab_multi_stroke_tos_std, longtable = T, align = "lcccccccccccc") %>% 
+  kable_styling(full_width = F) %>%
+  add_header_above(c("Parameters (sd)" = 1, "HR" = 1, "95 % CI" = 1, "p" = 1, "HR" = 1, "95 % CI" = 1, "p" = 1, "HR" = 1, "95 % CI" = 1, "p" = 1, "HR" = 1, "95 % CI" = 1, "p" = 1)) %>%
+  add_header_above(c(" " = 1, "Model 1" = 3, "Model 2" = 3, "Model 3" = 3, "Model 4" = 3)) %>%
+kable_styling(latex_options = c("repeat_header"))
+```
+```{r}
+tab_multi_stroke_as_std = c()
+for(var in cox_univar_stroke_as){
+  if(is.numeric(data4[,var])){
+     tmp = c(paste0(names_echotracking[echotracking == var],
+         " (",round(sd(data4[,var]),2), ")"), 
+         
+         round(m1_stroke_as_std$HR[m1_stroke_as_std$Name == var],2),
+         paste0("[",round(m1_stroke_as_std$ICinf[m1_stroke_as_std$Name == var],2),";",round(m1_stroke_as_std$ICsup[m1_stroke_as_std$Name == var],2),"]"),
+         ifelse(m1_stroke_as_std$p.value[m1_stroke_as_std$Name == var]<0.001,"<0.001",signif(m1_stroke_as_std$p.value[m1_stroke_as_std$Name == var],1)),
+         
+         round(m2_stroke_as_std$HR[m2_stroke_as_std$Name == var],2),
+         paste0("[",round(m2_stroke_as_std$ICinf[m2_stroke_as_std$Name == var],2),";",round(m2_stroke_as_std$ICsup[m2_stroke_as_std$Name == var],2),"]"),
+         ifelse(m2_stroke_as_std$p.value[m2_stroke_as_std$Name == var]<0.001,"<0.001",signif(m2_stroke_as_std$p.value[m2_stroke_as_std$Name == var],1)),
+         
+         round(m3_stroke_as_std$HR[m3_stroke_as_std$Name == var],2),
+         paste0("[",round(m3_stroke_as_std$ICinf[m3_stroke_as_std$Name == var],2),";",round(m3_stroke_as_std$ICsup[m3_stroke_as_std$Name == var],2),"]"),
+         ifelse(m3_stroke_as_std$p.value[m3_stroke_as_std$Name == var]<0.001,"<0.001",signif(m3_stroke_as_std$p.value[m3_stroke_as_std$Name == var],1)),
+         
+         round(m4_stroke_as_std$HR[m4_stroke_as_std$Name == var],2),
+         paste0("[",round(m4_stroke_as_std$ICinf[m4_stroke_as_std$Name == var],2),";",round(m4_stroke_as_std$ICsup[m4_stroke_as_std$Name == var],2),"]"),
+         ifelse(m4_stroke_as_std$p.value[m4_stroke_as_std$Name == var]<0.001,"<0.001",signif(m4_stroke_as_std$p.value[m4_stroke_as_std$Name == var],1)))
+  }
+  
+  else if(var == "plaques"){
+    tmp = matrix(nrow = length(levels(data4[,var]))+1, ncol = 13)
+    tmp[1,] = c("Presece of Plaques",rep("",12))
+    tmp[2,] = c("No",rep("ref.",12))
+    tmp[3,] = c("Yes",
+                round(m1_stroke_as_std$HR[m1_stroke_as_std$Name == var],2),
+                paste0("[",round(m1_stroke_as_std$ICinf[m1_stroke_as_std$Name == var],2),
+                       ";",
+                       round(m1_stroke_as_std$ICsup[m1_stroke_as_std$Name == var],2),"]"),
+                ifelse(m1_stroke_as_std$p.value[m1_stroke_as_std$Name == var]<0.001,"<0.001",
+                       signif(m1_stroke_as_std$p.value[m1_stroke_as_std$Name == var],1)),
+                
+                round(m2_stroke_as_std$HR[m2_stroke_as_std$Name == var],2),
+                paste0("[",round(m2_stroke_as_std$ICinf[m2_stroke_as_std$Name == var],2),
+                       ";",
+                       round(m2_stroke_as_std$ICsup[m2_stroke_as_std$Name == var],2),"]"),
+                ifelse(m2_stroke_as_std$p.value[m2_stroke_as_std$Name == var]<0.001,"<0.001",
+                       signif(m2_stroke_as_std$p.value[m2_stroke_as_std$Name == var],1)),
+                
+                round(m3_stroke_as_std$HR[m3_stroke_as_std$Name == var],2),
+                paste0("[",round(m3_stroke_as_std$ICinf[m3_stroke_as_std$Name == var],2),
+                       ";",
+                       round(m3_stroke_as_std$ICsup[m3_stroke_as_std$Name == var],2),"]"),
+                ifelse(m3_stroke_as_std$p.value[m3_stroke_as_std$Name == var]<0.001,"<0.001",
+                       signif(m3_stroke_as_std$p.value[m3_stroke_as_std$Name == var],1)),
+    
+                round(m4_stroke_as_std$HR[m4_stroke_as_std$Name == var],2),
+                paste0("[",round(m4_stroke_as_std$ICinf[m4_stroke_as_std$Name == var],2),";",
+                       round(m4_stroke_as_std$ICsup[m4_stroke_as_std$Name == var],2),"]"),
+                ifelse(m4_stroke_as_std$p.value[m4_stroke_as_std$Name == var]<0.001,"<0.001",
+                       signif(m4_stroke_as_std$p.value[m4_stroke_as_std$Name == var],1))
+                )
+  }
+ tab_multi_stroke_as_std = rbind(tab_multi_stroke_as_std,unname(tmp))
+
+}
+colnames(tab_multi_stroke_as_std) = rep(" ",ncol(tab_multi_stroke_as_std))
+```
+```{r}
+  kable(tab_multi_stroke_as_std, longtable = T, align = "lcccccccccccc") %>% 
+  kable_styling(full_width = F) %>%
+  add_header_above(c("Parameters (sd)" = 1, "HR" = 1, "95 % CI" = 1, "p" = 1, "HR" = 1, "95 % CI" = 1, "p" = 1, "HR" = 1, "95 % CI" = 1, "p" = 1, "HR" = 1, "95 % CI" = 1, "p" = 1)) %>%
+  add_header_above(c(" " = 1, "Model 1" = 3, "Model 2" = 3, "Model 3" = 3, "Model 4" = 3)) %>%
+kable_styling(latex_options = c("repeat_header"))
+```

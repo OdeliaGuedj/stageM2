@@ -1,0 +1,55 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+table(data2$HTA_cat,useNA = "always")
+```
+
+```{r}
+table(data2$deces,data2$HTA_cat, useNA = "always")
+```
+```{r}
+round(prop.table(table(data2$chd,data2$HTA_cat, useNA = "always"))*100,2)
+```
+
+```{r}
+chisq.test(data2$HTA_cat,data2$deces)
+```
+
+
+```{r}
+chisq.test(data2$chd,data2$HTA_cat)
+```
+```{r}
+plot_grid(
+ggplot(data4,aes(x = factor(HTA_cat), fill = deces)) + geom_bar() + xlab(" ") + theme_classic() + scale_fill_brewer("Death",palette="Paired") + theme(legend.title = element_text(colour="black", size=40,face="bold"), axis.text.x = element_text(angle = 90, face = "bold",size = 40), axis.line = element_line(colour = "black", size = 1, linetype = "solid"),legend.position  ="top")
+,
+
+ggplot(data4,aes(x = factor(HTA_cat), fill = chd)) +  xlab(" ") +  geom_bar() + theme_classic() + scale_fill_brewer("CHD",palette="Paired")+ theme(legend.title = element_text(colour="black", size=40,face="bold"),axis.text.x = element_text(angle = 90, face = "bold",size = 40), axis.line = element_line(colour = "black", size = 1, linetype = "solid"),legend.position = "top"),
+
+ggplot(data4,aes(x = factor(HTA_cat), fill = stroke)) +  xlab(" ") +  geom_bar() + theme_classic() + scale_fill_brewer("Stroke",palette="Paired")+ theme(legend.title = element_text(colour="black", size=35,face="bold"),axis.text.x = element_text(angle = 90, face = "bold",size = 35 ),axis.text.y = element_text(face = "bold", size = 10), axis.line = element_line(colour = "black", size = 1, linetype = "solid"),legend.position = "top")
+)
+```
+
+
+```{r}
+legend = get_legend(ggplot(data2, aes(x=age0, fill=HTA_cat)) + 
+                      geom_density(alpha=.5))
+
+grid.arrange(ggplot(data2, aes(x=age0, fill=HTA_cat)) + 
+               geom_density(alpha=.5) +  
+               theme(legend.position="none") , 
+             ggplot(data2, aes(x=bmi, fill=HTA_cat)) + 
+               geom_density(alpha=.5) +  
+               theme(legend.position="none") , 
+             legend, 
+             ncol=3, 
+             widths=c(2.3, 2.3, 0.8))
+
+```
+
+
+
+

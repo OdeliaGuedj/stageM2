@@ -1,0 +1,117 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+library(penalized)
+```
+# Tous les paramètres d'echotracking
+```{r}
+f_pen = as.formula(paste0("~",paste(c(echotracking_clean), collapse = "+")))
+pen = model.matrix(f_pen, data5_std)[,-1]
+f_unpen = as.formula(paste0("~",paste(c(v_ajust), collapse = "+")))
+unpen = model.matrix(f_unpen, data5_std)[,-1]
+```
+
+
+```{r}
+cox_pen_all_deces = penalized(response= Surv(data5_std$time_to_deces,
+                                             data5_std$deces),
+                              penalized =  pen,
+                              unpenalized =  unpen,
+                              model = "cox",
+                              lambda1=1,
+                              steps=50, 
+                              trace = FALSE)
+plotpath(cox_pen_all_deces, log="x")
+```
+```{r}
+l = c()
+for(i in 1:50){l = c(l,loglik(cox_pen_all_deces[[i]]))}
+plot(1:50,l)
+```
+
+```{r}
+cv_cox_pen_all_deces = cvl(response = Surv(data5_std$time_to_deces,
+                                           data5_std$deces),
+                           penalized = pen,
+                           unpenalized = unpen,
+                           model = "cox",
+                           lambda1 = 1,
+                           fold = 3)
+```
+```{r}
+sum(cv_cox_pen_all_deces$cvls)
+cv_cox_pen_all_deces$cvl
+```
+```{r}
+prof_cox_pen_all_deces = profL2(response = Surv(data5_std$time_to_deces,
+                                                data5_std$deces), 
+                                penalized =pen,
+                                unpenalized = unpen,
+                                fold=cv_cox_pen_all_deces$fold,
+                                minl = 1.7, maxl = 100,
+                                trace = F)
+```
+```{r}
+plot(prof_cox_pen_all_deces$lambda, prof_cox_pen_all_deces$cvl, type="l", log="x")
+```
+```{r}
+otp_cox_pen_all_deces = optL1(Surv(data5_std$time_to_deces,data5_std$deces), penalized = pen, unpenalized = unpen, fold=cv_cox_pen_all_deces$fold,minlambda1 = 0.1,maxlambda1 = 10000,lambda2 = 0)
+```
+```{r}
+otp_cox_pen_all_deces$cvl
+otp_cox_pen_all_deces$lambda
+```
+
+# Paramètres de stiffness selectionnés en univariés
+```{r}
+f_pen = as.formula(paste0("~",paste(c(cox_univar_stiff_deces), collapse = "+")))
+pen = model.matrix(f_pen, data5_std)[,-1]
+f_unpen = as.formula(paste0("~",paste(c(var_ajust[-11]), collapse = "+")))
+unpen = model.matrix(f_unpen, data5_std)[,-1]
+```
+
+
+```{r}
+cox_pen_stf_univar_deces = penalized(response= Surv(data5_std$time_to_deces,
+                                             data5_std$deces),
+                              penalized =  pen,
+                              unpenalized =  unpen,
+                              model = "cox",
+                              lambda1=1,
+                              steps=50, 
+                              trace = FALSE)
+plotpath(cox_pen_stf_univar_deces, log="x")
+```
+
+
+```{r}
+cv_cox_pen_stf_univar_deces = cvl(response = Surv(data5_std$time_to_deces,
+                                           data5_std$deces),
+                           penalized = pen,
+                           unpenalized = unpen,
+                           model = "cox",
+                           lambda1 = 1,
+                           fold = 5)
+```
+
+```{r}
+prof_cox_pen_stf_univar_deces = profL2(response = Surv(data5_std$time_to_deces,
+                                                data5_std$deces), 
+                                penalized =pen,
+                                unpenalized = unpen,
+                                fold=cv_cox_pen_stf_univar_deces$fold,
+                                minl = 1.7, maxl = 100,
+                                trace = F)
+```
+```{r}
+plot(prof_cox_pen_stf_univar_deces$lambda, prof_cox_pen_stf_univar_deces$cvl, type="l", log="x")
+```
+```{r}
+otp_cox_pen_stf_univar_deces = optL1(Surv(data5_std$time_to_deces,data5_std$deces), penalized = pen, unpenalized = unpen, fold=cv_cox_pen_stf_univar_deces$fold,minlambda1 = 0.1,maxlambda1 = 10000,lambda2 = 0)
+```
+```{r}
+otp_cox_pen_stf_univar_deces$cvl
+otp_cox_pen_stf_univar_deces$lambda
+```

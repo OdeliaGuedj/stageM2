@@ -1,0 +1,85 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# 1. Interaction ave le sexe
+
+
+
+```{r}
+i = 1
+list_univar_interSex = list()
+for(evt in c("deces", "chd", "stroke")){
+  time = paste0("time_to_",evt)
+res_univar_et_interSexe = data.frame()
+  
+for(var in c(stiffness_anat,stiffness_dyna)){
+    cox = cox_univar(time = time, param = var, evt = evt, data4_std, round = F, interaction = T, var.inter = "sexe")
+    res_univar_et_interSexe = rbind(res_univar_et_interSexe, cox)
+    }
+  
+  res_univar_et_interSexe$Evt = rep(evt,nrow(res_univar_et_interSexe))
+  
+  list_univar_interSex[[i]] = res_univar_et_interSexe
+  
+  i = i + 1
+}
+
+
+rm(i);
+rm(res_univar_et_interSexe);
+rm(cox)
+
+names(list_univar_interSex) = c("deces","chd","stroke")
+```
+
+
+
+```{r}
+ggarrange(nrow=3,ncol = 1,
+plot_pv_HR2(list_univar_interSex[["deces"]])+ theme(legend.position = "none") + ggtitle("Death"),
+plot_pv_HR2(list_univar_interSex[["chd"]]) + scale_color_manual(values =c("black","black","black")) + theme(legend.position = "none")+ ggtitle("CHD"),
+plot_pv_HR2(list_univar_interSex[["stroke"]])+ theme(legend.position = "none")+ ggtitle("Stroke")
+)
+```
+# 1. Interaction ave la mbp
+
+```{r}
+i = 1
+list_univar_intermbp = list()
+for(evt in c("deces", "chd", "stroke")){
+  time = paste0("time_to_",evt)
+res_univar_et_intermbp = data.frame()
+  
+for(var in c(stiffness_anat,stiffness_dyna)){
+    cox = cox_univar(time = time, param = var, evt = evt, data4_std, round = F, interaction = T, var.inter = "mbp")
+    res_univar_et_intermbp = rbind(res_univar_et_intermbp, cox)
+    }
+  
+  res_univar_et_intermbp$Evt = rep(evt,nrow(res_univar_et_intermbp))
+  
+  list_univar_intermbp[[i]] = res_univar_et_intermbp
+  
+  i = i + 1
+}
+
+
+rm(i);
+rm(res_univar_et_intermbp);
+rm(cox)
+
+names(list_univar_intermbp) = c("deces","chd","stroke")
+```
+
+
+
+```{r}
+ggarrange(nrow=3,ncol = 1,
+plot_pv_HR2(list_univar_intermbp[["deces"]])+ theme(legend.position = "none") + scale_color_manual(values =c("black","black","black"))+ ggtitle("Death"),
+plot_pv_HR2(list_univar_intermbp[["chd"]]) + scale_color_manual(values =c("black","black","black")) + theme(legend.position = "none")+ ggtitle("CHD"),
+plot_pv_HR2(list_univar_intermbp[["stroke"]])+ scale_color_manual(values =c("black","black","black"))+ theme(legend.position = "none")+ ggtitle("Stroke")
+)
+```
+
+

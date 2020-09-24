@@ -2,382 +2,438 @@
 title: "Gestion des valeurs manquantes"
 output: html_notebook
 ---
-# 1. Descriptif
-## 1.1 Fonction 
 
 
+# 1. Imputation
 
-Permet de crer une châine de charactère contennant les var contennues dans list_var séparées par un "+"
 ```{r}
-generate_str_var = function(list_var){
-  str = NULL
-  for(var in list_var){
-    tmp = paste("+",var)
-    str = paste0(str,tmp)
+colnames(data2[,c(var_ajust[-11],stiffness_anat,stiffness_dyna,"deces","chd","stroke","time_to_deces","time_to_chd","time_to_stroke")])
+```
+
+```{r}
+mat_pred = matrix(rep(1,29*29), nrow = 29, ncol = 29)
+mat_pred[,c(17,22,24:29)]  = 0
+mat_pred[c(17,22,24:29),]  = 0
+#mat_pred
+mat_pred[17,]
+meth=c("","","polyreg","polyreg","polyreg",
+       "pmm","pmm","pmm","pmm","sample",
+       "sample","sample","logreg","sample","pmm",
+       "pmm","","sample","sample","sample",
+       "sample","","sample","","",
+       
+       "","","","")
+length(meth)
+```
+```{r}
+data2$deces = as.numeric(as.character(data2$deces))
+data2$chd = as.numeric(as.character(data2$chd))
+data2$stroke = as.numeric(as.character(data2$stroke))
+data2$time_to_deces = as.numeric(as.character(data2$time_to_deces))
+data2$time_to_chd = as.numeric(as.character(data2$time_to_chd))
+data2$time_to_stroke = as.numeric(as.character(data2$time_to_stroke))
+```
+
+
+```{r}
+data_mice = mice(data2[,c(var_ajust[-11],stiffness_anat,stiffness_dyna,"deces","chd","stroke","time_to_deces","time_to_chd","time_to_stroke")], m = 5, maxit = 10, predictorMatrix = mat_pred, method = meth)
+```
+```{r}
+data_mice$loggedEvents
+data_mice$method
+```
+```{r}
+plot(data_mice)
+```
+
+```{r}
+for(i in 1:data_mice$m){
+  data_mice$imp$stiffness[,i] = as.numeric(sqrt(1/(data_mice$imp$coeffDist[,i])*1000))
+  data_mice$imp$pwvloc2[,i] =  as.numeric(1/sqrt(data_mice$imp$coeffDist[,i]*1.06))
+}
+```
+```{r}
+sum(is.na(complete(data_mice,1)))
+```
+```{r}
+no_scale_imp = c("sexe","qm16","qm10","diab","plaques","deces","chd","stroke","time_to_deces","time_to_chd","time_to_stroke")
+```
+
+
+# 2. Modèles univariés
+
+```{r}
+HR_deces = c()
+p_deces = c()
+HR_chd = c()
+p_chd= c()
+HR_stroke = c()
+p_stroke= c()
+name = c()
+for(param in c(stiffness_anat,stiffness_dyna)){
+  list_deces = list()
+  list_chd = list()
+  list_stroke = list()
+  name = c(name, as.character(df_echotracking$Tidy[df_echotracking$Missy == param]))
+for(i in 1:data_mice$m){
+  d = complete(data_mice,i)
+for(j in colnames(d)){
+   if(!(j %in% no_scale_imp)){
+    d[,j]= (d[,j]-mean(d[,j]))/sd(d[,j])
+   }
   }
-  str = substr(str,2,nchar(str))
-  return(str)
+  f_deces = as.formula(paste("Surv(time_to_deces,deces)~",param))
+  f_chd = as.formula(paste("Surv(time_to_chd,chd)~",param))
+  f_stroke = as.formula(paste("Surv(time_to_stroke,stroke)~",param))
+  list_deces[[i]] = coxph(f_deces, data = d)
+  list_chd[[i]] = coxph(f_chd, data = d)
+  list_stroke[[i]] = coxph(f_stroke, data = d)
 }
-```
 
-## 1.2 Application à toutes la variables d'échotraking
-
-```{r}
-which(echotracking == "pwvloc")
-```
-
-
-```{r}
-data2$na_et = ifelse(data2
-                     
-                     $nepp3 %in% subset_SubjectsNA(data2, echotracking,"nepp3")$na_id,1,0)
-data2$na_et = as.factor(data2$na_et)
-table(data2$na_et, useNA = "always")
-```
-```{r}
-table("na" = data$na_et, "deces"=data$chd)
-```
-```{r}
-length(which(data$na_et == 0 & data$chd == 1& data$atcdcv == 0))
-```
-
-
-### 1.2.1 Variables d'echotraking
-
-```{r}
-generate_str_var(echotracking)
-```
-
-```{r}
-table_21 = compareGroups(na_et ~ pas_basale__mm_hg_+ pad_basale__mm_hg_+ fc_basale+ diam_tre_en_bm__mm_+ imt___m_+ diam_tre_en_fbm__mm_+ distension___m_+ pwvloc+ dploc+ debut+ dist_rate_moy+ dist_rate_var+ rr_int_moy+ rr_int_var+ lf_dist_rate_t+ hf_dist_rate_t+ hf_dist_rate_c+ lf_rrint_t+ hf_rr_int_t+ hf_rrint_c+ freq_resp+ lf_coh_max+ lf_coh_moy+ lf_gain_max+ lf_gain_moy+ lf_phase+ sens_phase+ hf_c_coh_max+ hf_c_coh_moy+ hf_c_gain_max+ hf_c_gain_moy+ hf_c_phase+ sens_phase_hf_c+ hf_t_coh_max+ hf_t_coh_moy+ hf_t_gain_max+ hf_t_gain_moy+ hf_t_phase+ sens_hf_t_phase+ dist_moy+ dist_var+ cws+ coeffDist+ compli+ wcsa+ young+ pr_sence_de_plaque_s____l__cho+ logain+ logyoung+ dextdias+ stiffness, data = data)
-  
-pvals21 = getResults(table_21, "p.overall")
-
-export_table21 = createTable(table_21)
-
-#export2latex(export_table21, file = "table21.tex")
-```
-
-```{r}
-#export_table21
-```
-
-### 1.2.2 Variables d'évenement
-
-```{r}
-generate_str_var(var_evt)
-```
-
-```{r}
-table_22 = compareGroups(na_et ~deces+ stroke+ aomi+ tdr+ chd, data = data)
-  
-pvals22 = getResults(table_22, "p.overall")
-
-export_table22 = createTable(table_22)
-
-#export2latex(export_table22, file = "table22.tex")
-```
-
-
-```{r}
-#export_table22
-```
-### 1.2.3 Autre variables 
-
-```{r}
-generate_str_var(c(socio_demo,qual_vie,traitement,bio))
-```
-
-```{r}
-table_23 = compareGroups(na_et ~age0+ sexe+ adm14+ educ+ qm9+ qm10+ qm16+ bmi+ diab+ deptot+ epice+ antihta2+ hypolip2+ trb17+ ldl+ bio10+ mbp+ bio6, data = data)
-  
-pvals23 = getResults(table_23, "p.overall")
-
-export_table23 = createTable(table_23)
-
-#export2latex(export_table23, file = "table23.tex")
-```
-
-
-```{r}
-#export_table23
-```
-
-
-## 1.3 Application aux var d'et choisies avec JPE tot
-
-```{r}
-data$na_et_jpe_tot = ifelse(data$nepp3 %in% subset_SubjectsNA(data, var_et_jpe_tot, "nepp3")$na_id,1,0)
-data$na_et_jpe_tot = as.factor(data$na_et_jpe_tot)
-table(data$na_et_jpe_tot)
-```
-### 1.3.1 Variables d'échotracking
-
-```{r}
-generate_str_var(echotracking)
-```
-
-```{r}
-table_31 = compareGroups(na_et_jpe_tot ~ pas_basale__mm_hg_+ pad_basale__mm_hg_+ fc_basale+ diam_tre_en_bm__mm_+ imt___m_+ diam_tre_en_fbm__mm_+ distension___m_+ pwvloc+ dploc+ debut+ dist_rate_moy+ dist_rate_var+ rr_int_moy+ rr_int_var+ lf_dist_rate_t+ hf_dist_rate_t+ hf_dist_rate_c+ lf_rrint_t+ hf_rr_int_t+ hf_rrint_c+ freq_resp+ lf_coh_max+ lf_coh_moy+ lf_gain_max+ lf_gain_moy+ lf_phase+ sens_phase+ hf_c_coh_max+ hf_c_coh_moy+ hf_c_gain_max+ hf_c_gain_moy+ hf_c_phase+ sens_phase_hf_c+ hf_t_coh_max+ hf_t_coh_moy+ hf_t_gain_max+ hf_t_gain_moy+ hf_t_phase+ sens_hf_t_phase+ dist_moy+ dist_var+ cws+ coeffDist+ compli+ wcsa+ young+ pr_sence_de_plaque_s____l__cho+ logain+ logyoung+ dextdias+ stiffness, data = data)
-  
-pvals31 = getResults(table_31, "p.overall")
-
-export_table31 = createTable(table_31)
-
-#export2latex(export_table31, file = "table31.tex")
-```
-
-
-```{r}
-#export_table31
-```
-
-### 1.3.2 Variables evenement
-```{r}
-generate_str_var(var_evt)
-```
-
-```{r}
-table_32 = compareGroups(na_et_jpe_tot ~deces+ stroke+ aomi+ tdr+ chd, data = data)
-  
-pvals32 = getResults(table_32, "p.overall")
-
-export_table32 = createTable(table_32)
-
-#export2latex(export_table32, file = "table32.tex")
-```
-
-
-```{r}
-#export_table32
-```
-### 1.3.3 Autres variables 
-
-```{r}
-generate_str_var(c(socio_demo,qual_vie,traitement,bio))
-```
-
-```{r}
-table_33 = compareGroups(na_et_jpe_tot ~age0+ sexe+ adm14+ educ+ qm9+ qm10+ qm16+ bmi+ diab+ deptot+ epice+ antihta2+ hypolip2+ trb17+ ldl+ bio10+ mbp+ bio6, data = data)
-  
-pvals33 = getResults(table_33, "p.overall")
-
-export_table33 = createTable(table_33)
-
-#export2latex(export_table33, file = "table33.tex")
-```
-
-
-```{r}
-#export_table33
-```
-
-## 1.4 Seulement qq var d'et choisises par JPE 
-
-
-```{r}
-data$na_et_jpe_inf = ifelse(data$nepp3 %in% subset_SubjectsNA(data, var_et_jpe_inf, "nepp3")$na_id,1,0)
-data$na_et_jpe_inf = as.factor(data$na_et_jpe_inf)
-table(data$na_et_jpe_inf)
-```
-
-
-### 1.4.1 Variables d'échotracking
-
-
-```{r}
-generate_str_var(echotracking)
-```
-
-```{r}
-table_41 = compareGroups(na_et_jpe_inf ~ pas_basale__mm_hg_+ pad_basale__mm_hg_+ fc_basale+ diam_tre_en_bm__mm_+ imt___m_+ diam_tre_en_fbm__mm_+ distension___m_+ pwvloc+ dploc+ debut+ dist_rate_moy+ dist_rate_var+ rr_int_moy+ rr_int_var+ lf_dist_rate_t+ hf_dist_rate_t+ hf_dist_rate_c+ lf_rrint_t+ hf_rr_int_t+ hf_rrint_c+ freq_resp+ lf_coh_max+ lf_coh_moy+ lf_gain_max+ lf_gain_moy+ lf_phase+ sens_phase+ hf_c_coh_max+ hf_c_coh_moy+ hf_c_gain_max+ hf_c_gain_moy+ hf_c_phase+ sens_phase_hf_c+ hf_t_coh_max+ hf_t_coh_moy+ hf_t_gain_max+ hf_t_gain_moy+ hf_t_phase+ sens_hf_t_phase+ dist_moy+ dist_var+ cws+ coeffDist+ compli+ wcsa+ young+ pr_sence_de_plaque_s____l__cho+ logain+ logyoung+ dextdias+ stiffness, data = data)
-  
-pvals41 = getResults(table_41, "p.overall")
-
-export_table41 = createTable(table_41)
-
-#export2latex(export_table41, file = "table41.tex")
-```
-
-
-```{r}
-#export_table41
-```
-
-### 1.4.2 Variables evenement
-
-```{r}
-generate_str_var(var_evt)
-```
-
-```{r}
-table_42 = compareGroups(na_et_jpe_inf ~deces+ stroke+ aomi+ tdr+ chd, data = data)
-  
-pvals42 = getResults(table_42, "p.overall")
-
-export_table42 = createTable(table_42)
-
-#export2latex(export_table42, file = "table42.tex")
-```
-### 1.4.3 Autre variables
-```{r}
-generate_str_var(c(socio_demo,qual_vie,traitement,bio))
-```
-
-```{r}
-table_43 = compareGroups(na_et_jpe_inf ~age0+ sexe+ adm14+ educ+ qm9+ qm10+ qm16+ bmi+ diab+ deptot+ epice+ antihta2+ hypolip2+ trb17+ ldl+ bio10+ mbp+ bio6, data = data)
-  
-pvals43 = getResults(table_43, "p.overall")
-
-export_table43 = createTable(table_43)
-
-#export2latex(export_table43, file = "table43.tex")
-```
-
-
-```{r}
-#export_table43
-```
-
-# 1.5 Variables selectionnées par les test univariés (pour deces et chd)
-```{r}
-data2$na_et_univar_deces = ifelse(data2$nepp3 %in% subset_SubjectsNA(data2, var_et_deces_univar, "nepp3")$na_id,1,0)
-data2$na_et_univar_deces = as.factor(data2$na_et_univar_deces)
-table(data2$na_et_univar_deces)
-```
-
-```{r}
-generate_str_var(c(var_et_deces_univar,socio_demo,qual_vie,traitement,bio,"deces","chd"))
-```
-
-```{r}
-table_na_deces = compareGroups(na_et_univar_deces ~ pas_basale__mm_hg_+ fc_basale+ diam_tre_en_bm__mm_+ imt___m_+ diam_tre_en_fbm__mm_+ pwvloc+ dploc+ rr_int_moy+ lf_dist_rate_t+ hf_dist_rate_t+ hf_dist_rate_c+ hf_c_phase+ hf_t_gain_moy+ hf_t_phase+ coeffDist+ wcsa+ pr_sence_de_plaque_s____l__cho+ logain+ logyoung+ dextdias+ stiffness+ age0+ age_cat+ sexe+ adm14+ educ+ qm9+ qm10+ qm16+ bmi+ diab+ deptot+ epice+ antihta2+ hypolip2+ trb17+ ldl+ bio10+ mbp+ bio6+ pa_cat+ mbp_cat+ deces+ chd, data = data2)
-  
-
-
-export_table_na_deces = createTable(table_na_deces)
-
-export_table_na_deces
-```
-
-# 2. Imputation
-
-## 2.1 Imputation par la moyenne ou le mode
-```{r}
-getmode <- function(v) {
-   uniqv <- unique(v)
-   uniqv[which.max(tabulate(match(v, uniqv)))]
+list_deces = as.mira(list_deces)
+list_chd = as.mira(list_chd)
+list_stroke = as.mira(list_stroke)
+
+pool_deces = pool(list_deces)
+pool_chd = pool(list_chd)
+pool_stroke = pool(list_stroke)
+
+sum_pool_deces = summary(pool_deces)
+sum_pool_chd = summary(pool_chd)
+sum_pool_stroke = summary(pool_stroke)
+
+HR_deces = c(HR_deces, exp(sum_pool_deces$estimate))
+HR_chd = c(HR_chd, exp(sum_pool_chd$estimate))
+HR_stroke = c(HR_stroke, exp(sum_pool_stroke$estimate))
+p_deces = c(p_deces, sum_pool_deces$p.value)
+p_chd = c(p_chd, sum_pool_chd$p.value)
+p_stroke = c(p_stroke, sum_pool_stroke$p.value)
 }
+df_univar_imp_deces = data.frame("Name" = name,
+                           "HR" = HR_deces,
+                           "p" = p_deces)
+df_univar_imp_deces$signif = ifelse(df_univar_imp_deces$p<=0.05,1,0)
+df_univar_imp_chd = data.frame("Name" = name,
+                           "HR" = HR_chd,
+                           "p" = p_chd)
+df_univar_imp_chd$signif = ifelse(df_univar_imp_chd$p<=0.05,1,0)
+df_univar_imp_stroke = data.frame("Name" = name,
+                           "HR" = HR_stroke,
+                           "p" = p_stroke)
+
+df_univar_imp_stroke$signif = ifelse(df_univar_imp_stroke$p<=0.05,1,0)
+df_univar_imp_deces
+df_univar_imp_chd
+df_univar_imp_stroke
+```
+```{r}
+cox_univar_deces_imp = df_univar_imp_deces$Name[df_univar_imp_deces$signif == 1]
+cox_univar_chd_imp = df_univar_imp_chd$Name[df_univar_imp_chd$signif == 1]
+cox_univar_stroke_imp = df_univar_imp_stroke$Name[df_univar_imp_stroke$signif == 1]
 ```
 
-
-
-
-
-On n'impute que les variables ayant moins de 20 $\%$ de données manquantes.
+# 3. Modèles multivariés
+## Modèle 1
 
 ```{r}
-data_imp_triv = data
-for(var in colnames(data_imp_triv)){
-  #print(var)
-  #print(sum(is.na(data_imp_triv[,var])))
-  if( sum(is.na(data_imp_triv[,var])) / dim(data_imp_triv)[1] *100 < 20){
-    if(is.numeric(data_imp_triv[,var]))
-      data_imp_triv[is.na(data_imp_triv[,var]),var] = mean(data_imp_triv[,var], na.rm = T)
-    else if(is.factor(data[,var]))
-      data_imp_triv[is.na(data_imp_triv[,var]),var] = getmode(data_imp_triv[,var])
+HR_deces = c()
+p_deces = c()
+HR_chd = c()
+p_chd= c()
+HR_stroke = c()
+p_stroke= c()
+name = c()
+for(param in c(stiffness_anat,stiffness_dyna)){
+  list_deces = list()
+  list_chd = list()
+  list_stroke = list()
+  name = c(name, as.character(df_echotracking$Tidy[df_echotracking$Missy == param]))
+for(i in 1:data_mice$m){
+   d = complete(data_mice,i)
+  for(j in colnames(d)){
+   if(!(j %in% no_scale_imp)){
+    d[,j]= (d[,j]-mean(d[,j]))/sd(d[,j])
+   }
   }
-  #print(sum(is.na(data_imp_triv[,var])))
+  f_deces = as.formula(paste("Surv(time_to_deces,deces)~",param, "+ age0 + sexe"))
+  f_chd = as.formula(paste("Surv(time_to_chd,chd)~",param, "+ age0 + sexe"))
+  f_stroke = as.formula(paste("Surv(time_to_stroke,stroke)~",param, "+ age0 + sexe"))
+  list_deces[[i]] = coxph(f_deces, data = d)
+  list_chd[[i]] = coxph(f_chd, data = d)
+  list_stroke[[i]] = coxph(f_stroke, data = d)
 }
+list_deces = as.mira(list_deces)
+list_chd = as.mira(list_chd)
+list_stroke = as.mira(list_stroke)
+pool_deces = pool(list_deces)
+pool_chd = pool(list_chd)
+pool_stroke = pool(list_stroke)
+sum_pool_deces = summary(pool_deces)
+sum_pool_chd = summary(pool_chd)
+sum_pool_stroke = summary(pool_stroke)
+HR_deces = c(HR_deces, exp(sum_pool_deces$estimate[1]))
+HR_chd = c(HR_chd, exp(sum_pool_chd$estimate[1]))
+HR_stroke = c(HR_stroke, exp(sum_pool_stroke$estimate[1]))
+p_deces = c(p_deces, sum_pool_deces$p.value[1])
+p_chd = c(p_chd, sum_pool_chd$p.value[1])
+p_stroke = c(p_stroke, sum_pool_stroke$p.value[1])
+  }
+
+
+df_m1_imp_deces = data.frame("Name" = name,
+                            "HR" = HR_deces,
+                            "p" = p_deces)
+df_m1_imp_deces$signif = ifelse(df_m1_imp_deces$p<=0.05,1,0)
+df_m1_imp_chd = data.frame("Name" = name,
+                            "HR" = HR_chd,
+                            "p" = p_chd)
+df_m1_imp_chd$signif = ifelse(df_m1_imp_chd$p<=0.05,1,0)
+df_m1_imp_stroke = data.frame("Name" = name,
+                            "HR" = HR_stroke,
+                            "p" = p_stroke)
+df_m1_imp_stroke$signif = ifelse(df_m1_imp_stroke$p<=0.05,1,0)
+df_m1_imp_deces
+df_m1_imp_chd
+df_m1_imp_stroke
 ```
 
 
-
-
-
-
-
-## 2.2 Imputation avec mice, all var = predictors
+## Modèle 2
 
 ```{r}
-data_mice = data2[,c(param_et_select_univar, "age0", "sexe", "qm16" ,"qm10", "diab", "bio10", "bmi", "mbp")]
-```
-```{r}
-colnames(data_mice)
-```
-
-```{r}
-gg_miss_var(data_mice)
-```
-
-```{r}
-imp_mice_allPred = mice(data_mice, m = 1)
-```
-```{r}
-imp_mice_allPred$loggedEvents
-```
-
-```{r}
-imp_mice_allPred$method
-```
-
-```{r}
-#p_imp_mice = densityplot(imp_mice_allPred)
-```
-
-## 2.3 Imputation sans hyp de modèle avec sample
-
-```{r}
-imp_mice_sample = mice(data_mice, method = rep("sample", dim(data_mice)[2]))
-```
-
-
-# 3. Graphes diagnostics et comparatifs des méthodes.
-
-
-```{r}
-compare_dist = function(var){
-  
-  plot(density(data2[,var], na.rm = T), col = rgb(1,0,0, alpha = .2) , lwd = 10, main = "Comparison of the densities with several imputation methods", xlab = var,
-       ylim = c( min(  min(density(data2[,var], na.rm = T)$y) , min(density(data_imp_triv[,var])$y) )
-                 ,
-                max(   max(density(data2[,var], na.rm = T)$y) , max(density(data_imp_triv[,var])$y) )
-                )
-       )
-  #abline(v = mean(data2[,var], na.rm = T), col = "red")
-  
-  lines(density(complete(imp_mice_allPred)[,var]), col = "green")
-  lines(density(complete(imp_mice_sample)[,var]), col = "blue")
-  lines(density(data_imp_triv[,var]), col = "purple")
-  
-  legend("topright", legend = c("Observed Data","MICE", "Sample", "Mean/Mode"),col=c( rgb(1,0,0, alpha = .2),"green", "blue", "purple"), lty = 1, title ="Methods of Imputation ") 
-  
+HR_deces = c()
+p_deces = c()
+HR_chd = c()
+p_chd= c()
+HR_stroke = c()
+p_stroke= c()
+name = c()
+for(param in c(stiffness_anat,stiffness_dyna)){
+  list_deces = list()
+  list_chd = list()
+  list_stroke = list()
+  name = c(name, as.character(df_echotracking$Tidy[df_echotracking$Missy == param]))
+for(i in 1:data_mice$m){
+   d = complete(data_mice,i)
+for(j in colnames(d)){
+   if(!(j %in% no_scale_imp)){
+    d[,j]= (d[,j]-mean(d[,j]))/sd(d[,j])
+   }
+  }
+  f_deces = as.formula(paste("Surv(time_to_deces,deces)~",param, "+ age0 + sexe + qm16 + qm10+ bmi"))
+  f_chd = as.formula(paste("Surv(time_to_chd,chd)~",param, "+ age0 + sexe+ qm16 + qm10 + bmi"))
+  f_stroke = as.formula(paste("Surv(time_to_stroke,stroke)~",param, "+ age0 + sexe+ qm16 + qm10 + bmi"))
+  list_deces[[i]] = coxph(f_deces, data = d)
+  list_chd[[i]] = coxph(f_chd, data = d)
+  list_stroke[[i]] = coxph(f_stroke, d)
 }
+list_deces = as.mira(list_deces)
+list_chd = as.mira(list_chd)
+list_stroke = as.mira(list_stroke)
+pool_deces = pool(list_deces)
+pool_chd = pool(list_chd)
+pool_stroke = pool(list_stroke)
+sum_pool_deces = summary(pool_deces)
+sum_pool_chd = summary(pool_chd)
+sum_pool_stroke = summary(pool_stroke) 
+HR_deces = c(HR_deces, exp(sum_pool_deces$estimate[1]))
+HR_chd = c(HR_chd, exp(sum_pool_chd$estimate[1]))
+HR_stroke = c(HR_stroke, exp(sum_pool_stroke$estimate[1]))
+p_deces = c(p_deces, sum_pool_deces$p.value[1])
+p_chd = c(p_chd, sum_pool_chd$p.value[1])
+p_stroke = c(p_stroke, sum_pool_stroke$p.value[1])
+  }
+
+
+df_m2_imp_deces = data.frame("Name" = name,
+                            "HR" = HR_deces,
+                            "p" = p_deces)
+df_m2_imp_deces$signif = ifelse(df_m2_imp_deces$p<=0.05,1,0)
+df_m2_imp_chd = data.frame("Name" = name,
+                            "HR" = HR_chd,
+                            "p" = p_chd)
+df_m2_imp_chd$signif = ifelse(df_m2_imp_chd$p<=0.05,1,0)
+df_m2_imp_stroke = data.frame("Name" = name,
+                            "HR" = HR_stroke,
+                            "p" = p_stroke)
+df_m2_imp_stroke$signif = ifelse(df_m2_imp_stroke$p<=0.05,1,0)
+df_m2_imp_deces
+df_m2_imp_chd
+df_m2_imp_stroke
 ```
+
+## Modèle 3
 ```{r}
-par(mfrow = c(1,2))
-for(i in var_et_jpe_tot){
-  compare_dist(i)
+HR_deces = c()
+p_deces = c()
+HR_chd = c()
+p_chd= c()
+HR_stroke = c()
+p_stroke= c()
+name = c()
+for(param in c(stiffness_anat,stiffness_dyna)){
+  list_deces = list()
+  list_chd = list()
+  list_stroke = list()
+  name = c(name, as.character(df_echotracking$Tidy[df_echotracking$Missy == param]))
+for(i in 1:data_mice$m){
+   d = complete(data_mice,i)
+for(j in colnames(d)){
+   if(!(j %in% no_scale_imp)){
+    d[,j]= (d[,j]-mean(d[,j]))/sd(d[,j])
+   }
+  }
+  f_deces = as.formula(paste("Surv(time_to_deces,deces)~",param, "+ age0 + sexe + qm16 + qm10+ bmi + diab + bio10 + trb17 + ldl"))
+  f_chd = as.formula(paste("Surv(time_to_chd,chd)~",param, "+ age0 + sexe+ qm16 + qm10 + bmi+ diab + bio10 + trb17 + ldl"))
+  f_stroke = as.formula(paste("Surv(time_to_stroke,stroke)~",param, "+ age0 + sexe+ qm16 + qm10 + bmi+ diab + bio10 + trb17 + ldl"))
+  list_deces[[i]] = coxph(f_deces, data = d)
+  list_chd[[i]] = coxph(f_chd, data = d)
+  list_stroke[[i]] = coxph(f_stroke, data = d)
 }
-#compare_dist("diam_tre_en_bm__mm_")
+list_deces = as.mira(list_deces)
+list_chd = as.mira(list_chd)
+list_stroke = as.mira(list_stroke)
+pool_deces = pool(list_deces)
+pool_chd = pool(list_chd)
+pool_stroke = pool(list_stroke)
+sum_pool_deces = summary(pool_deces)
+sum_pool_chd = summary(pool_chd)
+sum_pool_stroke = summary(pool_stroke) 
+HR_deces = c(HR_deces, exp(sum_pool_deces$estimate[1]))
+HR_chd = c(HR_chd, exp(sum_pool_chd$estimate[1]))
+HR_stroke = c(HR_stroke, exp(sum_pool_stroke$estimate[1]))
+p_deces = c(p_deces, sum_pool_deces$p.value[1])
+p_chd = c(p_chd, sum_pool_chd$p.value[1])
+p_stroke = c(p_stroke, sum_pool_stroke$p.value[1])
+  }
+
+
+df_m3_imp_deces = data.frame("Name" = name,
+                            "HR" = HR_deces,
+                            "p" = p_deces)
+df_m3_imp_deces$signif = ifelse(df_m3_imp_deces$p<=0.05,1,0)
+df_m3_imp_chd = data.frame("Name" = name,
+                            "HR" = HR_chd,
+                            "p" = p_chd)
+df_m3_imp_chd$signif = ifelse(df_m3_imp_chd$p<=0.05,1,0)
+df_m3_imp_stroke = data.frame("Name" = name,
+                            "HR" = HR_stroke,
+                            "p" = p_stroke)
+df_m3_imp_stroke$signif = ifelse(df_m3_imp_stroke$p<=0.05,1,0)
+df_m3_imp_deces
+df_m3_imp_chd
+df_m3_imp_stroke
+```
+
+
+## Modèle 4 
+
+```{r}
+HR_deces = c()
+p_deces = c()
+HR_chd = c()
+p_chd= c()
+HR_stroke = c()
+p_stroke= c()
+name = c()
+for(param in c(stiffness_anat,stiffness_dyna)){
+  list_deces = list()
+  list_chd = list()
+  list_stroke = list()
+  name = c(name, as.character(df_echotracking$Tidy[df_echotracking$Missy == param]))
+for(i in 1:data_mice$m){
+   d = complete(data_mice,i)
+for(j in colnames(d)){
+   if(!(j %in% no_scale_imp)){
+    d[,j]= (d[,j]-mean(d[,j]))/sd(d[,j])
+   }
+  }
+  f_deces = as.formula(paste("Surv(time_to_deces,deces)~",param, "+ age0 + sexe + qm16 + qm10+ bmi + diab + bio10 + trb17 + ldl + mbp"))
+  f_chd = as.formula(paste("Surv(time_to_chd,chd)~",param, "+ age0 + sexe+ qm16 + qm10 + bmi+ diab + bio10 + trb17 + ldl + mbp"))
+  f_stroke = as.formula(paste("Surv(time_to_stroke,stroke)~",param, "+ age0 + sexe+ qm16 + qm10 + bmi+ diab + bio10 + trb17 + ldl +mbp"))
+  list_deces[[i]] = coxph(f_deces, data = d)
+  list_chd[[i]] = coxph(f_chd, data = d)
+  list_stroke[[i]] = coxph(f_stroke, d)
+}
+list_deces = as.mira(list_deces)
+list_chd = as.mira(list_chd)
+list_stroke = as.mira(list_stroke)
+pool_deces = pool(list_deces)
+pool_chd = pool(list_chd)
+pool_stroke = pool(list_stroke)
+sum_pool_deces = summary(pool_deces)
+sum_pool_chd = summary(pool_chd)
+sum_pool_stroke = summary(pool_stroke) 
+HR_deces = c(HR_deces, exp(sum_pool_deces$estimate[1]))
+HR_chd = c(HR_chd, exp(sum_pool_chd$estimate[1]))
+HR_stroke = c(HR_stroke, exp(sum_pool_stroke$estimate[1]))
+p_deces = c(p_deces, sum_pool_deces$p.value[1])
+p_chd = c(p_chd, sum_pool_chd$p.value[1])
+p_stroke = c(p_stroke, sum_pool_stroke$p.value[1])
+  }
+
+
+df_m4_imp_deces = data.frame("Name" = name,
+                            "HR" = HR_deces,
+                            "p" = p_deces)
+df_m4_imp_deces$signif = ifelse(df_m4_imp_deces$p<=0.05,1,0)
+df_m4_imp_chd = data.frame("Name" = name,
+                            "HR" = HR_chd,
+                            "p" = p_chd)
+df_m4_imp_chd$signif = ifelse(df_m4_imp_chd$p<=0.05,1,0)
+df_m4_imp_stroke = data.frame("Name" = name,
+                            "HR" = HR_stroke,
+                            "p" = p_stroke)
+df_m4_imp_stroke$signif = ifelse(df_m4_imp_stroke$p<=0.05,1,0)
+df_m4_imp_deces
+df_m4_imp_chd
+df_m4_imp_stroke
+```
+
+#4. Tableau comparatifs complete case et données imputées
+
+```{r}
+compar_univar_deces = cbind(as.character(df_univar_imp_deces$Name),
+                            round(df_univar_imp_deces$HR,2),
+                            ifelse(df_univar_imp_deces$p<0.001,"<0.001",signif(df_univar_imp_deces$p,3)),
+                            round(list_univar_tos_std$deces$HR,2),
+                            ifelse(list_univar_tos_std$deces$p.value<0.001,"<0.001",signif(list_univar_tos_std$deces$p.value,3))
+)
+compar_univar_deces 
+```
+
+```{r}
+kable(compar_univar_deces, col.names = c("","HR","p","HR","p")) %>% kable_styling(full_width = F) %>% add_header_above(c(" " = 1, "Imputed Data" = 2, "Complete case" = 2))
 ```
 
 
 ```{r}
-data_clean = complete(imp_mice_allPred)
-data_f = cbind(data_clean, data2[,c("nepp3","adm14","educ","qm9","deptot","epice",traitement,"bio6","ldl","trb17")])
-```
-```{r}
-data_f$time_to_deces = data2$time_to_deces
-data_f$deces = data2$deces
-data_f$time_to_chd = data2$time_to_chd
-data_f$chd = data2$chd
-```
-```{r}
-dim(data_f)
+compar_univar_chd = cbind(as.character(df_univar_imp_chd$Name),
+                            round(df_univar_imp_chd$HR,2),
+                            ifelse(df_univar_imp_chd$p<0.001,"<0.001",signif(df_univar_imp_chd$p,3)),
+                            round(list_univar_tos_std$chd$HR,2),
+                            ifelse(list_univar_tos_std$chd$p.value<0.001,"<0.001",signif(list_univar_tos_std$chd$p.value,3))
+)
+compar_univar_chd 
 ```
 
+```{r}
+kable(compar_univar_chd, col.names = c("","HR","p","HR","p")) %>% kable_styling(full_width = F) %>% add_header_above(c(" " = 1, "Imputed Data" = 2, "Complete case" = 2))
+```
 
+```{r}
+compar_univar_stroke = cbind(as.character(df_univar_imp_stroke$Name),
+                            round(df_univar_imp_stroke$HR,2),
+                            ifelse(df_univar_imp_stroke$p<0.001,"<0.001",signif(df_univar_imp_stroke$p,3)),
+                            round(list_univar_tos_std$stroke$HR,2),
+                            ifelse(list_univar_tos_std$stroke$p.value<0.001,"<0.001",signif(list_univar_tos_std$stroke$p.value,3))
+)
+compar_univar_stroke 
+```
+
+```{r}
+kable(compar_univar_stroke, col.names = c("","HR","p","HR","p")) %>% kable_styling(full_width = F) %>% add_header_above(c(" " = 1, "Imputed Data" = 2, "Complete case" = 2))
+```
 
 
 
