@@ -60,6 +60,13 @@ data4_std$km3 = km3_sj_dummy$cluster
 data4_std$km3 =factor(data4_std$km3)
 ```
 ```{r}
+ggsurvplot(surv_fit(Surv(time_to_deces, deces) ~ factor(km3), data = data4), ylim = c(0.92,1),conf.int = TRUE, risk.table = TRUE, pval = TRUE, censor.shape = "|")
+ggsurvplot(surv_fit(Surv(time_to_chd, chd) ~ factor(km3), data = data4), ylim = c(0.92,1),conf.int = TRUE, risk.table = TRUE, pval = TRUE, censor.shape = "|")
+ggsurvplot(surv_fit(Surv(time_to_stroke, stroke) ~ factor(km3), data = data4),conf.int = TRUE, risk.table = TRUE, pval = TRUE, censor.shape = "|")
+```
+
+
+```{r}
 paste0(c(stiffness_anat,stiffness_dyna), collapse = "+")
 ```
 
